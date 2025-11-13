@@ -39,3 +39,29 @@
 
 # debug information files
 *.dwo
+
+.vscode
+
+.DS_Store
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+.idea/
+*.log
+*.tmp
+*.swp
+*.bak
+*.orig
+*.rej
+*.sublime-project
+*.sublime-workspace
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+coverage/
+npm-debug.log*
