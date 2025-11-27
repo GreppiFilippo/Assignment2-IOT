@@ -4,13 +4,12 @@
  * This generated file contains a sample Java application project to get you started.
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/9.2.0/userguide/building_java_projects.html in the Gradle documentation.
  */
-
 plugins {
-    // Apply the application plugin to add support for building a CLI application in Java.
     java
     application
     id("com.gradleup.shadow") version "9.2.2"
     id("org.danilopianini.gradle-java-qa") version "1.155.0"
+    id("ru.akman.vscode-tasks") version "0.4.0"
 }
 
 repositories {
@@ -26,29 +25,31 @@ val javaFXModules = listOf(
     "graphics"
 )
 
-val supportedPlatforms = listOf("linux", "mac", "win")
+val supportedPlatforms = listOf("linux", "mac", "win", "mac-aarch64")
 
 dependencies {
     // Use JUnit Jupiter for testing.
-    testImplementation(libs.junit.jupiter)
+    testImplementation("org.junit.jupiter:junit-jupiter:6.0.0")
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.9.8")
 
-    // JavaFX: comment out if you do not need them
-    val javaFxVersion = "24.0.2"
-    implementation("org.openjfx:javafx:$javaFxVersion")
-    for (platform in supportedPlatforms) {
-        for (module in javaFXModules) {
-            implementation("org.openjfx:javafx-$module:$javaFxVersion:$platform")
-        }
+    val javaFxVersion = "23.0.2"
+    // Detect current OS/arch and add only the matching JavaFX native artifacts.
+    val osName = System.getProperty("os.name").lowercase()
+    val osArch = System.getProperty("os.arch").lowercase()
+    val currentPlatform = when {
+        osName.contains("mac") && (osArch.contains("aarch") || osArch.contains("arm")) -> "mac-aarch64"
+        osName.contains("mac") -> "mac"
+        osName.contains("win") -> "win"
+        else -> "linux"
+    }
+    for (module in javaFXModules) {
+        implementation("org.openjfx:javafx-$module:$javaFxVersion:$currentPlatform")
     }
 
     // The BOM (Bill of Materials) synchronizes all the versions of Junit coherently.
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
-
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // This dependency is used by the application.
-    implementation(libs.guava)
     // JSSC for serial communication with Arduino
     implementation("io.github.java-native:jssc:2.10.2")
 }
@@ -63,6 +64,38 @@ java {
 application {
     // Define the main class for the application.
     mainClass = "it.unibo.dronehangar.remote.App"
+    // Ensure JavaFX modules are available to the JVM at runtime
+    applicationDefaultJvmArgs = listOf("--add-modules=javafx.controls,javafx.fxml,javafx.graphics,javafx.swing")
+}
+
+// Configure the 'run' task so JavaFX jars are placed on the module-path (not classpath).
+tasks.named<org.gradle.api.tasks.JavaExec>("run") {
+    doFirst {
+        // Collect JavaFX jars from the task classpath
+        val javafxJars = classpath.filter {
+            val n = it.name.lowercase()
+            n.startsWith("javafx-") || n.contains("javafx")
+        }
+
+        // If none found, fail early with a useful message
+        if (javafxJars.isEmpty) {
+            throw GradleException("JavaFX runtime jars not found in runtime classpath. Check dependencies and platform classifier.")
+        }
+
+        // Remove JavaFX jars from the classpath (they must be on module-path)
+        classpath = classpath.filter {
+            val n = it.name.lowercase()
+            !(n.startsWith("javafx-") || n.contains("javafx"))
+        }
+
+        // Set JVM args: module-path + add-modules
+        // ensure modules are prefixed with "javafx." (e.g. "javafx.fxml")
+        val addModulesArg = javaFXModules.joinToString(",") { "javafx.$it" }
+        jvmArgs = listOf(
+            "--module-path", javafxJars.asPath,
+            "--add-modules", addModulesArg
+        )
+    }
 }
 
 tasks.named<Test>("test") {
