@@ -396,3 +396,5 @@ build
 bin
 
 *.bkp
+
+report.pdf
