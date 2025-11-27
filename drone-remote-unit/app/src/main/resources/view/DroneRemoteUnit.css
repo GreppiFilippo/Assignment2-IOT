@@ -1,11 +1,14 @@
 /* Scroll Pane */
 .scrollPane {
     -fx-background: #2b2b2b;
+    background: #2b2b2b;
+    background-color: #2b2b2b;
     -fx-background-color: #2b2b2b;
 }
 
 .scrollPane > .viewport {
     -fx-background-color: transparent;
+    background-color: transparent;
 }
 
 /* Main Container */
@@ -60,6 +63,26 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 10, 0.2, 0, 2);
 }
 
+/* Section spacing (for VBoxes with styleClass 'section') */
+.section {
+    -fx-spacing: 10; /* vertical spacing between children */
+}
+
+/* Content container inside ScrollPane */
+.content {
+    -fx-padding: 20; /* match previous Insets 20 */
+    padding: 20px;
+    -fx-spacing: 20; /* space between sections */
+}
+
+/* TilePane used for command buttons */
+.button-tile {
+    -fx-hgap: 15;
+    -fx-vgap: 10;
+    -fx-pref-tile-width: 140;
+    -fx-pref-tile-height: 40;
+}
+
 /* Section Title */
 .section-title {
     -fx-text-fill: #ffffff;
@@ -76,54 +99,23 @@
 }
 
 /* Buttons */
-.btn {
-    -fx-padding: 8 16 8 16;
-    padding: 8px 16px 8px 16px;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    border-radius: 10px;
-    -fx-border-color: rgba(255,255,255,0.06);
-    border-color: rgba(255,255,255,0.06);
-    -fx-border-width: 1;
-    border-width: 1px;
-    -fx-font-weight: 600;
-    font-weight: 600;
+.button {
+    -fx-background-color: #4a9eff;
+    background-color: #4a9eff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    font-weight: bold;
     -fx-cursor: hand;
     cursor: pointer;
+    -fx-background-radius: 8;
+    border-radius: 8;
+    -fx-padding: 8 16 8 16;
+    padding: 8px 16px 8px 16px;
 }
 
-.btn-takeoff {
-    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #5dd06a, #4CAF50);
-    background-color: linear-gradient(from 0% 0% to 0% 100%, #5dd06a, #4CAF50);
-    -fx-text-fill: white;
-    -fx-background-radius: 10;
-    -fx-font-size: 14px;
-    font-size: 14px;
-}
-
-.btn-takeoff:hover {
-    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #67e273, #45a049);
-    background-color: linear-gradient(from 0% 0% to 0% 100%, #67e273, #45a049);
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 8, 0.15, 0, 2);
-}
-
-.btn-landing {
-    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #4fa8ff, #2196F3);
-    background-color: linear-gradient(from 0% 0% to 0% 100%, #4fa8ff, #2196F3);
-    -fx-text-fill: white;
-    -fx-background-radius: 10;
-    -fx-font-size: 14px;
-    font-size: 14px;
-}
-
-.btn-landing:hover {
-    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #61b8ff, #0b7dda);
-    background-color: linear-gradient(from 0% 0% to 0% 100%, #61b8ff, #0b7dda);
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 8, 0.15, 0, 2);
-}
-
-.btn:focused {
-    -fx-effect: dropshadow(gaussian, rgba(74,158,255,0.18), 14, 0.2, 0, 4);
+.button:hover {
+    -fx-background-color: #3a8dde;
+    background-color: #3a8dde;
 }
 
 /* Labels */
@@ -168,4 +160,40 @@
     background-color: transparent;
     -fx-padding: 10 12 10 12;
     padding: 10px 12px 10px 12px;
+}
+
+/* Serial ComboBox */
+.serialComboBox {
+    -fx-background-color: #3a3a3a;
+    background-color: #3a3a3a;
+    -fx-border-color: #555555;
+    border-color: #555555;
+    -fx-border-radius: 8;
+    border-radius: 8;
+    -fx-padding: 6 10 6 10;
+    padding: 6px 10px 6px 10px;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    cursor: pointer;
+}
+.serialComboBox .list-cell {
+    -fx-background-color: #3a3a3a;
+    background-color: #3a3a3a;
+    -fx-text-fill: #e0e0e0;
+    -fx-cursor: hand;
+    cursor: pointer;
+}
+.serialComboBox .list-cell:selected {
+    -fx-background-color: #606060;
+    background-color: #606060;
+    -fx-text-fill: #e0e0e0;
+    -fx-cursor: hand;
+    cursor: pointer;
+}
+.serialComboBox:focused, .btn:focused {
+    -fx-border-color: #4a9eff;
+    border-color: #4a9eff;
+    -fx-effect: dropshadow(gaussian, rgba(74,158,255,0.3), 10, 0.2, 0, 2);
+    -fx-cursor: hand;
+    cursor: pointer;
 }
