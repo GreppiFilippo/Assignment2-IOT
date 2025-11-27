@@ -44,7 +44,6 @@
 
 .DS_Store
 *.class
-*.jar
 *.war
 *.ear
 *.iml
