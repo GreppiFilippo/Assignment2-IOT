@@ -1,0 +1,181 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.0.3 Chrome/140.0.7339.249 Electron/38.7.0 Safari/537.36" version="29.0.3">
+  <diagram name="Page-1" id="BOKApr1DkRcAJ75As6SX">
+    <mxGraphModel dx="1426" dy="841" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-3" value="DroneInside" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeLast=1;container=0;collapsible=0;rounded=1;arcSize=30;swimlaneFillColor=#FFFFFF;dropTarget=0;" parent="1" vertex="1">
+          <mxGeometry x="100" y="150" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-4" value="entry / turn on L1; turn off L2 and L3; LCD shows &quot;DRONE INSIDE&quot;&lt;div&gt;do / close door&lt;/div&gt;&lt;div&gt;//TODO CHECK&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-3" vertex="1">
+          <mxGeometry y="30" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-5" value="" style="html=1;verticalAlign=middle;endArrow=open;endSize=8;strokeColor=#000000;rounded=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;labelPosition=left;verticalLabelPosition=middle;align=right;" parent="1" source="TCQULFQEQoTYiuW9iuxr-3" target="TCQULFQEQoTYiuW9iuxr-7" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-180" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-9" value="DRU sends OPEN cmd" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="TCQULFQEQoTYiuW9iuxr-5" vertex="1" connectable="0">
+          <mxGeometry x="0.1036" relative="1" as="geometry">
+            <mxPoint x="-16" y="-3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-6" value="TakeOff" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeLast=1;container=0;collapsible=0;rounded=1;arcSize=30;swimlaneFillColor=#FFFFFF;dropTarget=0;" parent="1" vertex="1">
+          <mxGeometry x="485" y="150" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-7" value="entry / LCD shows &quot;TAKE OFF&quot;&lt;div&gt;do / open door&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-6" vertex="1">
+          <mxGeometry y="30" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-10" value="" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=default;" parent="1" vertex="1">
+          <mxGeometry x="90" y="40" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-11" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=default;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;curved=1;" parent="1" source="TCQULFQEQoTYiuW9iuxr-10" target="TCQULFQEQoTYiuW9iuxr-3" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-170" y="80" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-12" value="/ doorOpen := FALSE" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="TCQULFQEQoTYiuW9iuxr-11" vertex="1" connectable="0">
+          <mxGeometry x="-0.2841" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-21" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="TCQULFQEQoTYiuW9iuxr-28" target="TCQULFQEQoTYiuW9iuxr-22" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="130" y="319.5" as="sourcePoint" />
+            <mxPoint x="-55" y="319.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-30" value="[getDroneDistance &amp;gt; D1 &amp;amp;&amp;amp; current time - t &amp;gt; T1]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="TCQULFQEQoTYiuW9iuxr-21" vertex="1" connectable="0">
+          <mxGeometry x="0.4981" y="1" relative="1" as="geometry">
+            <mxPoint x="-1" y="-70" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-18" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="TCQULFQEQoTYiuW9iuxr-7" target="TCQULFQEQoTYiuW9iuxr-27" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-245.0000000000001" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-19" value="[doorOpen]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="TCQULFQEQoTYiuW9iuxr-18" vertex="1" connectable="0">
+          <mxGeometry x="-0.0158" y="-2" relative="1" as="geometry">
+            <mxPoint x="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-22" value="ClosingDoor" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeLast=1;container=0;collapsible=0;rounded=1;arcSize=30;swimlaneFillColor=#FFFFFF;dropTarget=0;" parent="1" vertex="1">
+          <mxGeometry x="470" y="760" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-23" value="do / close door" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-22" vertex="1">
+          <mxGeometry y="30" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-27" value="DroneTakingOff" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeLast=1;container=0;collapsible=0;rounded=1;arcSize=30;swimlaneFillColor=#FFFFFF;dropTarget=0;" parent="1" vertex="1">
+          <mxGeometry x="480" y="400" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;curved=1;" parent="TCQULFQEQoTYiuW9iuxr-27" source="TCQULFQEQoTYiuW9iuxr-28" target="TCQULFQEQoTYiuW9iuxr-28" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="70" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="190" y="30" />
+              <mxPoint x="270" y="30" />
+              <mxPoint x="270" y="68" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-35" value="[getDroneDistance &amp;lt; D1]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="TCQULFQEQoTYiuW9iuxr-34" vertex="1" connectable="0">
+          <mxGeometry x="0.0425" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-28" value="entry /&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(237, 237, 237));&quot;&gt;t := current time&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-27" vertex="1">
+          <mxGeometry y="30" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="TCQULFQEQoTYiuW9iuxr-37" target="TCQULFQEQoTYiuW9iuxr-43" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-45" value="DRU sends OPEN cmd" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="TCQULFQEQoTYiuW9iuxr-44" vertex="1" connectable="0">
+          <mxGeometry x="0.0407" y="-3" relative="1" as="geometry">
+            <mxPoint x="-3" y="7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-37" value="DroneOutside" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeLast=1;container=0;collapsible=0;rounded=1;arcSize=30;swimlaneFillColor=#FFFFFF;dropTarget=0;" parent="1" vertex="1">
+          <mxGeometry x="100" y="760" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-38" value="entry / LCD shows &quot;DRONE OUT&quot;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-37" vertex="1">
+          <mxGeometry y="30" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.25;exitDx=0;exitDy=0;" parent="1" source="TCQULFQEQoTYiuW9iuxr-23" target="TCQULFQEQoTYiuW9iuxr-37" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="480" y="360" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-40" value="[!doorOpen]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="TCQULFQEQoTYiuW9iuxr-39" vertex="1" connectable="0">
+          <mxGeometry x="-0.1743" y="-2" relative="1" as="geometry">
+            <mxPoint x="-13" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-48" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="TCQULFQEQoTYiuW9iuxr-42" target="TCQULFQEQoTYiuW9iuxr-47" edge="1">
+          <mxGeometry x="-0.3333" y="-165" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mIn5aeP2y3fbEkqG2YT7-1" value="drone detected" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="TCQULFQEQoTYiuW9iuxr-48">
+          <mxGeometry x="0.1" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-42" value="DetectingDrone" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeLast=1;container=0;collapsible=0;rounded=1;arcSize=30;swimlaneFillColor=#FFFFFF;dropTarget=0;" parent="1" vertex="1">
+          <mxGeometry x="100" y="630" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-43" value="do / detect drone" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-42" vertex="1">
+          <mxGeometry y="30" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-53" value="[doorOpen]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="TCQULFQEQoTYiuW9iuxr-46" target="TCQULFQEQoTYiuW9iuxr-51" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-46" value="Landing" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeLast=1;container=0;collapsible=0;rounded=1;arcSize=30;swimlaneFillColor=#FFFFFF;dropTarget=0;" parent="1" vertex="1">
+          <mxGeometry x="100" y="490" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-47" value="&lt;div&gt;entry / LCD shows &quot;LANDING&quot;&lt;/div&gt;&lt;div&gt;do / open door&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-46" vertex="1">
+          <mxGeometry y="30" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-49" value="entry / LCD shows &quot;LANDING&quot;&lt;div&gt;do / open door&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-46" vertex="1">
+          <mxGeometry y="80" width="210" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="TCQULFQEQoTYiuW9iuxr-50" target="TCQULFQEQoTYiuW9iuxr-4" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="215" y="410" />
+              <mxPoint x="215" y="410" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-57" value="[getDroneDistance &amp;lt; D2 &amp;amp;&amp;amp; current time - t &amp;gt; T2]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="TCQULFQEQoTYiuW9iuxr-56" vertex="1" connectable="0">
+          <mxGeometry x="-0.1359" y="1" relative="1" as="geometry">
+            <mxPoint x="1" y="-11" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-50" value="DroneLanding" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeLast=1;container=0;collapsible=0;rounded=1;arcSize=30;swimlaneFillColor=#FFFFFF;dropTarget=0;" parent="1" vertex="1">
+          <mxGeometry x="100" y="330" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;curved=1;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="TCQULFQEQoTYiuW9iuxr-50" source="TCQULFQEQoTYiuW9iuxr-51" target="TCQULFQEQoTYiuW9iuxr-51" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="50" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="290" y="30" />
+              <mxPoint x="290" y="55" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-55" value="[getDroneDistance &amp;gt; D2]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="TCQULFQEQoTYiuW9iuxr-54" vertex="1" connectable="0">
+          <mxGeometry x="0.0153" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-51" value="&lt;div&gt;entry /&amp;nbsp;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); background-color: transparent;&quot;&gt;t := current time&lt;/span&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-50" vertex="1">
+          <mxGeometry y="30" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="TCQULFQEQoTYiuW9iuxr-52" value="entry / LCD shows &quot;LANDING&quot;&lt;div&gt;do / open door&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fontColor=#000000;" parent="TCQULFQEQoTYiuW9iuxr-50" vertex="1">
+          <mxGeometry y="80" width="210" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
