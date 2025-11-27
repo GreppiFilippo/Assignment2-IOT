@@ -1,31 +1,48 @@
 package it.unibo.dronehangar.remote;
 
-import java.util.logging.Logger;
+import java.util.List;
+
+import it.unibo.dronehangar.remote.api.Command;
+import it.unibo.dronehangar.remote.controller.DroneRemoteUnitControllerImpl;
+import it.unibo.dronehangar.remote.model.DroneRemoteUnitModelImpl;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 /**
  * Main class of the application.
  */
-public final class App {
+public final class App extends Application {
 
-    private static final Logger LOG = Logger.getLogger(App.class.getName());
-
-    private App() {
-        // Prevent instantiation of main class
-    }
-
-    /**
-     * A simple hello method to demonstrate logging.
-     */
-    public static void hello() {
-        LOG.fine("Hello from App constructor");
-    }
+    private final List<Command> commandList = List.of(
+        () -> "OPEN",
+        () -> "RESET"
+    );
 
     /**
      * Main entry point of the application.
-     * 
+     *
      * @param args the command line arguments
      */
     public static void main(final String... args) {
-        hello();
+        launch(args);
+    }
+
+    @Override
+    public void start(final Stage primaryStage) throws Exception {
+        final FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DroneRemoteUnit.fxml"));
+        loader.setControllerFactory(param -> 
+            new DroneRemoteUnitControllerImpl(
+                new DroneRemoteUnitModelImpl(this.commandList)
+            )
+        );
+        final Parent root = loader.load();
+        final Scene scene = new Scene(root);
+
+        primaryStage.setTitle("Drone Remote Unit");
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 }
