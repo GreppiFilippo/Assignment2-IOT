@@ -14,7 +14,31 @@ public interface DroneRemoteUnitModel {
      */
     List<Command> getAvailableCommands();
 
+    /**
+     * Get the drone state property as a string.
+     * 
+     * @return the drone state property string
+     */
     String droneStateProperty();
 
+    /**
+     * Get the hangar state property as a string.
+     * 
+     * @return the hangar state property string
+     */
+    String hangarStateProperty();
+
+    /**
+     * Get the connection status property as a string.
+     * 
+     * @return the connection status property string
+     */
+    String connectionStatusProperty();
+
+    /**
+     * Get the distance property as a string.
+     * 
+     * @return the distance property string
+     */
     String distanceProperty();
 }

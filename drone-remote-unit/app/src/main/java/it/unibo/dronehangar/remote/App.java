@@ -17,14 +17,13 @@ import javafx.stage.Stage;
 public final class App extends Application {
 
     private final List<Command> commandList = List.of(
-        () -> "OPEN",
-        () -> "RESET"
+        () -> "OPEN"
     );
 
     /**
      * Main entry point of the application.
      *
-     * @param args the command line arguments
+     * @param args the commandxs line arguments
      */
     public static void main(final String... args) {
         launch(args);

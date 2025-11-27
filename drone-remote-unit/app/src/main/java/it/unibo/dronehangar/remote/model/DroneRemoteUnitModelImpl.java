@@ -5,13 +5,16 @@ import java.util.List;
 
 import it.unibo.dronehangar.remote.api.Command;
 import it.unibo.dronehangar.remote.api.DroneRemoteUnitModel;
+import it.unibo.dronehangar.remote.api.DroneState;
+import it.unibo.dronehangar.remote.api.HangarState;
 
 /**
  * Implementation of the DroneRemoteUnitModel interface.
  */
 public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
     private final List<Command> availableCommands;
-    private String droneState;
+    private final DroneState droneState;
+    private final HangarState hangarState = HangarState.NORMAL;
     private String distanceProperty;
 
     /**
@@ -21,6 +24,8 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
      */
     public DroneRemoteUnitModelImpl(final List<Command> availableCommands) {
         this.availableCommands = new ArrayList<>(availableCommands);
+        this.droneState = DroneState.REST;
+        this.distanceProperty = "--";
     }
 
     @Override
@@ -30,11 +35,22 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
 
     @Override
     public String droneStateProperty() {
-        return this.droneState;
+        return this.droneState.name();
     }
 
     @Override
     public String distanceProperty() {
         return this.distanceProperty;
+    }
+
+    @Override
+    public String hangarStateProperty() {
+        return this.hangarState.name();
+    }
+
+    @Override
+    public String connectionStatusProperty() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

@@ -30,6 +30,9 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
         "115200"
     );
 
+    /**
+     * Constructor for JSSCCommChannel.
+     */
     public JSSCCommChannel() {
         this.queue = new LinkedBlockingQueue<>(QUEUE_SIZE);
         this.baudRate = Integer.parseInt(baudRates.get(0));
@@ -38,21 +41,21 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
     @Override
     public void sendMsg(final String msg) {
         Objects.requireNonNull(msg, "Message cannot be null");
-        Objects.requireNonNull(serialPort, "Serial port cannot be null");
-        Objects.requireNonNull(baudRate, "Baud rate cannot be null");
+        Objects.requireNonNull(this.serialPort, "Serial port cannot be null");
+        Objects.requireNonNull(this.baudRate, "Baud rate cannot be null");
 
-        char[] array = (msg+"\n").toCharArray();
-		byte[] bytes = new byte[array.length];
-		for (int i = 0; i < array.length; i++){
-			bytes[i] = (byte)array[i];
-		}
-		try {
-			synchronized (serialPort) {
-				serialPort.writeBytes(bytes);
-			}
-		} catch(Exception ex) {
-			ex.printStackTrace();
-		}
+        final char[] array = (msg + "\n").toCharArray();
+        final byte[] bytes = new byte[array.length];
+        for (int i = 0; i < array.length; i++) {
+            bytes[i] = (byte) array[i];
+        }
+        try {
+            synchronized (this.serialPort) {
+            this.serialPort.writeBytes(bytes);
+        }
+        } catch (final SerialPortException ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -67,29 +70,29 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
 
     @Override
     public boolean isMsgAvailable() {
-        return !queue.isEmpty();
+        return !this.queue.isEmpty();
     }
 
     @Override
     public void setCommPort(final String commPort) {
         close();
         try {
-			serialPort = new SerialPort(commPort);
-			serialPort.openPort();
-	
-			serialPort.setParams(baudRate,
-			                         SerialPort.DATABITS_8,
-			                         SerialPort.STOPBITS_1,
-			                         SerialPort.PARITY_NONE);
-	
-			serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN | 
-			                                  SerialPort.FLOWCONTROL_RTSCTS_OUT);
-	
-			// serialPort.addEventListener(this, SerialPort.MASK_RXCHAR);
-			serialPort.addEventListener(this);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+            this.serialPort = new SerialPort(commPort);
+            this.serialPort.openPort();
+
+            this.serialPort.setParams(baudRate,
+                    SerialPort.DATABITS_8,
+                    SerialPort.STOPBITS_1,
+                    SerialPort.PARITY_NONE);
+
+            this.serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN 
+                    | SerialPort.FLOWCONTROL_RTSCTS_OUT);
+
+            // serialPort.addEventListener(this, SerialPort.MASK_RXCHAR);
+            this.serialPort.addEventListener(this);
+        } catch (final Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -111,48 +114,49 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
     public void serialEvent(final SerialPortEvent serialPortEvent) {
         if (serialPortEvent.isRXCHAR()) {
             try {
-            		String msg = serialPort.readString(serialPortEvent.getEventValue());
-            		msg = msg.replaceAll("\r", "");
-            		currentMsg.append(msg);
-            		boolean goAhead = true;
-        			while(goAhead) {
-        				String msg2 = currentMsg.toString();
-        				int index = msg2.indexOf("\n");
-            			if (index >= 0) {
-            				queue.put(msg2.substring(0, index));
-            				currentMsg = new StringBuffer("");
-            				if (index + 1 < msg2.length()) {
-            					currentMsg.append(msg2.substring(index + 1)); 
-            				}
-            			} else {
-            				goAhead = false;
-            			}
-        			}
+                String msg = serialPort.readString(serialPortEvent.getEventValue());
+                msg = msg.replaceAll("\r", "");
+                this.currentMsg.append(msg);
+                boolean goAhead = true;
+                while (goAhead) {
+                    final String msg2 = currentMsg.toString();
+                    final int index = msg2.indexOf('\n');
+
+                    if (index >= 0) {
+                        queue.put(msg2.substring(0, index));
+                        this.currentMsg = new StringBuffer("");
+
+                        if (index + 1 < msg2.length()) {
+                            this.currentMsg.append(msg2.substring(index + 1)); 
+                        }
+                    } else {
+                        goAhead = false;
+                    }
+                }
             } catch (final Exception ex) {
-            		ex.printStackTrace();
+                ex.printStackTrace();
                 System.out.println("Error in receiving string from COM-port: " + ex);
             }
         }
     }
 
     private void close() {
-        if (serialPort != null) {
+        if (this.serialPort != null) {
             try {
-                serialPort.removeEventListener();
-            } catch (SerialPortException e) {
+                this.serialPort.removeEventListener();
+            } catch (final SerialPortException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
 
-            if (serialPort.isOpened()) {
+            if (this.serialPort.isOpened()) {
                 try {
-                    serialPort.closePort();
-                } catch (SerialPortException e) {
+                    this.serialPort.closePort();
+                } catch (final SerialPortException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
-            
         }
     }
 }

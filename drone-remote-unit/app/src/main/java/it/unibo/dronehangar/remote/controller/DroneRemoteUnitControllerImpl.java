@@ -1,12 +1,11 @@
 package it.unibo.dronehangar.remote.controller;
 
+import java.util.Locale;
+
 import it.unibo.dronehangar.remote.api.CommChannel;
 import it.unibo.dronehangar.remote.api.DroneRemoteUnitController;
 import it.unibo.dronehangar.remote.api.DroneRemoteUnitModel;
 import it.unibo.dronehangar.remote.comm.JSSCCommChannel;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableStringValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -47,6 +46,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
     }
 
     @FXML
+    // @SuppressWarnings("javafx:useFXML") // TODO: Fix false positive
     private void initialize() {
         /*
          * Baud Rate Selection
@@ -64,10 +64,9 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
          * Command Buttons
         */
         for (final var cmd : this.model.getAvailableCommands()) {
-            final var btn = new Button(cmd.getName().toUpperCase());
+            final var btn = new Button(cmd.getName().toUpperCase(Locale.ROOT));
             btn.setOnAction(event -> {
-                channel.sendMsg(cmd.getName().toUpperCase());
-                System.out.println("Sent command: " + cmd.getName().toUpperCase());
+                channel.sendMsg(cmd.getName().toUpperCase(Locale.ROOT));
             });
             final double tileW = this.buttonBox.getPrefTileWidth();
             final double tileH = this.buttonBox.getPrefTileHeight();
@@ -93,10 +92,10 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
         /*
          * Label
         */
-       lblDroneState.textProperty().bind(model.droneStateProperty());
-       lblHangarState.textProperty().bind(model.droneStateProperty());
-       lblConnectionStatus.textProperty().bind( );
-       lblDistance.textProperty().bind(model.distanceProperty());
+        // lblDroneState.textProperty().bind(model.droneStateProperty());
+        // lblHangarState.textProperty().bind(model.droneStateProperty());
+        // lblConnectionStatus.textProperty().bind( );
+        // lblDistance.textProperty().bind(model.distanceProperty());
     }
 
     private void updateSerialPorts() {
