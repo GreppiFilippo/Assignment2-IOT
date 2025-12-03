@@ -1,7 +1,7 @@
 #ifndef __MSGSERVICE__
 #define __MSGSERVICE__
 
-#include "Arduino.h"
+#include "Arduino.hpp"
 
 class Msg {
   String content;

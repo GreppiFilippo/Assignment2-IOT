@@ -1,4 +1,4 @@
-#include "Scheduler.h"
+#include "Scheduler.hpp"
 #include <TimerOne.h>
 
 volatile bool timerFlag;
