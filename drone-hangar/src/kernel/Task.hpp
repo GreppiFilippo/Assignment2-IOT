@@ -10,7 +10,7 @@ class Task {
         bool completed;
 
     public:
-        Task(){
+        Task() {
             this->active = false;
         }
 
