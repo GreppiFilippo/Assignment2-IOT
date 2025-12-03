@@ -1,4 +1,4 @@
-#include "ServoMotorImpl.h"
+#include "ServoMotorImpl.hpp"
 #include "Arduino.h"
 
 ServoMotorImpl::ServoMotorImpl(int pin){

@@ -1,7 +1,7 @@
 #ifndef __TEMP_SENSOR_TMP36__
 #define __TEMP_SENSOR_TMP36__
 
-#include "TempSensor.h"
+#include "TempSensor.hpp"
 
 class TempSensorTMP36: public TempSensor {
 public:

@@ -1,7 +1,7 @@
 #ifndef __LIGHT_EXT__
 #define __LIGHT_EXT__
 
-#include "Light.h"
+#include "Light.hpp"
 
 class LightExt : public Light {
 public:

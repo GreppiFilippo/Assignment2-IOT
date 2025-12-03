@@ -1,8 +1,8 @@
 #ifndef __LED_EXT__
 #define __LED_EXT__
 
-#include "Led.h"
-#include "LightExt.h"
+#include "Led.hpp"
+#include "LightExt.hpp"
 
 class LedExt:  public LightExt, public Led { 
 public:
