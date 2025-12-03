@@ -1,4 +1,4 @@
-#include "ButtonImpl.h"
+#include "ButtonImpl.hpp"
 #include "Arduino.h"
 
 ButtonImpl::ButtonImpl(int pin){

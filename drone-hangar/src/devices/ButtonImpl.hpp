@@ -1,7 +1,7 @@
 #ifndef __BUTTONIMPL__
 #define __BUTTONIMPL__
 
-#include "Button.h"
+#include "Button.hpp"
 
 class ButtonImpl: public Button {
  

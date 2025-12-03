@@ -1,4 +1,4 @@
-#include "LightSensor.h"
+#include "LightSensor.hpp"
 
 class LightSensorImpl: public LightSensor {
 

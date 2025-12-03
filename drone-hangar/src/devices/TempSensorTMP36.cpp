@@ -1,6 +1,6 @@
-#include "TempSensorTMP36.h"
+#include "TempSensorTMP36.hpp"
 #include "Arduino.h"
-#include "kernel/Logger.h"
+#include "kernel/Logger.hpp"
 
 #define VCC ((float)5)
 

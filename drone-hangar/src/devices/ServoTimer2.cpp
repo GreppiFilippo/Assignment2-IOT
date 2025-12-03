@@ -1,11 +1,11 @@
 extern "C" {
   // AVR LibC Includes
-  #include <inttypes.h>
-  #include <avr/interrupt.h>
+  #include <inttypes.hpp>
+  #include <avr/interrupt.hpp>
   // #include "WConstants.h"
 }
 #include <Arduino.h>
-#include "ServoTimer2.h"
+#include "ServoTimer2.hpp"
 static void initISR();   
 static void writeChan(uint8_t chan, int pulsewidth);
 
