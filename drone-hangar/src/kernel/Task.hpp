@@ -34,7 +34,7 @@ class Task {
 
         bool updateAndCheckTime(unsigned long basePeriod) {
             this->timeElapsed += basePeriod;
-            if (this.>timeElapsed >= this->myPeriod){
+            if (this->timeElapsed >= this->myPeriod){
                 this->timeElapsed = 0;
                 return true;
             } else {
