@@ -1,6 +1,7 @@
 #ifndef __CONTEXT__
 #define __CONTEXT__
 
+// TODO:
 class Context {
 public:
     // Door states
