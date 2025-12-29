@@ -4,7 +4,7 @@
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
 #include "devices/ServoMotor.hpp"
-#include <Arduino.h>
+#include <Arduino.hpp>
 
 class HangarTask : public Task {
     private:
