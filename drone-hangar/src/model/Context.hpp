@@ -33,92 +33,45 @@ private:
     bool landingRequested;
 
 public:
-    Context() {
-        currentSystemState = DRONE_INSIDE;
-        currentDoorState = CLOSED;
-        openDoorRequested = false;
-        closeDoorRequested = false;
-        alarmActive = false;
-        preAlarmActive = false;
-        takeoffRequested = false;
-        landingRequested = false;
-        currentDistance = 0.0;
-        currentTemperature = 25.0;
-        pirActive = false;
-    }
+    Context();
     
     // === DOOR CONTROL ===
-    void requestOpenDoor() { openDoorRequested = true; }
-    bool isOpenDoorRequested() {
-        if (openDoorRequested) {
-            openDoorRequested = false;
-            return true;
-        }
-        return false;
-    }
-    
-    void requestCloseDoor() { closeDoorRequested = true; }
-    bool isCloseDoorRequested() {
-        if (closeDoorRequested) {
-            closeDoorRequested = false;
-            return true;
-        }
-        return false;
-    }
-    
-    void setDoorState(DoorState state) { currentDoorState = state; }
-    DoorState getDoorState() { return currentDoorState; }
-    bool isDoorOpen() { return currentDoorState == OPEN; }
-    bool isDoorClosed() { return currentDoorState == CLOSED; }
+    void requestOpenDoor();
+    bool isOpenDoorRequested();
+    void requestCloseDoor();
+    bool isCloseDoorRequested(); 
+    void setDoorState(DoorState state);
+    DoorState getDoorState();
+    bool isDoorOpen();
+    bool isDoorClosed();
     
     // === SYSTEM STATE ===
-    void setSystemState(SystemState state) { currentSystemState = state; }
-    SystemState getSystemState() { return currentSystemState; }
+    void setSystemState(SystemState state);
+    SystemState getSystemState();
     
     // === ALARMS ===
-    void setAlarm(bool active) { alarmActive = active; }
-    bool isAlarmActive() { return alarmActive; }
-    
-    void setPreAlarm(bool active) { preAlarmActive = active; }
-    bool isPreAlarmActive() { return preAlarmActive; }
+    void setAlarm(bool active);
+    bool isAlarmActive();
+    void setPreAlarm(bool active);
+    bool isPreAlarmActive();
     
     // === COMMANDS ===
-    void requestTakeoff() { takeoffRequested = true; }
-    bool isTakeoffRequested() {
-        if (takeoffRequested) {
-            takeoffRequested = false;
-            return true;
-        }
-        return false;
-    }
-    
-    void requestLanding() { landingRequested = true; }
-    bool isLandingRequested() {
-        if (landingRequested) {
-            landingRequested = false;
-            return true;
-        }
-        return false;
-    }
+    void requestTakeoff();
+    bool isTakeoffRequested();
+    void requestLanding();
+    bool isLandingRequested();
     
     // === SENSOR DATA ===
-    void updateDistance(float dist) { currentDistance = dist; }
-    float getDistance() { return currentDistance; }
-    
-    void updateTemperature(float temp) { currentTemperature = temp; }
-    float getTemperature() { return currentTemperature; }
-    
-    void setPirActive(bool active) { pirActive = active; }
-    bool isPirActive() { return pirActive; }
+    void updateDistance(float dist);
+    float getDistance();
+    void updateTemperature(float temp);
+    float getTemperature();
+    void setPirActive(bool active);
+    bool isPirActive();
     
     // === UTILITY ===
-    bool canExecuteTakeoff() {
-        return !alarmActive && currentSystemState == DRONE_INSIDE;
-    }
-    
-    bool canExecuteLanding() {
-        return !alarmActive && currentSystemState == DRONE_OUT && pirActive;
-    }
+    bool canExecuteTakeoff();
+    bool canExecuteLanding();
 };
 
 #endif
