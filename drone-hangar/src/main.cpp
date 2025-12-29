@@ -11,6 +11,9 @@
 
 // Uncomment the following line to enable hardware testing mode
 // #define __TESTING_HW__
+#ifdef __TESTING_HW__
+#include "task/TestHWTask.h"
+#endif
 
 Scheduler sched;
 HWPlatform* pHWPlatform;
@@ -30,6 +33,12 @@ void setup() {
   
   // Tasks
   // TODO: add tasks here
+  Task* pTempAlarmTask = new TempAlarmTask(pHWPlatform->getTempSensor(), pContext);
+  pTempAlarmTask->init(ALARM_TASK_PERIOD_MS);
+
+
+  sched.addTask(pTempAlarmTask);
+
 #endif
 
 #ifdef __TESTING_HW__
