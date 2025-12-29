@@ -1,10 +1,10 @@
 #ifndef __BLINKING_TASK__
 #define __BLINKING_TASK__
 
-#include "kernel/Task.h"
-#include "model/Context.h"
-#include "devices/Led.h"
-#include <Arduino.h>
+#include "kernel/Task.hpp"
+#include "model/Context.hpp"
+#include "devices/Led.hpp"
+#include <Arduino.hpp>
 
 class BlinkingTask: public Task {
 
@@ -27,4 +27,4 @@ private:
   Context* pContext;
 };
 
-#endif
+#endif /* __BLINKING_TASK__ */

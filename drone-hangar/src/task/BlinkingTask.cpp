@@ -1,7 +1,7 @@
-#include "tasks/BlinkingTask.h"
-#include <Arduino.h>
-#include "config.h"
-#include "kernel/Logger.h"
+#include "tasks/BlinkingTask.hpp"
+#include <Arduino.hpp>
+#include "config.hpp"
+#include "kernel/Logger.hpp"
 
 BlinkingTask::BlinkingTask(Led* pLed, Context* pContext): 
     pContext(pContext), pLed(pLed){
