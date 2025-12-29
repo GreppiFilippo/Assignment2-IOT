@@ -9,21 +9,12 @@
 class HangarTask : public Task {
     private:
         Context* pContext;
-        ServoMotor* pHangarMotor;
+
+        enum { DRONE_INSIDE, TAKE_OFF, DRONE_OUTSIDE, LANDING } state;
 
     public:
-        HangarTask(Context* ctx, ServoMotor* motor) : pContext(ctx), pHangarMotor(motor) {}
-
-        void init(unsigned long period) override {
-            Task::init(period);
-            pHangarMotor->on();
-            // Initialize hangar motor position if needed
-        }
-
-        void tick() override {
-            // Implement hangar-specific logic here
-            // For example, monitor hangar status or control hangar mechanisms
-        }
+        HangarTask(Context* ctx);
+        void tick();
 };
 
 
