@@ -1,7 +1,7 @@
 #include "task/DoorControlTask.hpp"
-#include <Arduino.h>
-#include "config.h"
-#include "kernel/Logger.h"
+#include <Arduino.hpp>
+#include "config.hpp"
+#include "kernel/Logger.hpp"
 
 #define DOOR_OPEN_ANGLE 90
 #define DOOR_CLOSED_ANGLE 0
