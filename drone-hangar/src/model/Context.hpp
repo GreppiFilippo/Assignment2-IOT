@@ -49,10 +49,35 @@ public:
     void setSystemState(SystemState state);
     SystemState getSystemState();
     
-    // === ALARMS ===
+    // === TEMP ALARM TASK ===
+    /**
+     * @brief Set the Alarm state
+     * 
+     * @param active true to activate the alarm, false to deactivate
+     */
     void setAlarm(bool active);
+
+    /**
+     * @brief Check if the alarm is active.
+     * 
+     * @return true if the alarm is active
+     * @return false if the alarm is not active
+     */
     bool isAlarmActive();
+
+    /**
+     * @brief Set the Pre Alarm state
+     * 
+     * @param active true to activate the pre-alarm, false to deactivate
+     */
     void setPreAlarm(bool active);
+
+    /**
+     * @brief Check if the pre-alarm is active.
+     * 
+     * @return true if the pre-alarm is active
+     * @return false if the pre-alarm is not active
+     */
     bool isPreAlarmActive();
     
     // === COMMANDS ===
