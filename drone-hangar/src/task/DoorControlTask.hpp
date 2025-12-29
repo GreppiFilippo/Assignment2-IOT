@@ -28,18 +28,21 @@ class DoorControlTask : public Task {
         long elapsedTimeInState();
         void log(const String& msg);
         bool checkAndSetJustEntered();
+
+        bool isDoorOpened();
+        bool isDoorClosed();
+
+        void openDoorStep();
+        void closeDoorStep();
         
         enum { DOOR_CLOSED, DOOR_OPENING, DOOR_OPEN, DOOR_CLOSING } state;
+        
         long stateTimestamp;
         bool justEntered;
-
         int currentAngle;
 
     public:
         DoorControlTask(Context* ctx, ServoMotor* motor);
-
-        void init(unsigned long period);
-
         void tick();
 };
 
