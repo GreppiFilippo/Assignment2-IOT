@@ -3,11 +3,15 @@
 
 #include "TempSensor.hpp"
 
+/**
+ * @brief Class representing a TMP36 temperature sensor.
+ *
+ */
 class TempSensorTMP36 : public TempSensor
 {
    public:
     TempSensorTMP36(int p);
-    virtual float getTemperature();
+    float getTemperature() override;
 
    private:
     int pin;

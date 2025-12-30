@@ -6,15 +6,19 @@
 #include "ServoMotor.hpp"
 #include "ServoTimer2.hpp"
 
+/**
+ * @brief Class representing a servo motor implementation.
+ *
+ */
 class ServoMotorImpl : public ServoMotor
 {
    public:
     ServoMotorImpl(int pin);
 
-    void on();
-    bool isOn();
-    void setPosition(int angle);
-    void off();
+    void on() override;
+    bool isOn() override;
+    void setPosition(int angle) override;
+    void off() override;
 
    private:
     int pin;

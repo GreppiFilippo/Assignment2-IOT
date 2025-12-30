@@ -4,14 +4,18 @@
 #include "Led.hpp"
 #include "LightExt.hpp"
 
+/**
+ * @brief Extended LED class with intensity control.
+ *
+ */
 class LedExt : public LightExt, public Led
 {
    public:
     LedExt(int pin);
     LedExt(int pin, int intensity);
-    void switchOn();
-    void switchOff();
-    void setIntensity(int v);
+    void switchOn() override;
+    void switchOff() override;
+    void setIntensity(int v) override;
 
    private:
     int currentIntensity;

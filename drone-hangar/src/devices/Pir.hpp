@@ -3,11 +3,15 @@
 
 #include "PresenceSensor.hpp"
 
+/**
+ * @brief Class representing a (PIR) sensor.
+ *
+ */
 class Pir : public PresenceSensor
 {
    public:
     Pir(int pin);
-    bool isDetected();
+    bool isDetected() override;
     void calibrate();
 
     void sync();

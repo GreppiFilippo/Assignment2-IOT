@@ -3,11 +3,15 @@
 
 #include "TempSensor.hpp"
 
+/**
+ * @brief Class representing a LM35 temperature sensor.
+ *
+ */
 class TempSensorLM35 : public TempSensor
 {
    public:
     TempSensorLM35(int pin);
-    virtual float getTemperature();
+    float getTemperature() override;
 
    private:
     int pin;
