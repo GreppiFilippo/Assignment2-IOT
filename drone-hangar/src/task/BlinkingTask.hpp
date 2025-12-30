@@ -7,13 +7,16 @@
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
 
+/**
+ * @brief Task that manages the blinking of an LED based on the system context.
+ *
+ */
 class BlinkingTask : public Task
 {
-   public:
-    BlinkingTask(Led* pLed, Context* pContext);
-    void tick();
-
    private:
+    Led* pLed;
+    Context* pContext;
+
     enum State
     {
         IDLE,
@@ -23,14 +26,15 @@ class BlinkingTask : public Task
     long stateTimestamp;
     bool justEntered;
 
-    Led* pLed;
-    Context* pContext;
-
     void setState(State s);
     long elapsedTimeInState();
     void log(const String& msg);
 
     bool checkAndSetJustEntered();
+
+   public:
+    BlinkingTask(Led* pLed, Context* pContext);
+    void tick() override;
 };
 
 #endif /* __BLINKING_TASK__ */

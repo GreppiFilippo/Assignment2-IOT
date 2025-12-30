@@ -2,6 +2,11 @@
 #define __CONTEXT__
 
 // TODO:
+
+/**
+ * @brief Class representing the shared context of the system.
+ *
+ */
 class Context
 {
    private:

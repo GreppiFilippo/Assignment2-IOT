@@ -78,11 +78,13 @@ void DoorControlTask::tick()
 bool DoorControlTask::isDoorOpened()
 {
     // TODO
+    return false;
 }
 
 bool DoorControlTask::isDoorClosed()
 {
     // TODO
+    return false;
 }
 
 void DoorControlTask::openDoorStep()

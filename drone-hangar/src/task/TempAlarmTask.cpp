@@ -1,9 +1,9 @@
-#include <task/TempAlarmTask.hpp>
+#include "task/TempAlarmTask.hpp"
 
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
-TempAlarmTask::TempAlarmTask(TempSensorTMP36* tempSensor, Button* resetButton, Context* pContext)
+TempAlarmTask::TempAlarmTask(TempSensor* tempSensor, Button* resetButton, Context* pContext)
     : pContext(pContext), tempSensor(tempSensor), resetButton(resetButton)
 {
     setState(NORMAL);

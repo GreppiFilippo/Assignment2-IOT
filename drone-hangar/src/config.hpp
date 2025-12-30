@@ -5,6 +5,7 @@
 #define BT_PIN 2
 #define LED_PIN 13
 #define MOTOR_PIN 9
+#define TEMP_SENSOR_PIN A0
 
 // Distance thresholds (cm)
 #define D1 100  // Distance threshold for drone exit detection

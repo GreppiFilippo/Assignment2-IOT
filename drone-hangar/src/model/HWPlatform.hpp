@@ -7,8 +7,18 @@
 #include "devices/ServoMotor.hpp"
 #include "devices/TempSensor.hpp"
 
+/**
+ * @brief Class representing the hardware platform abstraction.
+ *
+ */
 class HWPlatform
 {
+   private:
+    Button* pButton;
+    Led* pLed;
+    ServoMotor* pMotor;
+    TempSensor* pTempSensor;
+
    public:
     HWPlatform();
     void init();
@@ -18,11 +28,6 @@ class HWPlatform
     Led* getLed();
     ServoMotor* getMotor();
     TempSensor* getTempSensor();
-
-   private:
-    Button* pButton;
-    Led* pLed;
-    ServoMotor* pMotor;
 };
 
 #endif

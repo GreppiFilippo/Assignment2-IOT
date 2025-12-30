@@ -3,36 +3,100 @@
 
 #include "Arduino.h"
 
+/**
+ * @brief Class representing a message.
+ *
+ */
 class Msg
 {
+   private:
     String content;
 
    public:
+    /**
+     * Construct a message with the provided content.
+     *
+     * @param content the message text
+     */
     Msg(String content) { this->content = content; }
 
+    /**
+     * Return the message content.
+     *
+     * @return String containing the message text
+     */
     String getContent() { return content; }
 };
 
+/**
+ * @brief Abstract base class for message patterns.
+ *
+ */
 class Pattern
 {
    public:
+    /**
+     * Check whether message `m` matches the pattern.
+     *
+     * @param m reference to the message to test
+     * @return true if the pattern matches, false otherwise
+     */
     virtual boolean match(const Msg& m) = 0;
 };
 
+/**
+ * @brief Message service class for sending and receiving messages.
+ *
+ */
 class MsgServiceClass
 {
    public:
     Msg* currentMsg;
     bool msgAvailable;
 
+   public:
+    /**
+     * Initialize the message service (call at startup).
+     */
     void init();
 
+    /**
+     * Check if at least one message is available.
+     *
+     * @return true if a message is present, false otherwise
+     */
     bool isMsgAvailable();
+
+    /**
+     * Receive (consume) the current message and return it.
+     * After calling this, the message is no longer considered available.
+     * @return pointer to the received `Msg` (nullptr if no message)
+     */
     Msg* receiveMsg();
 
+    /**
+     * Check if there is a message that matches `pattern`.
+     * Does not consume the message; only verifies presence.
+     *
+     * @param pattern reference to the pattern used to test messages
+     * @return true if a matching message exists
+     */
     bool isMsgAvailable(Pattern& pattern);
+
+    /**
+     * Receive (consume) the first message that matches `pattern`.
+     * Returns nullptr if no matching message is found.
+     *
+     * @param pattern pattern used to filter messages
+     * @return pointer to the received `Msg` or nullptr
+     */
     Msg* receiveMsg(Pattern& pattern);
 
+    /**
+     * Send a new message into the service.
+     *
+     * @param msg the message text to send
+     */
     void sendMsg(const String& msg);
 };
 
