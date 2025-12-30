@@ -5,5 +5,5 @@ package it.unibo.dronehangar.remote.api;
  */
 public enum HangarState {
     NORMAL,
-    ALERT,
+    ALERT
 }

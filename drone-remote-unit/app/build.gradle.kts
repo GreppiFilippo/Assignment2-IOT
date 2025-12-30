@@ -52,6 +52,10 @@ dependencies {
 
     // JSSC for serial communication with Arduino
     implementation("io.github.java-native:jssc:2.10.2")
+
+    // Logging
+    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("ch.qos.logback:logback-classic:1.5.16")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

@@ -61,4 +61,16 @@ public interface CommChannel {
      * @param baudRate the baud rate to set
      */
     void setBaudRate(int baudRate);
+
+    /**
+     * Check if the serial port is currently open.
+     * 
+     * @return true if the port is open, false otherwise
+     */
+    boolean isPortOpen();
+
+    /**
+     * Close the communication port.
+     */
+    void close();
 }
