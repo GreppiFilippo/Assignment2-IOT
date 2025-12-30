@@ -1,28 +1,37 @@
 #ifndef DRONE_DETECTION_TASK
 #define DRONE_DETECTION_TASK
 
-#include "kernel/Task.hpp"
-#include "model/Context.hpp"
-#include "devices/Sonar.hpp"
-#include "devices/Pir.hpp"
 #include <Arduino.h>
 
-class DroneDetectionTask : public Task {
-    private:
-        Sonar* sonarSensor;
-        Context* pContext;
-        bool pirPreviouslyActive;
+#include "devices/Pir.hpp"
+#include "devices/Sonar.hpp"
+#include "kernel/Task.hpp"
+#include "model/Context.hpp"
 
-        void setState(int state);
-        long elapsedTimeInState();
-        void log(const String& msg);
-        bool checkAndSetJustEntered();
+class DroneDetectionTask : public Task
+{
+   private:
+    Sonar* sonarSensor;
+    Context* pContext;
+    bool pirPreviouslyActive;
 
-        enum { IDLE, LANDING_MONITORING, LANDING_WAITING, TAKEOFF_MONITORING, TAKEOFF_WAITING } state;
+    enum State
+    {
+        IDLE,
+        LANDING_MONITORING,
+        LANDING_WAITING,
+        TAKEOFF_MONITORING,
+        TAKEOFF_WAITING
+    } state;
 
-    public:
-        DroneDetectionTask(Pir* pirSensor, Sonar* sonarSensor, Context* pContext);
-        void tick();
+    void setState(State state);
+    long elapsedTimeInState();
+    void log(const String& msg);
+    bool checkAndSetJustEntered();
+
+   public:
+    DroneDetectionTask(Pir* pirSensor, Sonar* sonarSensor, Context* pContext);
+    void tick();
 };
 
 #endif /* DRONE_DETECTION_TASK */

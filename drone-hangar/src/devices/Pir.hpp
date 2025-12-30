@@ -3,24 +3,23 @@
 
 #include "PresenceSensor.hpp"
 
-class Pir: public PresenceSensor {
- 
-public: 
-  Pir(int pin);
-  bool isDetected();
-  void calibrate();
+class Pir : public PresenceSensor
+{
+   public:
+    Pir(int pin);
+    bool isDetected();
+    void calibrate();
 
-  void sync();
-  long getLastSyncTime();
+    void sync();
+    long getLastSyncTime();
 
-protected: 
-  void updateSyncTime(long time);
+   protected:
+    void updateSyncTime(long time);
 
-private:
-  long lastTimeSync;
-  int pin;
-  bool detected;
-  
+   private:
+    long lastTimeSync;
+    int pin;
+    bool detected;
 };
 
 #endif

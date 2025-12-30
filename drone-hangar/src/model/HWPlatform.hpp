@@ -5,23 +5,24 @@
 #include "devices/Button.hpp"
 #include "devices/Led.hpp"
 #include "devices/ServoMotor.hpp"
+#include "devices/TempSensor.hpp"
 
-class HWPlatform {
+class HWPlatform
+{
+   public:
+    HWPlatform();
+    void init();
+    void test();
 
-public:
-  HWPlatform();
-  void init();
-  void test();
+    Button* getButton();
+    Led* getLed();
+    ServoMotor* getMotor();
+    TempSensor* getTempSensor();
 
-  Button* getButton();
-  Led*  getLed();
-  ServoMotor* getMotor();
-
-private:
-  Button* pButton;
-  Led* pLed;
-  ServoMotor* pMotor;
-  
+   private:
+    Button* pButton;
+    Led* pLed;
+    ServoMotor* pMotor;
 };
 
 #endif

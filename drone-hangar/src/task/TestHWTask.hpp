@@ -4,14 +4,14 @@
 #include "kernel/Task.hpp"
 #include "model/HWPlatform.hpp"
 
-class TestHWTask: public Task {
+class TestHWTask : public Task
+{
+   public:
+    TestHWTask(HWPlatform* pHW);
+    void tick();
 
-public:
-  TestHWTask(HWPlatform* pHW); 
-  void tick();
-
-private:  
-  HWPlatform* pHW;
+   private:
+    HWPlatform* pHW;
 };
 
 #endif

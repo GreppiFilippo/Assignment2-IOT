@@ -1,30 +1,23 @@
 #include "Pir.hpp"
+
 #include "Arduino.h"
 
-Pir::Pir(int pin){
-  this->pin = pin;
-  pinMode(pin, INPUT);     
-} 
-  
-void Pir::sync(){
-  detected = digitalRead(pin) == HIGH;  
-  updateSyncTime(millis());
+Pir::Pir(int pin)
+{
+    this->pin = pin;
+    pinMode(pin, INPUT);
 }
 
-bool Pir::isDetected(){
-  return detected;
+void Pir::sync()
+{
+    detected = digitalRead(pin) == HIGH;
+    updateSyncTime(millis());
 }
 
-void Pir::calibrate(){
-	delay(10000);
-}
+bool Pir::isDetected() { return detected; }
 
-void Pir::updateSyncTime(long time){
-	lastTimeSync = time;
-}
+void Pir::calibrate() { delay(10000); }
 
-long Pir::getLastSyncTime(){
-	return lastTimeSync;
-}
+void Pir::updateSyncTime(long time) { lastTimeSync = time; }
 
-
+long Pir::getLastSyncTime() { return lastTimeSync; }

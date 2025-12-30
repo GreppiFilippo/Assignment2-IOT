@@ -1,102 +1,121 @@
 #include "task/DoorControlTask.hpp"
-#include <Arduino.hpp>
+
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
 #define DOOR_OPEN_ANGLE 180
 #define DOOR_CLOSED_ANGLE 0
 
-DoorControlTask::DoorControlTask(Context* ctx, ServoMotor* motor) {
+DoorControlTask::DoorControlTask(Context* ctx, ServoMotor* motor)
+{
     pContext = ctx;
     pDoorMotor = motor;
-    setSate(DOOR_CLOSED);
-    pDoorMotor->setAngle(DOOR_CLOSED_ANGLE);
+    setState(CLOSED);
+    pDoorMotor->setPosition(DOOR_CLOSED_ANGLE);
 }
 
-void DoorControlTask::tick() {
-    switch(state) {
+void DoorControlTask::tick()
+{
+    switch (state)
+    {
         case CLOSED:
-            if (checkAndSetJustEntered()) {
+            if (checkAndSetJustEntered())
+            {
                 pContext->setDoorClosed();
                 this->log("CLOSED");
             }
 
-            if (pContext->isOpenDoorRequested()) {
-                this->setSate(OPENING);
+            if (pContext->isOpenDoorRequested())
+            {
+                this->setState(OPENING);
             }
             break;
         case OPENING:
-            if (checkAndSetJustEntered()) {
+            if (checkAndSetJustEntered())
+            {
                 this->log("OPENING");
-            }    
+            }
 
             this->openDoorStep();
 
-            if (pContext->isCloseDoorRequested()) {
-                this->setSate(CLOSING);
-            } else if (isDoorOpened()) {
-                this->setSate(OPEN);
+            if (pContext->isCloseDoorRequested())
+            {
+                this->setState(CLOSING);
+            }
+            else if (isDoorOpened())
+            {
+                this->setState(OPEN);
             }
             break;
         case OPEN:
-            if (checkAndSetJustEntered()) {
+            if (checkAndSetJustEntered())
+            {
                 this->log("OPEN");
                 pContext->setDoorOpened();
             }
 
-            if (pContext->isCloseDoorRequested()) {
-                this->setSate(CLOSING);
+            if (pContext->isCloseDoorRequested())
+            {
+                this->setState(CLOSING);
             }
             break;
         case CLOSING:
-            if (checkAndSetJustEntered()) {
+            if (checkAndSetJustEntered())
+            {
                 this->log("CLOSING");
             }
 
             this->closeDoorStep();
 
-            if (isDoorClosed()) {
-                this->setSate(CLOSED);
+            if (isDoorClosed())
+            {
+                this->setState(CLOSED);
             }
             break;
     }
 }
 
-bool DoorControlTask::isDoorOpened() {
-    return this->pDoorMotor >= DOOR_OPEN_ANGLE;
+bool DoorControlTask::isDoorOpened()
+{
+    // TODO
 }
 
-bool DoorControlTask::isDoorClosed() {
-    //TODO
+bool DoorControlTask::isDoorClosed()
+{
+    // TODO
 }
 
-void DoorControlTask::openDoorStep() {
-    //TODO
+void DoorControlTask::openDoorStep()
+{
+    // TODO
 }
 
-void DoorControlTask::closeDoorStep() {
-    //TODO
+void DoorControlTask::closeDoorStep()
+{
+    // TODO
 }
 
-void DoorControlTask::setSate(int s) {
-    state = s;
+void DoorControlTask::setState(State state)
+{
+    state = state;
     stateTimestamp = millis();
     justEntered = true;
 }
 
-long DoorControlTask::elapsedTimeInState() {
-    return millis() - stateTimestamp;
-}
+long DoorControlTask::elapsedTimeInState() { return millis() - stateTimestamp; }
 
-bool DoorControlTask::checkAndSetJustEntered() {
+bool DoorControlTask::checkAndSetJustEntered()
+{
     bool bak = justEntered;
-    if (justEntered) {
+    if (justEntered)
+    {
         justEntered = false;
     }
     return bak;
 }
 
-void DoorControlTask::log(const String& msg) {
+void DoorControlTask::log(const String& msg)
+{
     Serial.print("[DOOR] ");
     Serial.println(msg);
 }
