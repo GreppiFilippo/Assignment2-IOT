@@ -7,6 +7,10 @@
 #define MOTOR_PIN 9
 #define TEMP_SENSOR_PIN A0
 
+#define LCD_ADR 0x27
+#define LCD_COL 20
+#define LCD_ROW 4
+
 // Distance thresholds (cm)
 #define D1 100  // Distance threshold for drone exit detection
 #define D2 10   // Distance threshold for drone landing detection
