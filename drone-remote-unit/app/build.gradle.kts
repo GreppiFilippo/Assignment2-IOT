@@ -9,7 +9,6 @@ plugins {
     application
     id("com.gradleup.shadow") version "9.2.2"
     id("org.danilopianini.gradle-java-qa") version "1.155.0"
-    id("ru.akman.vscode-tasks") version "0.4.0"
 }
 
 repositories {
