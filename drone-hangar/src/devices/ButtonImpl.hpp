@@ -3,15 +3,18 @@
 
 #include "Button.hpp"
 
-class ButtonImpl: public Button {
- 
-public: 
-  ButtonImpl(int pin);
-  bool isPressed();
+/**
+ * @brief Implementation of a button device.
+ *
+ */
+class ButtonImpl : public Button
+{
+   public:
+    ButtonImpl(int pin);
+    bool isPressed() override;
 
-private:
-  int pin;
-
+   private:
+    int pin;
 };
 
 #endif

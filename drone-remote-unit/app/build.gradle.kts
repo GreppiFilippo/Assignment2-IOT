@@ -9,7 +9,6 @@ plugins {
     application
     id("com.gradleup.shadow") version "9.2.2"
     id("org.danilopianini.gradle-java-qa") version "1.155.0"
-    id("ru.akman.vscode-tasks") version "0.4.0"
 }
 
 repositories {
@@ -52,6 +51,10 @@ dependencies {
 
     // JSSC for serial communication with Arduino
     implementation("io.github.java-native:jssc:2.10.2")
+
+    // Logging
+    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("ch.qos.logback:logback-classic:1.5.16")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

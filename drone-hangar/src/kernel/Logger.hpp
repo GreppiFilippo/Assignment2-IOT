@@ -3,15 +3,21 @@
 
 #include "Arduino.h"
 
-
-class LoggerService {
-    
-public: 
-  
-  void log(const String& msg);
+/**
+ * @brief Service for logging messages.
+ *
+ */
+class LoggerService
+{
+   public:
+    /**
+     * @brief Logs a message to the logging service.
+     *
+     * @param msg The message to log.
+     */
+    void log(const String& msg);
 };
 
 extern LoggerService Logger;
 
 #endif
-

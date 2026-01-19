@@ -3,13 +3,19 @@
 
 #include "Light.hpp"
 
-class Led: public Light { 
-public:
-  Led(int pin);
-  void switchOn();
-  void switchOff();    
-protected:
-  int pin;  
+/**
+ * @brief Implementation of an LED device.
+ *
+ */
+class Led : public Light
+{
+   public:
+    Led(int pin);
+    void switchOn() override;
+    void switchOff() override;
+
+   protected:
+    int pin;
 };
 
 #endif

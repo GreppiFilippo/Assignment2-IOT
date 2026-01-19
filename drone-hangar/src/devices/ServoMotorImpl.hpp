@@ -1,24 +1,29 @@
 #ifndef __SERVO_MOTOR_IMPL__
 #define __SERVO_MOTOR_IMPL__
 
+#include <Arduino.h>
+
 #include "ServoMotor.hpp"
-#include <arduino.h>
 #include "ServoTimer2.hpp"
 
-class ServoMotorImpl: public ServoMotor {
+/**
+ * @brief Class representing a servo motor implementation.
+ *
+ */
+class ServoMotorImpl : public ServoMotor
+{
+   public:
+    ServoMotorImpl(int pin);
 
-public:
-  ServoMotorImpl(int pin);
+    void on() override;
+    bool isOn() override;
+    void setPosition(int angle) override;
+    void off() override;
 
-  void on();
-  bool isOn();
-  void setPosition(int angle);
-  void off();
-    
-private:
-  int pin; 
-  bool _on;
-  ServoTimer2 motor; 
+   private:
+    int pin;
+    bool _on;
+    ServoTimer2 motor;
 };
 
 #endif

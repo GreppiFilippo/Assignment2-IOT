@@ -5,20 +5,24 @@
 
 #define NO_OBJ_DETECTED -1
 
-class Sonar: public ProximitySensor {
+/**
+ * @brief Class representing a sonar proximity sensor.
+ *
+ */
+class Sonar : public ProximitySensor
+{
+   public:
+    Sonar(int echoPin, int trigPin, long maxTime);
+    float getDistance() override;
+    void setTemperature(float temp);
 
-public:  
-  Sonar(int echoPin, int trigPin, long maxTime);
-  float getDistance();
-  void setTemperature(float temp);  
-
-private:
-    const float vs = 331.5 + 0.6*20;
+   private:
+    const float vs = 331.5 + 0.6 * 20;
     float getSoundSpeed();
-    
-    float temperature;    
+
+    float temperature;
     int echoPin, trigPin;
     long timeOut;
 };
 
-#endif 
+#endif

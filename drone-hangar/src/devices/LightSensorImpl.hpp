@@ -1,11 +1,15 @@
 #include "LightSensor.hpp"
 
-class LightSensorImpl: public LightSensor {
+/**
+ * @brief Implementation of a light sensor using an analog pin.
+ *
+ */
+class LightSensorImpl : public LightSensor
+{
+   public:
+    LightSensorImpl(int pin);
+    double getLightIntensity() override;
 
-public: 
-  LightSensorImpl(int pin);
-  double getLightIntensity();
-  
-private:
-  int pin;
+   private:
+    int pin;
 };

@@ -1,16 +1,20 @@
 #ifndef __TEMP_SENSOR_LM35__
 #define __TEMP_SENSOR_LM35__
 
-class TempSensorLM35: public TempSensor {
+#include "TempSensor.hpp"
 
-public:
-  TempSensorLM35(int pin);	
-  virtual float getTemperature();
-  
-private:
-  int pin;
+/**
+ * @brief Class representing a LM35 temperature sensor.
+ *
+ */
+class TempSensorLM35 : public TempSensor
+{
+   public:
+    TempSensorLM35(int pin);
+    float getTemperature() override;
+
+   private:
+    int pin;
 };
 
-
 #endif
-

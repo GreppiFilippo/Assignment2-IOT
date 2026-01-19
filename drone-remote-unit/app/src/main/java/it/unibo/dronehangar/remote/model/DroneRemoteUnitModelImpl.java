@@ -9,13 +9,16 @@ import it.unibo.dronehangar.remote.api.DroneState;
 import it.unibo.dronehangar.remote.api.HangarState;
 
 /**
- * Implementation of the DroneRemoteUnitModel interface.
+ * Pure model implementation without any UI dependencies.
+ * All setters are thread-safe.
  */
 public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
+    
     private final List<Command> availableCommands;
-    private final DroneState droneState;
-    private final HangarState hangarState = HangarState.NORMAL;
-    private String distanceProperty;
+    private volatile String droneState;
+    private volatile String hangarState;
+    private volatile String distance;
+    private volatile String connectionStatus;
 
     /**
      * Constructor for DroneRemoteUnitModelImpl.
@@ -24,8 +27,10 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
      */
     public DroneRemoteUnitModelImpl(final List<Command> availableCommands) {
         this.availableCommands = new ArrayList<>(availableCommands);
-        this.droneState = DroneState.REST;
-        this.distanceProperty = "--";
+        this.droneState = DroneState.REST.name();
+        this.hangarState = HangarState.NORMAL.name();
+        this.distance = "-- cm";
+        this.connectionStatus = "DISCONNECTED";
     }
 
     @Override
@@ -35,22 +40,61 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
 
     @Override
     public String droneStateProperty() {
-        return this.droneState.name();
+        return this.droneState;
     }
 
     @Override
     public String distanceProperty() {
-        return this.distanceProperty;
+        return this.distance;
     }
 
     @Override
     public String hangarStateProperty() {
-        return this.hangarState.name();
+        return this.hangarState;
     }
 
     @Override
     public String connectionStatusProperty() {
-        // TODO Auto-generated method stub
-        return null;
+        return this.connectionStatus;
+    }
+
+    /**
+     * Set the drone state.
+     * Thread-safe.
+     * 
+     * @param state the new drone state
+     */
+    public void setDroneState(final String state) {
+        this.droneState = state;
+    }
+
+    /**
+     * Set the hangar state.
+     * Thread-safe.
+     * 
+     * @param state the new hangar state
+     */
+    public void setHangarState(final String state) {
+        this.hangarState = state;
+    }
+
+    /**
+     * Set the distance value.
+     * Thread-safe.
+     * 
+     * @param dist the new distance value
+     */
+    public void setDistance(final String dist) {
+        this.distance = dist;
+    }
+
+    /**
+     * Set the connection status.
+     * Thread-safe.
+     * 
+     * @param status the new connection status
+     */
+    public void setConnectionStatus(final String status) {
+        this.connectionStatus = status;
     }
 }

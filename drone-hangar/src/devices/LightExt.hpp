@@ -3,10 +3,18 @@
 
 #include "Light.hpp"
 
-class LightExt : public Light {
-public:
-  virtual void setIntensity(int) = 0;
+/**
+ * @brief Extended Light class with intensity control.
+ *
+ */
+class LightExt : public Light
+{
+   public:
+    /**
+     * @brief Set the intensity of the light.
+     *
+     */
+    virtual void setIntensity(int) = 0;
 };
 
 #endif
-

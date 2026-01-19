@@ -154,6 +154,14 @@
                               </Label>
                            </children>
                         </HBox>
+                        <Label fx:id="lblErrorMessage" styleClass="label-error" text="" visible="false" wrapText="true">
+                           <font>
+                              <Font name="System Italic" size="11.0" />
+                           </font>
+                           <VBox.margin>
+                              <Insets top="5.0" />
+                           </VBox.margin>
+                        </Label>
                      </children>
                   </VBox>
                </children>
