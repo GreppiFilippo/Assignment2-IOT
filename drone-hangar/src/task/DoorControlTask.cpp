@@ -5,13 +5,15 @@
 
 #define DOOR_OPEN_ANGLE 180
 #define DOOR_CLOSED_ANGLE 0
+//TODO: da misurare!!!!!!!!!
+#define MOVING_TIME 300 //tempo in cui si apre/chiude. Per isClosed/isOpen. 
 
 DoorControlTask::DoorControlTask(Context* ctx, ServoMotor* motor)
 {
-    pContext = ctx;
-    pDoorMotor = motor;
+    this->pContext = ctx;
+    this->pDoorMotor = motor;
     setState(CLOSED);
-    pDoorMotor->setPosition(DOOR_CLOSED_ANGLE);
+    this->pDoorMotor->setPosition(DOOR_CLOSED_ANGLE);
 }
 
 void DoorControlTask::tick()
@@ -77,31 +79,29 @@ void DoorControlTask::tick()
 
 bool DoorControlTask::isDoorOpened()
 {
-    // TODO
-    return false;
+    return elapsedTimeInState() > MOVING_TIME;
 }
 
 bool DoorControlTask::isDoorClosed()
 {
-    // TODO
-    return false;
+    return elapsedTimeInState() > MOVING_TIME;
 }
 
 void DoorControlTask::openDoorStep()
 {
-    // TODO
+    this->pDoorMotor->setPosition(DOOR_OPEN_ANGLE);
 }
 
 void DoorControlTask::closeDoorStep()
 {
-    // TODO
+    this->pDoorMotor->setPosition(DOOR_CLOSED_ANGLE);
 }
 
 void DoorControlTask::setState(State state)
 {
-    state = state;
-    stateTimestamp = millis();
-    justEntered = true;
+    this->state = state;
+    this->stateTimestamp = millis();
+    this->justEntered = true;
 }
 
 long DoorControlTask::elapsedTimeInState() { return millis() - stateTimestamp; }
