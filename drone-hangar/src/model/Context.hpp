@@ -27,10 +27,14 @@ class Context
     bool takeoffRequested;
     bool landingRequested;
 
+    // LCD message to display
+    const char* lcdMessage;
+
    public:
     Context();
 
     // === DOOR CONTROL ===
+
     /**
      * @brief Request to open the door.
      *
@@ -79,6 +83,10 @@ class Context
     bool isStarted();
 
     bool isStopped();
+
+    // ======== LCD data ========
+    const char* getLCDMessage();
+    void setLCDMessage(const char* msg);
 };
 
 #endif
