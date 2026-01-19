@@ -10,19 +10,15 @@ class DoorControlTask : public Task {
     private:
         Context* context;
         ServoMotor* doorMotor;
+        unsigned long stateTimestamp;
+        bool justEntered;
+        int currentPos;
+        enum { CLOSED, OPENING, OPEN, CLOSING } state;
 
         void setState(int state);
-        long elapsedTimeInState();
+        unsigned long elapsedTimeInState();
         void log(const String& msg);
-        
         bool checkAndSetJustEntered();
-        
-        enum { IDLE, STARTING, SWEEPING_FWD, SWEEPING_BWD, RESETTING } state;
-        long stateTimestamp;
-        bool justEntered;
-
-        int currentPos;
-        bool toBeStopped;
 
     public:
         DoorControlTask(Context* ctx, ServoMotor* motor){
@@ -35,14 +31,36 @@ class DoorControlTask : public Task {
         }
 
         void tick() override {
-            // Implement door control logic based on context
-            if (context->droneIn) {
-                
-            } else if (context->droneOut) {
-                // Close door logic
+            switch (this->state)
+            {
+            case CLOSED:
+                if (!checkAndSetJustEntered()){
+                    this->doorMotor->off();
+                    this->justEntered = true;
+                    this->setActive(false);
+                }
+                this->currentPos = 0;
+                this->doorMotor->setPosition(this->currentPos);
+                this->setState(OPENING);
+                break;
+            case OPENING:
+            
+                break;
+            case OPEN:
+                break;
+            case CLOSING:
+                break;
             }
         }
 };
+
+bool DoorControlTask::checkAndSetJustEntered(){
+    bool bak = justEntered;
+    if (justEntered){
+      justEntered = false;
+    }
+    return bak;
+}
 
 
 
