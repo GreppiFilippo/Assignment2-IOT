@@ -9,7 +9,7 @@
 
 class HangarTask : public Task
 {
-   private:
+    private:
     Context* pContext;
 
     enum State
@@ -19,6 +19,9 @@ class HangarTask : public Task
         DRONE_OUTSIDE,
         LANDING
     } state;
+
+    long stateTimestamp;
+    bool justEntered;
 
     void setState(State state);
     long elapsedTimeInState();
