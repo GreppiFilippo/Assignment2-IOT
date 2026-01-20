@@ -178,7 +178,7 @@
                </padding>
                <children>
                   <Label alignment="CENTER_RIGHT" minWidth="100.0" prefWidth="120.0" styleClass="label-normal" text="Serial Port:" />
-                  <ComboBox fx:id="serialComboBox" maxWidth="Infinity" promptText="Not selected" styleClass="serialComboBox" HBox.hgrow="ALWAYS">
+                  <ComboBox fx:id="serialComboBox" editable="true" maxWidth="Infinity" promptText="Not selected" styleClass="serialComboBox" HBox.hgrow="ALWAYS">
                      <HBox.margin>
                         <Insets right="75.0" />
                      </HBox.margin></ComboBox>

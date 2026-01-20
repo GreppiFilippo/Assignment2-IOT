@@ -66,9 +66,14 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
     private void initialize() {
         /*
          * Baud Rate Selection
-        */
+         */
         for (final var baudRate : this.channel.getSupportedBaudRates()) {
             this.baudComboBox.getItems().add(baudRate);
+        }
+        // Select default initial baud rate (should be 9600)
+        if (!this.baudComboBox.getItems().isEmpty()) {
+            this.baudComboBox.setValue(this.baudComboBox.getItems().get(0));
+            LOGGER.info("Default baud rate selected in UI: {}", this.baudComboBox.getValue());
         }
         this.baudComboBox.setOnAction(event -> {
             final String selectedBaud = this.baudComboBox.getValue();
@@ -79,7 +84,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
         });
         /*
          * Command Buttons
-        */
+         */
         for (final var cmd : this.viewModel.getModel().getAvailableCommands()) {
             final var btn = new Button(cmd.getName().toUpperCase(Locale.ROOT));
             btn.setOnAction(event -> {
@@ -109,25 +114,28 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
         }
         /*
          * Serial Port Selection
-        */
+         */
+        // Allow user to type a custom port path (e.g. /tmp/ttyV1)
+        this.serialComboBox.setEditable(true);
+
         this.serialComboBox.setOnAction(event -> {
             final String selectedPort = this.serialComboBox.getValue();
             if (selectedPort != null) {
                 // Cancel any existing connection attempt
                 cancelConnectionThreads();
-                
+
                 clearErrorMessage();
                 LOGGER.info("Attempting to connect to port: {}", selectedPort);
                 viewModel.setConnectionStatus("CONNECTING...");
                 waitingForHandshake = false;
-                
+
                 final Thread newThread = new Thread(() -> {
                     try {
                         LOGGER.debug("Opening port: {}", selectedPort);
                         channel.setCommPort(selectedPort);
                         waitingForHandshake = true;
                         startHandshakeTimeout();
-                        
+
                         Thread.sleep(HANDSHAKE_DELAY_MS);
                         channel.sendMsg("HELLO");
                         LOGGER.info("Handshake message sent");
@@ -152,7 +160,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                         });
                     }
                 }, "Connection-Thread");
-                
+
                 connectionThread.set(newThread);
                 newThread.start();
             }
@@ -160,7 +168,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
         this.updateSerialPorts();
         /*
          * Label Bindings
-        */
+         */
         lblDroneState.textProperty().bind(viewModel.droneStateProperty());
         lblHangarState.textProperty().bind(viewModel.hangarStateProperty());
         lblConnectionStatus.textProperty().bind(viewModel.connectionStatusProperty());
@@ -168,7 +176,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
 
         /*
          * Start message listener thread
-        */
+         */
         startMessageListener();
     }
 
@@ -236,8 +244,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
     private void updateSerialPorts() {
         this.serialComboBox.getItems().clear();
         this.serialComboBox.getItems().addAll(
-            this.channel.getAvailableCommPorts()
-        );
+                this.channel.getAvailableCommPorts());
         LOGGER.info("Serial ports updated: {} ports found", this.serialComboBox.getItems().size());
     }
 
@@ -260,7 +267,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
 
     private void startHandshakeTimeout() {
         cancelTimeoutThread();
-        
+
         final Thread newTimeout = new Thread(() -> {
             try {
                 Thread.sleep(HANDSHAKE_TIMEOUT_MS);
@@ -277,7 +284,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                 Thread.currentThread().interrupt();
             }
         }, "Timeout-Thread");
-        
+
         timeoutThread.set(newTimeout);
         newTimeout.start();
     }

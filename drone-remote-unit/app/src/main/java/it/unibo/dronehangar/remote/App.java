@@ -22,11 +22,7 @@ public final class App extends Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     private final List<Command> commandList = List.of(
-        () -> "OPEN",
-        () -> "CLOSE",
-        () -> "TAKEOFF",
-        () -> "LAND"
-    );
+            () -> "OPEN");
 
     /**
      * Main entry point of the application.
@@ -42,11 +38,8 @@ public final class App extends Application {
     public void start(final Stage primaryStage) throws Exception {
         LOGGER.info("Initializing JavaFX application");
         final FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DroneRemoteUnit.fxml"));
-        loader.setControllerFactory(param -> 
-            new DroneRemoteUnitControllerImpl(
-                new DroneRemoteUnitModelImpl(this.commandList)
-            )
-        );
+        loader.setControllerFactory(param -> new DroneRemoteUnitControllerImpl(
+                new DroneRemoteUnitModelImpl(this.commandList)));
         final Parent root = loader.load();
         final Scene scene = new Scene(root);
 

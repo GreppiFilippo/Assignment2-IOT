@@ -10,6 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.unibo.dronehangar.remote.api.CommChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -17,7 +20,8 @@ import jssc.SerialPortException;
 import jssc.SerialPortList;
 
 /**
- * Communication channel implementation using JSSC library for serial communication.
+ * Communication channel implementation using JSSC library for serial
+ * communication.
  */
 public final class JSSCCommChannel implements CommChannel, SerialPortEventListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(JSSCCommChannel.class);
@@ -28,12 +32,11 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
     private final StringBuilder currentMsg = new StringBuilder();
     private final Object portLock = new Object();
     private final List<String> baudRates = List.of(
-        "9600", 
-        "19200", 
-        "38400", 
-        "57600", 
-        "115200"
-    );
+            "9600",
+            "19200",
+            "38400",
+            "57600",
+            "115200");
 
     /**
      * Constructor for JSSCCommChannel.
@@ -47,7 +50,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
     @Override
     public void sendMsg(final String msg) {
         Objects.requireNonNull(msg, "Message cannot be null");
-        
+
         final SerialPort port = this.serialPort;
         if (port == null) {
             throw new IllegalStateException("Serial port is not open");
@@ -55,7 +58,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
 
         LOGGER.debug("Sending message: {}", msg);
         final byte[] bytes = (msg + "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        
+
         try {
             synchronized (portLock) {
                 if (port.isOpened()) {
@@ -92,7 +95,19 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
     @Override
     public void setCommPort(final String commPort) {
         LOGGER.info("Setting comm port to: {}", commPort);
-        
+        // Resolve symlinks or indirect paths (e.g. /tmp/ttyV1 -> /dev/ttys012)
+        String portToUse = commPort;
+        try {
+            final Path p = Paths.get(commPort);
+            if (Files.exists(p)) {
+                final Path real = p.toRealPath();
+                portToUse = real.toString();
+                LOGGER.debug("Resolved comm port {} -> {}", commPort, portToUse);
+            }
+        } catch (final Exception e) {
+            LOGGER.debug("Could not resolve comm port path {}: {}", commPort, e.getMessage());
+        }
+
         synchronized (portLock) {
             // Only close if we're already connected to a DIFFERENT port
             if (this.serialPort != null) {
@@ -105,11 +120,11 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
                     closeInternal();
                 }
             }
-            
+
             try {
-                this.serialPort = new SerialPort(commPort);
+                this.serialPort = new SerialPort(portToUse);
                 this.serialPort.openPort();
-                LOGGER.debug("Port {} opened successfully", commPort);
+                LOGGER.debug("Port {} opened successfully (requested: {})", portToUse, commPort);
 
                 this.serialPort.setParams(baudRate,
                         SerialPort.DATABITS_8,
@@ -117,7 +132,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
                         SerialPort.PARITY_NONE);
                 LOGGER.debug("Serial port parameters set: baudRate={}, dataBits=8, stopBits=1, parity=NONE", baudRate);
 
-                this.serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN 
+                this.serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN
                         | SerialPort.FLOWCONTROL_RTSCTS_OUT);
 
                 this.serialPort.addEventListener(this);
@@ -125,7 +140,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
             } catch (final SerialPortException ex) {
                 this.serialPort = null;
                 LOGGER.error("Failed to configure serial port: {}", commPort, ex);
-                
+
                 final String errorMessage;
                 if (ex.getMessage().contains("Port busy")) {
                     errorMessage = "Port is already in use by another application";
@@ -136,7 +151,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
                 } else {
                     errorMessage = ex.getMessage();
                 }
-                
+
                 throw new RuntimeException(errorMessage, ex);
             }
         }
@@ -158,7 +173,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
     public void setBaudRate(final int baudRate) {
         LOGGER.info("Setting baud rate to: {}", baudRate);
         this.baudRate = baudRate;
-        
+
         // If port is already open, apply the new baud rate
         final SerialPort port = this.serialPort;
         if (port != null && port.isOpened()) {
@@ -184,15 +199,15 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
                 LOGGER.warn("Received serial event but port is null");
                 return;
             }
-            
+
             try {
                 final String msg = port.readString(serialPortEvent.getEventValue());
                 if (msg == null) {
                     return;
                 }
-                
+
                 final String cleanMsg = msg.replaceAll("\r", "");
-                
+
                 synchronized (currentMsg) {
                     this.currentMsg.append(cleanMsg);
                     boolean goAhead = true;
@@ -202,17 +217,17 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
 
                         if (index >= 0) {
                             final String completeMsg = bufferedMsg.substring(0, index);
-                            
+
                             // Use offer() instead of put() to avoid blocking
                             if (queue.offer(completeMsg)) {
                                 LOGGER.debug("Complete message queued: {}", completeMsg);
                             } else {
                                 LOGGER.warn("Message queue full, dropping message: {}", completeMsg);
                             }
-                            
+
                             this.currentMsg.setLength(0);
                             if (index + 1 < bufferedMsg.length()) {
-                                this.currentMsg.append(bufferedMsg.substring(index + 1)); 
+                                this.currentMsg.append(bufferedMsg.substring(index + 1));
                             }
                         } else {
                             goAhead = false;
@@ -231,23 +246,23 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
             closeInternal();
         }
     }
-    
+
     private void closeInternal() {
         // Must be called inside portLock synchronization
         if (this.serialPort != null) {
             final SerialPort portToClose = this.serialPort;
             final String portName = portToClose.getPortName();
             LOGGER.info("Closing serial port: {}", portName);
-            
+
             // Set to null IMMEDIATELY
             this.serialPort = null;
-            
+
             // Clear buffers
             synchronized (currentMsg) {
                 this.currentMsg.setLength(0);
             }
             this.queue.clear();
-            
+
             // Try to close synchronously but with error suppression
             try {
                 portToClose.removeEventListener();
@@ -267,7 +282,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
             }
         }
     }
-    
+
     @Override
     public boolean isPortOpen() {
         final SerialPort port = this.serialPort;
