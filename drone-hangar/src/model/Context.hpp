@@ -82,6 +82,14 @@ class Context
     // ======== LCD data ========
     const char* getLCDMessage();
     void setLCDMessage(const char* msg);
+
+
+    // ======== DISTANCE TASK =========
+    void requestLandingCheck();
+    void closeLandingCheck();
+    void requestTakeoffCheck();
+    void closeTakeoffCheck();
+    void setDroneIn(bool state);
 };
 
 #endif
