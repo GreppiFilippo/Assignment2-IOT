@@ -38,7 +38,7 @@ void DroneTask::tick()
     {
         case REST:
             Logger.log(F(DRONE_REST_STATE));
-            this->sendState("rest");
+            this->sendState(DRONE_REST_STATE);
 
             if (checkAndSetJustEntered())
             {
@@ -57,7 +57,7 @@ void DroneTask::tick()
             break;
         case TAKING_OFF:
             Logger.log(F(DRONE_TAKING_OFF_STATE));
-            this->sendState("taking_off");
+            this->sendState(DRONE_TAKING_OFF_STATE);
             if (checkAndSetJustEntered())
             {
                 pContext->openDoor();
@@ -77,7 +77,7 @@ void DroneTask::tick()
             break;
         case OPERATING:
             Logger.log(F(DRONE_OPERATING_STATE));
-            this->sendState("operating");
+            this->sendState(DRONE_OPERATING_STATE);
             if (this->checkAndSetJustEntered())
             {
                 this->pContext->closeDoor();
@@ -97,7 +97,7 @@ void DroneTask::tick()
             break;
         case LANDING:
             Logger.log(F(DRONE_LANDING_STATE));
-            this->sendState("landing");
+            this->sendState(DRONE_LANDING_STATE);
 
             if (this->checkAndSetJustEntered())
             {

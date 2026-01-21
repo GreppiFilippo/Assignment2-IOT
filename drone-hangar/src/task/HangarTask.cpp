@@ -3,9 +3,6 @@
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
-#define NORMAL_STATE_MSG "HANGAR_STATE:NORMAL"
-#define ALARM_STATE_MSG "HANGAR_STATE:ALARM"
-
 HangarTask::HangarTask(TempSensor* tempSensor, Button* resetButton, Context* pContext)
     : pContext(pContext), tempSensor(tempSensor), resetButton(resetButton)
 {
@@ -23,7 +20,7 @@ void HangarTask::tick()
     switch (state)
     {
         case NORMAL:
-            this->setHangarState("normal");
+            this->setHangarState(HANGAR_NORMAL_STATE);
 
             if (this->checkAndSetJustEntered())
             {
@@ -38,7 +35,7 @@ void HangarTask::tick()
             }
             break;
         case TRACKING_PRE_ALARM:
-            this->setHangarState("normal");
+            this->setHangarState(HANGAR_NORMAL_STATE);
 
             if (this->checkAndSetJustEntered())
             {
@@ -56,7 +53,7 @@ void HangarTask::tick()
             }
             break;
         case PREALARM:
-            this->setHangarState("normal");
+            this->setHangarState(HANGAR_NORMAL_STATE);
 
             if (this->checkAndSetJustEntered())
             {
@@ -74,7 +71,7 @@ void HangarTask::tick()
             }
             break;
         case TRACKING_ALARM:
-            this->setHangarState("normal");
+            this->setHangarState(HANGAR_NORMAL_STATE);
 
             if (this->checkAndSetJustEntered())
             {
@@ -92,7 +89,7 @@ void HangarTask::tick()
             }
             break;
         case ALARM:
-            this->setHangarState("alarm");
+            this->setHangarState(HANGAR_ALARM_STATE);
             if (this->checkAndSetJustEntered())
             {
                 Logger.log(F("[HT] ALARM"));
