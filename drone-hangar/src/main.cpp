@@ -15,6 +15,12 @@
 #include "task/MSGTask.hpp"
 
 #define BASE_PERIOD_MS 50
+#define TEMP_ALARM_TASK_PERIOD 50
+#define DRONE_TASK_PERIOD 50
+#define DOOR_CONTROL_TASK_PERIOD 50
+#define HANGAR_TASK_PERIOD 50
+#define LCD_TASK_PERIOD 50 
+#define MSG_TASK_PERIOD 50
 
 // Uncomment the following line to enable hardware testing mode
 // #define __TESTING_HW__
@@ -35,8 +41,6 @@ void setup()
 
     pHWPlatform = new HWPlatform();
     pHWPlatform->init();
-
-#ifndef __TESTING_HW__
     pContext = new Context();
 
     // Tasks
@@ -64,7 +68,7 @@ void setup()
     Task* pLcdTask = new LCDTask(pHWPlatform->getLCD(), pContext);
     pLcdTask->init(LCD_TASK_PERIOD);
 
-    Task* pMSGTask = new MSGTask(pContext, &MsgService);
+    Task* pMSGTask = new MsgTask(pContext, &MsgService);
     pMSGTask->init(MSG_TASK_PERIOD);
 
     sched.addTask(pTempAlarmTask);

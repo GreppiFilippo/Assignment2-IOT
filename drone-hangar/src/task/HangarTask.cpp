@@ -47,7 +47,7 @@ void HangarTask::tick()
             {
                 this->setState(NORMAL);
             }
-            else if (millis() - this->startTime >= T3)
+            else if (millis() - this->startTime >= TIME3)
             {
                 this->setState(PREALARM);
             }
@@ -83,7 +83,7 @@ void HangarTask::tick()
             {
                 this->setState(PREALARM);
             }
-            else if (millis() - this->startTime >= T4)
+            else if (millis() - this->startTime >= TIME4)
             {
                 this->setState(ALARM);
             }

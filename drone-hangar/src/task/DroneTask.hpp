@@ -17,34 +17,33 @@
  */
 class DroneTask : public Task
 {
-   private:
-    Context* pContext;
+    private:
+        Context* pContext;
 
-    enum State
-    {
-        REST,
-        TAKING_OFF,
-        OPERATING,
-        LANDING
-    } state;
+        enum State
+        {
+            REST,
+            TAKING_OFF,
+            OPERATING,
+            LANDING
+        } state;
 
-    long stateTimestamp;
-    bool justEntered;
-    Led* L1;
-    BlinkingTask* L2;
-    Led* L3;
-    PresenceSensor* presenceSensor;
+        long stateTimestamp;
+        bool justEntered;
+        Light* L1;
+        Light* L3;
+        PresenceSensor* presenceSensor;
 
-    void setState(State state);
-    long elapsedTimeInState();
-    void log(const String& msg);
-    bool checkAndSetJustEntered();
-    bool receiveOpenCMD();
-    void sendState(const String& state);
+        void setState(State state);
+        long elapsedTimeInState();
+        void log(const String& msg);
+        bool checkAndSetJustEntered();
+        bool receiveOpenCMD();
+        void sendState(const String& state);
 
-   public:
-    DroneTask(Context* pContext, Led* L1, Led* L3, PresenceSensor* presenceSensor);
-    void tick();
+    public:
+        DroneTask(Context* pContext, Light* L1, Light* L3, PresenceSensor* presenceSensor);
+        void tick();
 };
 
 #endif /* __HANGAR_TASK__ */

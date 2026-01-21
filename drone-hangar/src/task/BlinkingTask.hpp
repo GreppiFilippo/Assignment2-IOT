@@ -14,7 +14,7 @@
 class BlinkingTask : public Task
 {
     private:
-        Led* pLed;
+        Light* pLed;
         Context* pContext;
 
         enum State
@@ -33,9 +33,8 @@ class BlinkingTask : public Task
         bool checkAndSetJustEntered();
 
     public:
-        BlinkingTask(Led* pLed, Context* pContext);
+        BlinkingTask(Light* pLed, Context* pContext);
         void tick() override;
-        void setActive(bool active) override;
 };
 
 #endif /* __BLINKING_TASK__ */

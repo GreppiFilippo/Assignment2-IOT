@@ -24,10 +24,10 @@
 #define D2 10   // Distance threshold for drone landing detection
 
 /* ===== Time thresholds (milliseconds) ===== */
-#define T1 3000  // Time to confirm drone has exited (3 seconds)
-#define T2 3000  // Time to confirm drone has landed (3 seconds)
-#define T3 5000  // Time to enter pre-alarm state (5 seconds)
-#define T4 5000  // Time to enter alarm state (5 seconds)
+#define TIME1 3000  // Time to confirm drone has exited (3 seconds)
+#define TIME2 3000  // Time to confirm drone has landed (3 seconds)
+#define TIME3 5000  // Time to enter pre-alarm state (5 seconds)
+#define TIME4 5000  // Time to enter alarm state (5 seconds)
 
 /* ===== LED blink periods ===== */
 // LED blink period (milliseconds)

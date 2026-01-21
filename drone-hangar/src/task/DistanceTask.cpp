@@ -33,7 +33,7 @@ void DistanceTask::tick()
             {
                 setState(LANDING_MONITORING);
             }
-            if (this->elapsedTimeInState() > T2)
+            if (this->elapsedTimeInState() > TIME2)
             {
                 this->pContext->setDroneIn(true);
                 this->pContext->closeLandingCheck();
@@ -55,7 +55,7 @@ void DistanceTask::tick()
             {
                 setState(TAKEOFF_MONITORING);
             }
-            if (this->elapsedTimeInState() > T1)
+            if (this->elapsedTimeInState() > TIME1)
             {
                 this->pContext->setDroneIn(false);
                 this->pContext->closeTakeoffCheck();

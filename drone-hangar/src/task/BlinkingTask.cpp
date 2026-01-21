@@ -3,10 +3,13 @@
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
-BlinkingTask::BlinkingTask(Led* pLed, Context* pContext) : pContext(pContext), pLed(pLed)
+BlinkingTask::BlinkingTask(Light* pLed, Context* pContext)
 {
+    this->pLed = pLed;
+    this->pContext = pContext;
     setState(IDLE);
 }
+
 
 void BlinkingTask::tick()
 {
