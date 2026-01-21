@@ -34,11 +34,6 @@ class Context
     Context();
 
     // === DOOR CONTROL ===
-
-    /**
-     * @brief Request to open the door.
-     *
-     */
     void closeDoor();
     void openDoor();
     bool openDoorReq();
