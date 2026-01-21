@@ -10,7 +10,7 @@
 #include "devices/Led.hpp"
 #include "task/BlinkingTask.hpp"
 
-class HangarTask : public Task
+class DroneTask : public Task
 {
     private:
         Context* pContext;
@@ -39,7 +39,7 @@ class HangarTask : public Task
         //send ?
 
     public:
-        HangarTask(Context* ctx);
+        DroneTask(Context* ctx);
         void tick();
 };
 

@@ -41,6 +41,8 @@ class Context
      */
     void closeDoor();
     void openDoor();
+    bool openDoorReq();
+    bool closeDoorReq();
     bool isDoorOpen();
     void setDoorClosed();
     void setDoorOpened();

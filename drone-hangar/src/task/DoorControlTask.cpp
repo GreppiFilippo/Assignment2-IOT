@@ -27,7 +27,7 @@ void DoorControlTask::tick()
                 this->log("CLOSED");
             }
 
-            if (pContext->isOpenDoorRequested())
+            if (pContext->openDoorReq())
             {
                 this->setState(OPENING);
             }
@@ -40,7 +40,7 @@ void DoorControlTask::tick()
 
             this->openDoorStep();
 
-            if (pContext->isCloseDoorRequested())
+            if (pContext->closeDoorReq())
             {
                 this->setState(CLOSING);
             }
@@ -56,7 +56,7 @@ void DoorControlTask::tick()
                 pContext->setDoorOpened();
             }
 
-            if (pContext->isCloseDoorRequested())
+            if (pContext->closeDoorReq())
             {
                 this->setState(CLOSING);
             }

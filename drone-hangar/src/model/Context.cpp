@@ -5,9 +5,19 @@ void Context::closeDoor()
     this->closeDoorRequested = true;
 }
 
+bool Context::closeDoorReq()
+{
+    return this->closeDoorRequested;
+}
+
 void Context::openDoor()
 {
     this->openDoorRequested = true;
+}
+
+bool Context::openDoorReq()
+{
+    return this->openDoorRequested;
 }
 
 bool Context::isDoorOpen()
@@ -22,6 +32,8 @@ void Context::setDoorOpened()
 
 void Context::setDoorClosed()
 {
+    this->closeDoorRequested = false;
+    this->openDoorRequested = false;
     this->doorOpen = false;
 }
 
