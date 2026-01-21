@@ -7,7 +7,7 @@
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
 
-class DroneDistanceTask : public Task
+class DistanceTask : public Task
 {
    private:
     Sonar* sonarSensor;
@@ -21,18 +21,18 @@ class DroneDistanceTask : public Task
     {
         IDLE,
         TAKEOFF_MONITORING,
-        TAKEOFF_WAITING, 
+        TAKEOFF_WAITING,
         LANDING_MONITORING,
-        LANDING_WAITING 
+        LANDING_WAITING
     } state;
 
     void setState(State state);
     long elapsedTimeInState();
     void log(const String& msg);
     bool checkAndSetJustEntered();
-    
+
    public:
-    DroneDistanceTask(Sonar* sonarSensor, Context* pContext);
+    DistanceTask(Sonar* sonarSensor, Context* pContext);
     void tick();
 };
 
