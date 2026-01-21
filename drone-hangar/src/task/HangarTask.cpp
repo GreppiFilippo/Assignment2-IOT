@@ -3,6 +3,9 @@
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
+#define NORMAL_STATE_MSG "HANGAR_STATE:NORMAL"
+#define ALARM_STATE_MSG "HANGAR_STATE:ALARM"
+
 HangarTask::HangarTask(TempSensor* tempSensor, Button* resetButton, Context* pContext)
     : pContext(pContext), tempSensor(tempSensor), resetButton(resetButton)
 {
@@ -15,9 +18,13 @@ void HangarTask::tick()
     switch (state)
     {
         case NORMAL:
+            Logger.log(F(NORMAL_STATE_MSG));
+
             if (this->checkAndSetJustEntered())
             {
-                Logger.log(F("[TAT] NORMAL"));
+                Logger.log(F("[HT] NORMAL"));
+                this->pContext->setPreAlarm(false);
+                this->pContext->setAlarm(false);
             }
 
             if (this->temperature >= TEMP1)
@@ -28,9 +35,10 @@ void HangarTask::tick()
         case TRACKING_PRE_ALARM:
             if (this->checkAndSetJustEntered())
             {
-                Logger.log(F("[TAT] TRACKING_PRE_ALARM"));
+                Logger.log(F("[HT] TRACKING_PRE_ALARM"));
                 this->startTime = millis();
             }
+            Logger.log(F(NORMAL_STATE_MSG));
 
             if (this->temperature < TEMP1)
             {
@@ -42,15 +50,16 @@ void HangarTask::tick()
             }
             break;
         case PREALARM:
+            Logger.log(F(NORMAL_STATE_MSG));
+
             if (this->checkAndSetJustEntered())
             {
-                Logger.log(F("[TAT] PREALARM"));
+                Logger.log(F("[HT] PREALARM"));
                 this->pContext->setPreAlarm(true);
             }
 
             if (this->temperature < TEMP1)
             {
-                this->pContext->setPreAlarm(false);
                 this->setState(NORMAL);
             }
             else if (this->temperature >= TEMP2)
@@ -59,9 +68,11 @@ void HangarTask::tick()
             }
             break;
         case TRACKING_ALARM:
+            Logger.log(F(NORMAL_STATE_MSG));
+
             if (this->checkAndSetJustEntered())
             {
-                Logger.log(F("[TAT] TRACKING_ALARM"));
+                Logger.log(F("[HT] TRACKING_ALARM"));
                 this->startTime = millis();
             }
 
@@ -77,13 +88,14 @@ void HangarTask::tick()
         case ALARM:
             if (this->checkAndSetJustEntered())
             {
-                Logger.log(F("[TAT] ALARM"));
+                Logger.log(F("[HT] ALARM"));
+                this->pContext->setPreAlarm(false);
                 this->pContext->setAlarm(true);
             }
+            Logger.log(F(ALARM_STATE_MSG));
 
             if (this->resetButton->isPressed())
             {
-                this->pContext->setAlarm(false);
                 this->setState(NORMAL);
             }
             break;
