@@ -3,34 +3,33 @@
 
 #include <Arduino.h>
 
-#include "devices/Pir.hpp"
 #include "devices/Sonar.hpp"
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
 
-class DroneDetectionTask : public Task
+class DroneDistanceTask : public Task
 {
    private:
     Sonar* sonarSensor;
     Context* pContext;
-    bool pirPreviouslyActive;
+    float distance;
 
     enum State
     {
         IDLE,
-        LANDING_MONITORING,
-        LANDING_WAITING,
         TAKEOFF_MONITORING,
-        TAKEOFF_WAITING
+        TAKEOFF_WAITING, 
+        LANDING_MONITORING,
+        LANDING_WAITING 
     } state;
 
     void setState(State state);
     long elapsedTimeInState();
     void log(const String& msg);
     bool checkAndSetJustEntered();
-
+    
    public:
-    DroneDetectionTask(Pir* pirSensor, Sonar* sonarSensor, Context* pContext);
+    DroneDistanceTask(Sonar* sonarSensor, Context* pContext);
     void tick();
 };
 

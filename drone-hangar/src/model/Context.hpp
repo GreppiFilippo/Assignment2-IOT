@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+
 #include "kernel/MsgService.hpp"
 
 #define MSG_QUEUE_SIZE 10
@@ -42,7 +43,7 @@ class Context
     // LCD message to display
     const char* lcdMessage;
 
-    //blinking led
+    // blinking led
     bool ledBlinking;
 
     // Message queue (FIFO with timestamp)
@@ -58,11 +59,6 @@ class Context
     Context();
 
     // === DOOR CONTROL ===
-
-    /**
-     * @brief Request to open the door.
-     *
-     */
     void closeDoor();
     void openDoor();
     bool openDoorReq();
@@ -112,11 +108,18 @@ class Context
     const char* getLCDMessage();
     void setLCDMessage(const char* msg);
 
+    // ======== DISTANCE TASK =========
+    void requestLandingCheck();
+    void closeLandingCheck();
+    void requestTakeoffCheck();
+    void closeTakeoffCheck();
+    void setDroneIn(bool state);
+
     // ======== MESSAGE QUEUE ========
 
     /**
      * @brief Add a message to the queue with current timestamp.
-     * 
+     *
      * @param msg Message to add
      * @return true if added successfully, false if queue full
      */
@@ -125,7 +128,7 @@ class Context
     /**
      * @brief Check if a message matching the pattern exists in the queue.
      * Only considers messages within MSG_TIMEOUT_MS age.
-     * 
+     *
      * @param pattern Pattern to match
      * @return true if matching message found
      */
@@ -134,7 +137,7 @@ class Context
     /**
      * @brief Consume (remove) the FIRST (oldest) message in queue if it matches pattern.
      * FIFO behavior: only checks head of queue.
-     * 
+     *
      * @param pattern Pattern to match
      * @return true if message was consumed, false if no match
      */
@@ -143,7 +146,7 @@ class Context
     /**
      * @brief Remove expired messages from the queue (older than MSG_TIMEOUT_MS).
      * Should be called periodically by MsgTask.
-     * 
+     *
      * @return Number of messages removed
      */
     int cleanExpiredMessages();
@@ -162,7 +165,7 @@ class Context
 
     /**
      * @brief Set a JSON field with string value.
-     * 
+     *
      * @param key Field name
      * @param value Field value
      */
@@ -170,7 +173,7 @@ class Context
 
     /**
      * @brief Set a JSON field with float value.
-     * 
+     *
      * @param key Field name
      * @param value Field value
      */
@@ -178,7 +181,7 @@ class Context
 
     /**
      * @brief Set a JSON field with int value.
-     * 
+     *
      * @param key Field name
      * @param value Field value
      */
@@ -186,7 +189,7 @@ class Context
 
     /**
      * @brief Set a JSON field with boolean value.
-     * 
+     *
      * @param key Field name
      * @param value Field value
      */
@@ -194,14 +197,14 @@ class Context
 
     /**
      * @brief Remove a JSON field from output.
-     * 
+     *
      * @param key Field name to remove
      */
     void removeJsonField(const String& key);
 
     /**
      * @brief Build JSON string from all active fields.
-     * 
+     *
      * @return String containing JSON object
      */
     String buildJSON();
