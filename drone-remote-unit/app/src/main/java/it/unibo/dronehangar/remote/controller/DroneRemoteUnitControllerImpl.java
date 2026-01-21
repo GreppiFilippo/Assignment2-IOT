@@ -6,6 +6,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+
 import it.unibo.dronehangar.remote.api.CommChannel;
 import it.unibo.dronehangar.remote.api.ConnectionState;
 import it.unibo.dronehangar.remote.api.DroneRemoteUnitController;
@@ -25,8 +29,6 @@ import javafx.scene.layout.TilePane;
 public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DroneRemoteUnitControllerImpl.class);
-    private static final int HANDSHAKE_TIMEOUT_MS = 5000;
-    private static final int HANDSHAKE_DELAY_MS = 2000;
     private static final int MESSAGE_POLL_TIMEOUT_MS = 100;
     private static final int MESSAGE_POLL_SLEEP_MS = 50;
     private static final double EPSILON = 1e-6;
@@ -43,15 +45,12 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
     private static final String COLOR_RED = "#ff4d4d";
 
     private static final String MSG_NOT_CONNECTED = "Not connected. Please connect to a serial port first.";
-    private static final String MSG_CONNECTION_CANCELLED = "Connection cancelled";
-    private static final String MSG_CONNECTION_TIMEOUT = "Connection timeout";
 
     private final CommChannel channel;
     private final DroneRemoteUnitViewModel viewModel;
     private final AtomicReference<Thread> connectionThread = new AtomicReference<>();
-    private final AtomicReference<Thread> timeoutThread = new AtomicReference<>();
     private final AtomicReference<Thread> listenerThread = new AtomicReference<>();
-    private volatile boolean waitingForHandshake;
+    private final Gson gson = new Gson();
     private volatile boolean running = true;
 
     @FXML
@@ -112,7 +111,10 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                 }
                 try {
                     LOGGER.info("Sending command: {}", cmd.getName());
-                    channel.sendMsg(cmd.getName().toUpperCase(Locale.ROOT));
+                    // Send command as JSON with "command" key
+                    JsonObject jsonCmd = new JsonObject();
+                    jsonCmd.addProperty("command", cmd.getName().toUpperCase(Locale.ROOT));
+                    channel.sendMsg(gson.toJson(jsonCmd));
                     clearErrorMessage();
                 } catch (final IllegalStateException e) {
                     LOGGER.error("Failed to send command: {}", cmd.getName(), e);
@@ -145,20 +147,21 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                     try {
                         LOGGER.debug("Opening port: {}", selectedPort);
                         channel.setCommPort(selectedPort);
-                        waitingForHandshake = true;
-                        startHandshakeTimeout();
-
-                        Thread.sleep(HANDSHAKE_DELAY_MS);
-                        channel.sendMsg("HELLO");
-                        LOGGER.info("Handshake message sent");
+                        
+                        // No handshake - directly mark as connected
+                        Thread.sleep(500); // Small delay for port to stabilize
+                        Platform.runLater(() -> {
+                            viewModel.setConnectionStatus(ConnectionState.CONNECTED.name());
+                            clearErrorMessage();
+                            LOGGER.info("Connection established (no handshake)");
+                        });
                     } catch (final InterruptedException e) {
                         LOGGER.warn("Connection thread interrupted");
                         Thread.currentThread().interrupt();
                         Platform.runLater(() -> {
                             if (Thread.currentThread().equals(connectionThread.get())) {
                                 viewModel.setConnectionStatus(ConnectionState.CANCELLED.name());
-                                waitingForHandshake = false;
-                                showErrorMessage(MSG_CONNECTION_CANCELLED);
+                                showErrorMessage("Connection cancelled");
                             }
                         });
                     } catch (final IllegalStateException e) {
@@ -166,7 +169,6 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                         Platform.runLater(() -> {
                             if (Thread.currentThread().equals(connectionThread.get())) {
                                 viewModel.setConnectionStatus(ConnectionState.ERROR.name());
-                                waitingForHandshake = false;
                                 showErrorMessage(e.getMessage());
                             }
                         });
@@ -287,60 +289,44 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
 
     private void processMessage(final String msg) {
         Platform.runLater(() -> {
-            if ("READY".equals(msg.trim()) && waitingForHandshake) {
-                waitingForHandshake = false;
-                cancelTimeoutThread();
-                viewModel.setConnectionStatus(ConnectionState.CONNECTED.name());
-                clearErrorMessage();
-                LOGGER.info("Connection established");
-                return;
-            }
-            final String[] parts = msg.split(":", 2);
-            if (parts.length >= 2) {
-                final String key = parts[0].trim();
-                final String value = parts[1].trim();
-
-                switch (key) {
-                    case "DRONE_STATE": {
-                        final String v = value.toUpperCase(Locale.ROOT);
-                        if (isValidDroneState(v)) {
-                            viewModel.setDroneState(v);
-                        } else {
-                            LOGGER.warn("Invalid DRONE_STATE received: {}", value);
-                        }
-                        break;
+            try {
+                // Parse JSON message from Arduino
+                JsonObject json = gson.fromJson(msg, JsonObject.class);
+                
+                LOGGER.debug("Received JSON: {}", json);
+                
+                // Extract fields from JSON
+                if (json.has("droneState")) {
+                    String droneState = json.get("droneState").getAsString().toUpperCase(Locale.ROOT);
+                    if (isValidDroneState(droneState)) {
+                        viewModel.setDroneState(droneState);
                     }
-                    case "HANGAR_STATE": {
-                        final String v = value.toUpperCase(Locale.ROOT);
-                        if (isValidHangarState(v)) {
-                            viewModel.setHangarState(v);
-                        } else {
-                            LOGGER.warn("Invalid HANGAR_STATE received: {}", value);
-                        }
-                        break;
-                    }
-                    case "DISTANCE": {
-                        final String sanitized = sanitizeDistance(value);
-                        if (sanitized != null) {
-                            viewModel.setDistance(sanitized + " cm");
-                        } else {
-                            LOGGER.warn("Invalid DISTANCE received: {}", value);
-                        }
-                        break;
-                    }
-                    case "CONNECTION": {
-                        final String v = value.toUpperCase(Locale.ROOT);
-                        if (isValidConnectionState(v)) {
-                            viewModel.setConnectionStatus(v);
-                        } else {
-                            LOGGER.warn("Invalid CONNECTION state received: {}", value);
-                        }
-                        break;
-                    }
-                    default:
-                        LOGGER.warn("Unknown message key: {}", key);
-                        break;
                 }
+                
+                if (json.has("hangarState")) {
+                    String hangarState = json.get("hangarState").getAsString().toUpperCase(Locale.ROOT);
+                    if (isValidHangarState(hangarState)) {
+                        viewModel.setHangarState(hangarState);
+                    }
+                }
+                
+                if (json.has("distance")) {
+                    double distance = json.get("distance").getAsDouble();
+                    String sanitized = sanitizeDistance(String.valueOf(distance));
+                    if (sanitized != null) {
+                        viewModel.setDistance(sanitized + " cm");
+                    }
+                }
+                
+                if (json.has("alarm")) {
+                    boolean alarm = json.get("alarm").getAsBoolean();
+                    viewModel.setHangarState(alarm ? "ALARM" : "NORMAL");
+                }
+                
+            } catch (JsonSyntaxException e) {
+                LOGGER.warn("Invalid JSON received: {} - Error: {}", msg, e.getMessage());
+            } catch (Exception e) {
+                LOGGER.error("Error processing message: {}", msg, e);
             }
         });
     }
@@ -399,44 +385,11 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
     }
 
     private void cancelConnectionThreads() {
-        cancelTimeoutThread();
         final Thread oldThread = connectionThread.getAndSet(null);
         if (oldThread != null && oldThread.isAlive()) {
             LOGGER.debug("Interrupting previous connection thread");
             oldThread.interrupt();
         }
-    }
-
-    private void cancelTimeoutThread() {
-        final Thread oldTimeout = timeoutThread.getAndSet(null);
-        if (oldTimeout != null && oldTimeout.isAlive()) {
-            LOGGER.debug("Interrupting previous timeout thread");
-            oldTimeout.interrupt();
-        }
-    }
-
-    private void startHandshakeTimeout() {
-        cancelTimeoutThread();
-
-        final Thread newTimeout = new Thread(() -> {
-            try {
-                Thread.sleep(HANDSHAKE_TIMEOUT_MS);
-                if (waitingForHandshake && Thread.currentThread().equals(timeoutThread.get())) {
-                    LOGGER.warn("Handshake timeout");
-                    Platform.runLater(() -> {
-                        waitingForHandshake = false;
-                        viewModel.setConnectionStatus(ConnectionState.TIMEOUT.name());
-                        showErrorMessage(MSG_CONNECTION_TIMEOUT);
-                    });
-                }
-            } catch (final InterruptedException e) {
-                LOGGER.debug("Timeout thread interrupted");
-                Thread.currentThread().interrupt();
-            }
-        }, "Timeout-Thread");
-
-        timeoutThread.set(newTimeout);
-        newTimeout.start();
     }
 
     private void showErrorMessage(final String message) {

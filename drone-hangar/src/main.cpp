@@ -24,9 +24,9 @@
 #define MSG_TASK_PERIOD 50
 
 // Uncomment the following line to enable hardware testing mode
-// #define __TESTING_HW__
+#define __TESTING_HW__
 #ifdef __TESTING_HW__
-#include "task/TestHWTask.h"
+#include "task/TestHWTask.hpp"
 #endif
 
 Scheduler sched;
