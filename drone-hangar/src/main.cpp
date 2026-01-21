@@ -7,10 +7,14 @@
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
 #include "model/HWPlatform.hpp"
-#include "task/TempAlarmTask.hpp"
+#include "task/BlinkingTask.hpp"
+#include "task/DoorControlTask.hpp"
+#include "task/DroneTask.hpp"
+#include "task/HangarTask.hpp"
+#include "task/LCDTask.hpp"
+#include "task/MSGTask.hpp"
 
 #define BASE_PERIOD_MS 50
-#define TEMP_ALARM_TASK_PERIOD
 
 // Uncomment the following line to enable hardware testing mode
 // #define __TESTING_HW__
@@ -39,12 +43,37 @@ void setup()
     // TODO: add tasks here
 
     Task* pTempAlarmTask =
-        new TempAlarmTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(), pContext);
+        new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(), pContext);
     pTempAlarmTask->init(TEMP_ALARM_TASK_PERIOD);
 
-    sched.addTask(pTempAlarmTask);
+    Task* pDroneTask = new DroneTask(pContext, pHWPlatform->getL1(), pHWPlatform->getL3(),
+                                     pHWPlatform->getPresenceSensor());
+    pDroneTask->init(DRONE_TASK_PERIOD);
 
-#endif
+    Task* pBlinkingTask = new BlinkingTask(pHWPlatform->getL2(), pContext);
+    pBlinkingTask->init(L2_BLINK_PERIOD);
+
+    Task* pDoorControlTask = new DoorControlTask(pContext, pHWPlatform->getMotor());
+    pDoorControlTask->init(DOOR_CONTROL_TASK_PERIOD);
+
+    Task* pHangarTask =
+        new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(), pContext);
+
+    pHangarTask->init(HANGAR_TASK_PERIOD);
+
+    Task* pLcdTask = new LCDTask(pHWPlatform->getLCD(), pContext);
+    pLcdTask->init(LCD_TASK_PERIOD);
+
+    Task* pMSGTask = new MSGTask(pContext, &MsgService);
+    pMSGTask->init(MSG_TASK_PERIOD);
+
+    sched.addTask(pTempAlarmTask);
+    sched.addTask(pDroneTask);
+    sched.addTask(pBlinkingTask);
+    sched.addTask(pDoorControlTask);
+    sched.addTask(pHangarTask);
+    sched.addTask(pLcdTask);
+    sched.addTask(pMSGTask);
 
 #ifdef __TESTING_HW__
     /* Testing */
