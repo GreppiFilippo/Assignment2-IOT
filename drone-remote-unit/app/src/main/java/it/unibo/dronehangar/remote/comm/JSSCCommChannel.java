@@ -13,6 +13,7 @@ import it.unibo.dronehangar.remote.api.CommChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -82,6 +83,21 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
             return msg;
         } catch (final InterruptedException e) {
             LOGGER.warn("Interrupted while waiting for message", e);
+            Thread.currentThread().interrupt();
+            return null;
+        }
+    }
+
+    @Override
+    public String pollMsg(final long timeoutMillis) {
+        try {
+            final String msg = queue.poll(timeoutMillis, TimeUnit.MILLISECONDS);
+            if (msg != null) {
+                LOGGER.debug("Polled message: {}", msg);
+            }
+            return msg;
+        } catch (final InterruptedException e) {
+            LOGGER.warn("Interrupted while polling for message", e);
             Thread.currentThread().interrupt();
             return null;
         }

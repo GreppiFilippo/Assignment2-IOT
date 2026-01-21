@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.BorderPane?>
@@ -104,7 +105,7 @@
                            </VBox.margin>
                            <children>
                               <Label styleClass="label-text" text="State:" />
-                                <Label fx:id="lblHangarState" accessibleHelp="Current hangar state." accessibleText="Hangar state: NORMAL" focusTraversable="true" styleClass="label-value, label-success" text="NORMAL">
+                                <Label fx:id="lblHangarState" accessibleHelp="Current hangar state." accessibleText="Hangar state: NORMAL" focusTraversable="true" styleClass="label-value" text="NORMAL">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>
@@ -178,10 +179,16 @@
                </padding>
                <children>
                   <Label alignment="CENTER_RIGHT" minWidth="100.0" prefWidth="120.0" styleClass="label-normal" text="Serial Port:" />
-                  <ComboBox fx:id="serialComboBox" editable="true" maxWidth="Infinity" promptText="Not selected" styleClass="serialComboBox" HBox.hgrow="ALWAYS">
-                     <HBox.margin>
-                        <Insets right="75.0" />
-                     </HBox.margin></ComboBox>
+                  <HBox HBox.hgrow="ALWAYS">
+                     <children>
+                        <ComboBox fx:id="serialComboBox" editable="true" maxWidth="Infinity" promptText="Not selected" styleClass="serialComboBox" HBox.hgrow="ALWAYS">
+                           <HBox.margin>
+                              <Insets right="8.0" />
+                           </HBox.margin>
+                        </ComboBox>
+                        <Button fx:id="btnRefreshPorts" text="Refresh" mnemonicParsing="false" styleClass="button small" />
+                     </children>
+                  </HBox>
                </children>
             </HBox>
             <HBox alignment="CENTER" spacing="10.0" styleClass="footer">

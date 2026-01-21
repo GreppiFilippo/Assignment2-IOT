@@ -36,6 +36,8 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
     @FXML
     private ComboBox<String> serialComboBox;
     @FXML
+    private javafx.scene.control.Button btnRefreshPorts;
+    @FXML
     private ComboBox<String> baudComboBox;
     @FXML
     private TilePane buttonBox;
@@ -166,6 +168,10 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
             }
         });
         this.updateSerialPorts();
+        // Refresh button action
+        if (this.btnRefreshPorts != null) {
+            this.btnRefreshPorts.setOnAction(ev -> updateSerialPorts());
+        }
         /*
          * Label Bindings
          */
@@ -173,6 +179,65 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
         lblHangarState.textProperty().bind(viewModel.hangarStateProperty());
         lblConnectionStatus.textProperty().bind(viewModel.connectionStatusProperty());
         lblDistance.textProperty().bind(viewModel.distanceProperty());
+
+        // Update connection label style according to status
+        viewModel.connectionStatusProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null)
+                return;
+            // ensure on FX thread
+            Platform.runLater(() -> {
+                lblConnectionStatus.getStyleClass().removeAll("label-success", "label-error", "label-muted");
+                if ("CONNECTED".equals(newVal)) {
+                    lblConnectionStatus.getStyleClass().add("label-success");
+                } else if ("DISCONNECTED".equals(newVal) || "ERROR".equals(newVal) || "TIMEOUT".equals(newVal)) {
+                    lblConnectionStatus.getStyleClass().add("label-error");
+                } else {
+                    lblConnectionStatus.getStyleClass().add("label-muted");
+                }
+            });
+        });
+
+        // Update hangar label style according to hangar state (NORMAL -> green, ALERT
+        // -> red)
+        viewModel.hangarStateProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null)
+                return;
+            Platform.runLater(() -> {
+                lblHangarState.getStyleClass().removeAll(
+                        "hangar-normal", "hangar-alert", "label-muted",
+                        "label-success", "label-info", "label-error", "label-normal");
+                final String n = newVal.trim().toUpperCase();
+                switch (n) {
+                    case "NORMAL":
+                        lblHangarState.getStyleClass().add("hangar-normal");
+                        // remove any inline color override
+                        lblHangarState.setStyle("");
+                        try {
+                            lblHangarState.setTextFill(javafx.scene.paint.Color.web("#0fd26a"));
+                        } catch (final Exception e) {
+                            // ignore if not supported
+                        }
+                        LOGGER.debug("HangarState NORMAL classes={} style={}", lblHangarState.getStyleClass(),
+                                lblHangarState.getStyle());
+                        break;
+                    case "ALARM":
+                        lblHangarState.getStyleClass().add("hangar-alert");
+                        // inline text color to ensure visibility (overrides other classes)
+                        lblHangarState.setStyle("-fx-text-fill: #ff4d4d;");
+                        try {
+                            lblHangarState.setTextFill(javafx.scene.paint.Color.web("#ff4d4d"));
+                        } catch (final Exception e) {
+                            // ignore
+                        }
+                        LOGGER.debug("HangarState ALARM classes={} style={}", lblHangarState.getStyleClass(),
+                                lblHangarState.getStyle());
+                        break;
+                    default:
+                        lblHangarState.getStyleClass().add("label-muted");
+                        break;
+                }
+            });
+        });
 
         /*
          * Start message listener thread
@@ -185,14 +250,13 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
             LOGGER.info("Message listener thread started");
             while (true) {
                 try {
-                    if (channel.isMsgAvailable()) {
-                        final String msg = channel.receiveMsg();
-                        if (msg != null) {
-                            LOGGER.debug("Received message: {}", msg);
-                            processMessage(msg);
-                        }
+                    final String msg = channel.pollMsg(100);
+                    if (msg != null) {
+                        LOGGER.debug("Received message: {}", msg);
+                        processMessage(msg);
                     }
-                    Thread.sleep(100);
+                    // short sleep to avoid tight loop
+                    Thread.sleep(50);
                 } catch (final InterruptedException e) {
                     LOGGER.info("Message listener thread interrupted");
                     Thread.currentThread().interrupt();
@@ -214,31 +278,110 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                 LOGGER.info("Connection established");
                 return;
             }
-
-            final String[] parts = msg.split(":");
+            final String[] parts = msg.split(":", 2);
             if (parts.length >= 2) {
                 final String key = parts[0].trim();
                 final String value = parts[1].trim();
 
                 switch (key) {
-                    case "DRONE_STATE":
-                        viewModel.setDroneState(value);
+                    case "DRONE_STATE": {
+                        final String v = value.toUpperCase();
+                        if (isValidDroneState(v)) {
+                            viewModel.setDroneState(v);
+                        } else {
+                            LOGGER.warn("Invalid DRONE_STATE received: {}", value);
+                        }
                         break;
-                    case "HANGAR_STATE":
-                        viewModel.setHangarState(value);
+                    }
+                    case "HANGAR_STATE": {
+                        final String v = value.toUpperCase();
+                        if (isValidHangarState(v)) {
+                            viewModel.setHangarState(v);
+                        } else {
+                            LOGGER.warn("Invalid HANGAR_STATE received: {}", value);
+                        }
                         break;
-                    case "DISTANCE":
-                        viewModel.setDistance(value + " cm");
+                    }
+                    case "DISTANCE": {
+                        final String sanitized = sanitizeDistance(value);
+                        if (sanitized != null) {
+                            viewModel.setDistance(sanitized + " cm");
+                        } else {
+                            LOGGER.warn("Invalid DISTANCE received: {}", value);
+                        }
                         break;
-                    case "CONNECTION":
-                        viewModel.setConnectionStatus(value);
+                    }
+                    case "CONNECTION": {
+                        final String v = value.toUpperCase();
+                        if (isValidConnectionState(v)) {
+                            viewModel.setConnectionStatus(v);
+                        } else {
+                            LOGGER.warn("Invalid CONNECTION state received: {}", value);
+                        }
                         break;
+                    }
                     default:
                         LOGGER.warn("Unknown message key: {}", key);
                         break;
                 }
             }
         });
+    }
+
+    private boolean isValidDroneState(final String s) {
+        try {
+            it.unibo.dronehangar.remote.api.DroneState.valueOf(s);
+            return true;
+        } catch (final Exception e) {
+            return false;
+        }
+    }
+
+    private boolean isValidHangarState(final String s) {
+        try {
+            it.unibo.dronehangar.remote.api.HangarState.valueOf(s);
+            return true;
+        } catch (final Exception e) {
+            return false;
+        }
+    }
+
+    private String sanitizeDistance(final String s) {
+        final String trimmed = s.trim();
+        try {
+            // accept integer or float, return integer if possible
+            if (trimmed.isEmpty())
+                return null;
+            final double d = Double.parseDouble(trimmed);
+            if (Double.isNaN(d) || Double.isInfinite(d))
+                return null;
+            // format without trailing .0 when integer
+            if (Math.abs(d - Math.round(d)) < 1e-6) {
+                return String.valueOf((long) Math.round(d));
+            }
+            return String.valueOf(d);
+        } catch (final Exception e) {
+            return null;
+        }
+    }
+
+    private boolean isValidConnectionState(final String s) {
+        // finite set of allowed connection states
+        switch (s) {
+            case "CONNECTED":
+            case "DISCONNECTED":
+            case "CONNECTING":
+            case "CONNECTING...":
+            case "TIMEOUT":
+            case "ERROR":
+            case "OPENING":
+            case "OPEN":
+            case "CLOSED":
+            case "CANCELLED":
+                return true;
+            default:
+                return false;
+        }
     }
 
     private void updateSerialPorts() {

@@ -13,7 +13,7 @@ import it.unibo.dronehangar.remote.api.HangarState;
  * All setters are thread-safe.
  */
 public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
-    
+
     private final List<Command> availableCommands;
     private volatile String droneState;
     private volatile String hangarState;
@@ -27,8 +27,9 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
      */
     public DroneRemoteUnitModelImpl(final List<Command> availableCommands) {
         this.availableCommands = new ArrayList<>(availableCommands);
-        this.droneState = DroneState.REST.name();
-        this.hangarState = HangarState.NORMAL.name();
+        // Start with empty/unset values until a connection is established
+        this.droneState = "--";
+        this.hangarState = "--";
         this.distance = "-- cm";
         this.connectionStatus = "DISCONNECTED";
     }

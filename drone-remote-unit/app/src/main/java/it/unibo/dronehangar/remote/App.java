@@ -52,5 +52,6 @@ public final class App extends Application {
     @Override
     public void stop() {
         LOGGER.info("Shutting down Drone Remote Unit application");
+        System.exit(0);
     }
 }

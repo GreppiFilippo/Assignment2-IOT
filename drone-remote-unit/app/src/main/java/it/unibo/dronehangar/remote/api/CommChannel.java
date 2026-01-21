@@ -10,21 +10,33 @@ public interface CommChannel {
     /**
      * Send a message represented by a string (without new line).
      * 
-     * <p>Asynchronous model.</p>
+     * <p>
+     * Asynchronous model.
+     * </p>
      * 
      * @param msg the message to send
      */
     void sendMsg(String msg);
 
     /**
-     * Receive a message. 
+     * Receive a message.
      * 
-     * <p>Blocking behaviour.</p>
+     * <p>
+     * Blocking behaviour.
+     * </p>
      * 
      * @return the received message
      * @throws InterruptedException if the thread is interrupted while waiting
      */
     String receiveMsg() throws InterruptedException;
+
+    /**
+     * Poll for a message with timeout.
+     *
+     * @param timeoutMillis timeout in milliseconds
+     * @return the received message or null if timeout
+     */
+    String pollMsg(long timeoutMillis);
 
     /**
      * Check if a message is available to be received.
