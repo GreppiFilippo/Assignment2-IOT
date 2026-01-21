@@ -9,23 +9,23 @@
  */
 class Msg
 {
-   private:
+    private:
     String content;
 
-   public:
+    public:
     /**
      * Construct a message with the provided content.
      *
      * @param content the message text
      */
-    Msg(String content) { this->content = content; }
+    Msg(const String content) { this->content = content; }
 
     /**
      * Return the message content.
      *
      * @return String containing the message text
      */
-    String getContent() { return content; }
+    String getContent() const { return content; }
 };
 
 /**
@@ -41,7 +41,7 @@ class Pattern
      * @param m reference to the message to test
      * @return true if the pattern matches, false otherwise
      */
-    virtual boolean match(const Msg& m) = 0;
+    virtual bool match(const Msg& m) = 0;
 };
 
 /**

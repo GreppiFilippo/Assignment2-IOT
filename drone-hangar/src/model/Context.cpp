@@ -59,3 +59,8 @@ bool Context::isBlinking()
 {
     return this->ledBlinking;
 }
+
+void Context::setLCDMessage(const char* msg)
+{
+    this->lcdMessage = msg;
+}

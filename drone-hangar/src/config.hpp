@@ -35,4 +35,9 @@
 #define TEMP1 30  // Pre-alarm temperature threshold
 #define TEMP2 40  // Alarm temperature threshold
 
+#define ALARM_MSG "ALARM"
+#define IN_MSG "DRONE INSIDE"
+
+#define OPEN_CMD "OPEN DOOR"
+
 #endif

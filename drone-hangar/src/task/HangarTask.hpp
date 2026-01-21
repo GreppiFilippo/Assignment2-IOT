@@ -5,32 +5,40 @@
 
 #include "devices/ServoMotor.hpp"
 #include "kernel/Task.hpp"
+#include "kernel/MsgService.hpp"
 #include "model/Context.hpp"
+#include "devices/Led.hpp"
 
 class HangarTask : public Task
 {
     private:
-    Context* pContext;
+        Context* pContext;
 
-    enum State
-    {
-        DRONE_INSIDE,
-        TAKE_OFF,
-        DRONE_OUTSIDE,
-        LANDING
-    } state;
+        enum State
+        {
+            DRONE_INSIDE,
+            TAKE_OFF,
+            DRONE_OUTSIDE,
+            LANDING
+        } state;
 
-    long stateTimestamp;
-    bool justEntered;
+        long stateTimestamp;
+        bool justEntered;
+        MsgServiceClass* msgService;
 
-    void setState(State state);
-    long elapsedTimeInState();
-    void log(const String& msg);
-    bool checkAndSetJustEntered();
+        Led* L1;
+        Led* L3;
 
-   public:
-    HangarTask(Context* ctx);
-    void tick();
+        void setState(State state);
+        long elapsedTimeInState();
+        void log(const String& msg);
+        bool checkAndSetJustEntered();
+        bool receiveOpenCMD();
+        //send ?
+
+    public:
+        HangarTask(Context* ctx);
+        void tick();
 };
 
 #endif /* __HANGAR_TASK__ */
