@@ -12,6 +12,9 @@ Context::Context()
     this->pirActive = false;
     this->lcdMessage = "";
     this->ledBlinking = false;
+    this->droneIn = true;
+    this->landingCheck = false;
+    this->takeoffCheck = false;
 
     // Initialize message queue
     this->queueHead = 0;
