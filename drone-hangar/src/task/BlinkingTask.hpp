@@ -13,28 +13,29 @@
  */
 class BlinkingTask : public Task
 {
-   private:
-    Led* pLed;
-    Context* pContext;
+    private:
+        Led* pLed;
+        Context* pContext;
 
-    enum State
-    {
-        IDLE,
-        OFF,
-        ON
-    } state;
-    long stateTimestamp;
-    bool justEntered;
+        enum State
+        {
+            IDLE,
+            OFF,
+            ON
+        } state;
+        long stateTimestamp;
+        bool justEntered;
 
-    void setState(State s);
-    long elapsedTimeInState();
-    void log(const String& msg);
+        void setState(State s);
+        long elapsedTimeInState();
+        void log(const String& msg);
 
-    bool checkAndSetJustEntered();
+        bool checkAndSetJustEntered();
 
-   public:
-    BlinkingTask(Led* pLed, Context* pContext);
-    void tick() override;
+    public:
+        BlinkingTask(Led* pLed, Context* pContext);
+        void tick() override;
+        void setActive(bool active) override;
 };
 
 #endif /* __BLINKING_TASK__ */

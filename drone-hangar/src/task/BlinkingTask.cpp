@@ -19,7 +19,7 @@ void BlinkingTask::tick()
                 pLed->switchOff();
                 Logger.log(F("[BT] IDLE"));
             }
-            if (pContext->isStarted())
+            if (pContext->isBlinking())
             {
                 setState(OFF);
             }
@@ -32,7 +32,7 @@ void BlinkingTask::tick()
                 pLed->switchOff();
                 Logger.log(F("[BT] OFF"));
             }
-            if (pContext->isStopped())
+            if (!pContext->isBlinking())
             {
                 setState(IDLE);
             }
@@ -49,7 +49,7 @@ void BlinkingTask::tick()
                 pLed->switchOn();
                 Logger.log(F("[BT] ON"));
             }
-            if (pContext->isStopped())
+            if (!pContext->isBlinking())
             {
                 setState(IDLE);
             }
