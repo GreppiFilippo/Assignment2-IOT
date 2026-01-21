@@ -35,10 +35,27 @@
 #define TEMP1 30  // Pre-alarm temperature threshold
 #define TEMP2 40  // Alarm temperature threshold
 
-#define ALARM_MSG "ALARM"
-#define IN_MSG "DRONE INSIDE"
-#define TAKE_OFF_MGS "TAKING OFF"
+/* ===== Message update period ===== */
+#define JSON_UPDATE_PERIOD_MS 500  // Send JSON state update every 500ms
 
-#define OPEN_CMD "OPEN DOOR"
+/* ===== LCD message definitions ===== */
+#define LCD_REST_STATE "DRONE INSIDE"    // Drone is inside hangar and at rest
+#define LCD_TAKING_OFF_STATE "TAKE OFF"  // Drone is taking off
+#define LCD_OPERATING_STATE "DRONE OUT"  // Drone is operating outside
+#define LCD_LANDING_STATE "LANDING"      // Drone is landing
+#define LCD_ALARM_STATE "ALARM"          // Hangar in normal state
+
+/* ===== Drone state definitions serial ===== */
+#define DRONE_REST_STATE "DRONE_STATE:REST"              // Drone is inside hangar and at rest
+#define DRONE_TAKING_OFF_STATE "DRONE_STATE:TAKING_OFF"  // Drone is taking off
+#define DRONE_OPERATING_STATE "DRONE_STATE:OPERATING"    // Drone is operating outside
+#define DRONE_LANDING_STATE "DRONE_STATE:LANDING"        // Drone is landing
+
+/* ===== Hangar state definitions ===== */
+#define HANGAR_NORMAL_STATE "HANGAR_STATE:NORMAL"  // Hangar in normal state
+#define HANGAR_ALARM_STATE "HANGAR_STATE:ALARM"    // Hangar in alarm state
+
+/* ===== Command definitions ===== */
+#define OPEN_CMD "OPEN DOOR"  // Command to open the hangar door
 
 #endif

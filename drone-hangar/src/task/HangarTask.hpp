@@ -33,6 +33,7 @@ class HangarTask : public Task
     long elapsedTimeInState();
     void log(const String& msg);
     bool checkAndSetJustEntered();
+    void setHangarState(const String& state);
 
    public:
     HangarTask(TempSensor* tempSensor, Button* resetButton, Context* pContext);
