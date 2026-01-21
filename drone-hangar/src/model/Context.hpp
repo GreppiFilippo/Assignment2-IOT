@@ -46,6 +46,11 @@ class Context
     // blinking led
     bool ledBlinking;
 
+    //
+    bool landingCheck;
+    bool takeoffCheck;
+    bool droneIn;
+
     // Message queue (FIFO with timestamp)
     TimestampedMsg messageQueue[MSG_QUEUE_SIZE];
     int queueHead;
@@ -111,8 +116,10 @@ class Context
     // ======== DISTANCE TASK =========
     void requestLandingCheck();
     void closeLandingCheck();
+    bool landingCheckRequested();
     void requestTakeoffCheck();
     void closeTakeoffCheck();
+    bool takeoffCheckRequested();
     void setDroneIn(bool state);
 
     // ======== MESSAGE QUEUE ========

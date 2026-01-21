@@ -14,6 +14,9 @@ class DroneDistanceTask : public Task
     Context* pContext;
     float distance;
 
+    long stateTimestamp;
+    bool justEntered;
+
     enum State
     {
         IDLE,
