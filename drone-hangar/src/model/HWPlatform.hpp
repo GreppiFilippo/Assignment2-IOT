@@ -32,11 +32,11 @@ class HWPlatform
 
     Button* getButton();
 
-    Light* HWPlatform::getL1();
+    Light* getL1();
 
-    Light* HWPlatform::getL2();
+    Light* getL2();
 
-    Light* HWPlatform::getL3();
+    Light* getL3();
 
     ServoMotor* getMotor();
     TempSensor* getTempSensor();
