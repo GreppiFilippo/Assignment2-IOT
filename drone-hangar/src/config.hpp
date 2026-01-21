@@ -46,14 +46,14 @@
 #define LCD_ALARM_STATE "ALARM"          // Hangar in normal state
 
 /* ===== Drone state definitions serial ===== */
-#define DRONE_REST_STATE "DRONE_STATE:REST"              // Drone is inside hangar and at rest
-#define DRONE_TAKING_OFF_STATE "DRONE_STATE:TAKING_OFF"  // Drone is taking off
-#define DRONE_OPERATING_STATE "DRONE_STATE:OPERATING"    // Drone is operating outside
-#define DRONE_LANDING_STATE "DRONE_STATE:LANDING"        // Drone is landing
+#define DRONE_REST_STATE "rest"              // Drone is inside hangar and at rest
+#define DRONE_TAKING_OFF_STATE "taking_off"  // Drone is taking off
+#define DRONE_OPERATING_STATE "operating"    // Drone is operating outside
+#define DRONE_LANDING_STATE "landing"        // Drone is landing
 
 /* ===== Hangar state definitions ===== */
-#define HANGAR_NORMAL_STATE "HANGAR_STATE:NORMAL"  // Hangar in normal state
-#define HANGAR_ALARM_STATE "HANGAR_STATE:ALARM"    // Hangar in alarm state
+#define HANGAR_NORMAL_STATE "normal"  // Hangar in normal state
+#define HANGAR_ALARM_STATE "alarm"    // Hangar in alarm state
 
 /* ===== Command definitions ===== */
 #define OPEN_CMD "OPEN DOOR"  // Command to open the hangar door
