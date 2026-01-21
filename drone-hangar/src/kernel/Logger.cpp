@@ -2,4 +2,4 @@
 
 #include "MsgService.hpp"
 
-void LoggerService::log(const String& msg) { MsgService.sendMsg(msg); }
+void LoggerService::log(const String& msg) { MsgService.sendMsg("lo:" + msg); }
