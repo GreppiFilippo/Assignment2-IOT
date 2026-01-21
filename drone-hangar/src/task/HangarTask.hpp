@@ -1,44 +1,42 @@
-#ifndef __HANGAR_TASK__
-#define __HANGAR_TASK__
+#ifndef __TEMP_ALARM_TASK__
+#define __TEMP_ALARM_TASK__
 
 #include <Arduino.h>
 
-#include "devices/ServoMotor.hpp"
+#include "devices/Button.hpp"
+#include "devices/TempSensor.hpp"
 #include "kernel/Task.hpp"
-#include "kernel/MsgService.hpp"
 #include "model/Context.hpp"
-#include "devices/Led.hpp"
 
 class HangarTask : public Task
 {
-    private:
-        Context* pContext;
+   private:
+    Context* pContext;
+    TempSensor* tempSensor;
+    Button* resetButton;
 
-        enum State
-        {
-            DRONE_INSIDE,
-            TAKE_OFF,
-            DRONE_OUTSIDE,
-            LANDING
-        } state;
+    long stateTimestamp;
+    bool justEntered;
+    float temperature;
+    unsigned long startTime;
 
-        long stateTimestamp;
-        bool justEntered;
-        MsgServiceClass* msgService;
+    enum State
+    {
+        NORMAL,
+        TRACKING_PRE_ALARM,
+        PREALARM,
+        TRACKING_ALARM,
+        ALARM
+    } state;
 
-        Led* L1;
-        Led* L3;
+    void setState(State state);
+    long elapsedTimeInState();
+    void log(const String& msg);
+    bool checkAndSetJustEntered();
 
-        void setState(State state);
-        long elapsedTimeInState();
-        void log(const String& msg);
-        bool checkAndSetJustEntered();
-        bool receiveOpenCMD();
-        //send ?
-
-    public:
-        HangarTask(Context* ctx);
-        void tick();
+   public:
+    HangarTask(TempSensor* tempSensor, Button* resetButton, Context* pContext);
+    void tick();
 };
 
-#endif /* __HANGAR_TASK__ */
+#endif /* __TEMP_ALARM_TASK__ */

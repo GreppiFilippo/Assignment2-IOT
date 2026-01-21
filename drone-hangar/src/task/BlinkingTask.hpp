@@ -19,6 +19,7 @@ class BlinkingTask : public Task
 
         enum State
         {
+            IDLE,
             OFF,
             ON
         } state;
