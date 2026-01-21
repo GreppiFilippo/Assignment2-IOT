@@ -31,12 +31,12 @@ void DroneTask::sendState(const String& state)
 
 void DroneTask::tick()
 {
+    Logger.log("culo");
     switch (this->state)
     {
         case REST:
             Logger.log(F(DRONE_REST_STATE));
             this->sendState(DRONE_REST_STATE);
-
             if (checkAndSetJustEntered())
             {
                 this->pContext->closeDoor();

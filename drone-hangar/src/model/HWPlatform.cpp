@@ -28,7 +28,6 @@ HWPlatform::HWPlatform()
     motor = new ServoMotorImpl(HD_PIN);
     tempSensor = new TempSensorTMP36(TEMP_PIN);
     proximitySensor = new Sonar(DDD_PIN_E, DDD_PIN_T, 100);
-    lcd = new LCD(LCD_ADR, LCD_COL, LCD_ROW);
 }
 
 void HWPlatform::init() {}

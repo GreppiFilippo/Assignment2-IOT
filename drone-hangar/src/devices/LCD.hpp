@@ -11,9 +11,10 @@
 class LCD
 {
    private:
-    LiquidCrystal_I2C* lcd;
+    LiquidCrystal_I2C lcd;
     uint8_t _cols;
     uint8_t _rows;
+    uint8_t _addr;
 
    public:
     /**
