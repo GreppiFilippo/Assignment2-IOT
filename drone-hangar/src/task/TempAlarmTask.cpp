@@ -3,6 +3,9 @@
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
+#define NORMAL_STATE_MSG "HANGAR_STATE:NORMAL"
+#define ALARM_STATE_MSG "HANGAR_STATE:ALARM"
+
 TempAlarmTask::TempAlarmTask(TempSensor* tempSensor, Button* resetButton, Context* pContext)
     : pContext(pContext), tempSensor(tempSensor), resetButton(resetButton)
 {
@@ -15,9 +18,13 @@ void TempAlarmTask::tick()
     switch (state)
     {
         case NORMAL:
+            Logger.log(F(NORMAL_STATE_MSG));
+
             if (this->checkAndSetJustEntered())
             {
                 Logger.log(F("[TAT] NORMAL"));
+                this->pContext->setPreAlarm(false);
+                this->pContext->setAlarm(false);
             }
 
             if (this->temperature >= TEMP1)
@@ -31,6 +38,7 @@ void TempAlarmTask::tick()
                 Logger.log(F("[TAT] TRACKING_PRE_ALARM"));
                 this->startTime = millis();
             }
+            Logger.log(F(NORMAL_STATE_MSG));
 
             if (this->temperature < TEMP1)
             {
@@ -42,6 +50,8 @@ void TempAlarmTask::tick()
             }
             break;
         case PREALARM:
+            Logger.log(F(NORMAL_STATE_MSG));
+
             if (this->checkAndSetJustEntered())
             {
                 Logger.log(F("[TAT] PREALARM"));
@@ -50,7 +60,6 @@ void TempAlarmTask::tick()
 
             if (this->temperature < TEMP1)
             {
-                this->pContext->setPreAlarm(false);
                 this->setState(NORMAL);
             }
             else if (this->temperature >= TEMP2)
@@ -59,6 +68,8 @@ void TempAlarmTask::tick()
             }
             break;
         case TRACKING_ALARM:
+            Logger.log(F(NORMAL_STATE_MSG));
+
             if (this->checkAndSetJustEntered())
             {
                 Logger.log(F("[TAT] TRACKING_ALARM"));
@@ -78,12 +89,13 @@ void TempAlarmTask::tick()
             if (this->checkAndSetJustEntered())
             {
                 Logger.log(F("[TAT] ALARM"));
+                this->pContext->setPreAlarm(false);
                 this->pContext->setAlarm(true);
             }
+            Logger.log(F(ALARM_STATE_MSG));
 
             if (this->resetButton->isPressed())
             {
-                this->pContext->setAlarm(false);
                 this->setState(NORMAL);
             }
             break;
