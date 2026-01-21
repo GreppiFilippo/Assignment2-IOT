@@ -23,7 +23,7 @@ HWPlatform::HWPlatform()
     l2 = new Led(L2_PIN);
     l3 = new Led(L3_PIN);
     presenceSensor = new Pir(DPD_PIN);
-
+    lcd = new LCD(LCD_ADR, LCD_COL, LCD_ROW);
     motor = new ServoMotorImpl(HD_PIN);
     tempSensor = new TempSensorTMP36(TEMP_PIN);
     proximitySensor = new Sonar(DDD_PIN_E, DDD_PIN_T, 100);
