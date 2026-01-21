@@ -15,16 +15,13 @@ class OpenPattern : public Pattern
     bool match(const Msg& m) override { return m.getContent().equals(OPEN_CMD); }
 };
 
-DroneTask::DroneTask(Context* pContext, Led* L1, BlinkingTask* L2, Led* L3,
-                     PresenceSensor* presenceSensor, MsgServiceClass* msgService)
+DroneTask::DroneTask(Context* pContext, Led* L1, Led* L3, PresenceSensor* presenceSensor)
 {
     this->pContext = pContext;
     this->setState(REST);
     this->L1 = L1;
-    this->L2 = L2;
     this->L3 = L3;
     this->presenceSensor = presenceSensor;
-    this->msgService = msgService;
 }
 
 void DroneTask::sendState(const String& state)

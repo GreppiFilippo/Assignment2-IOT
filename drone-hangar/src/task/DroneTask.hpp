@@ -30,8 +30,6 @@ class DroneTask : public Task
 
     long stateTimestamp;
     bool justEntered;
-    MsgServiceClass* msgService;
-
     Led* L1;
     BlinkingTask* L2;
     Led* L3;
@@ -45,8 +43,7 @@ class DroneTask : public Task
     void sendState(const String& state);
 
    public:
-    DroneTask(Context* ctx, Led* L1, BlinkingTask* L2, Led* L3, PresenceSensor* presenceSensor,
-              MsgServiceClass* msgService);
+    DroneTask(Context* pContext, Led* L1, Led* L3, PresenceSensor* presenceSensor);
     void tick();
 };
 

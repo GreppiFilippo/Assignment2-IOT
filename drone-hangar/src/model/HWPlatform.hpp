@@ -3,7 +3,9 @@
 
 #include "config.hpp"
 #include "devices/Button.hpp"
+#include "devices/LCD.hpp"
 #include "devices/Led.hpp"
+#include "devices/PresenceSensor.hpp"
 #include "devices/ServoMotor.hpp"
 #include "devices/TempSensor.hpp"
 
@@ -14,10 +16,14 @@
 class HWPlatform
 {
    private:
-    Button* pButton;
-    Led* pLed;
-    ServoMotor* pMotor;
-    TempSensor* pTempSensor;
+    Button* button;
+    Light* l1;
+    Light* l2;
+    Light* l3;
+    PresenceSensor* presenceSensor;
+    ServoMotor* motor;
+    TempSensor* tempSensor;
+    LCD* lcd;
 
    public:
     HWPlatform();
@@ -25,9 +31,18 @@ class HWPlatform
     void test();
 
     Button* getButton();
-    Led* getLed();
+
+    Light* HWPlatform::getL1();
+
+    Light* HWPlatform::getL2();
+
+    Light* HWPlatform::getL3();
+
     ServoMotor* getMotor();
     TempSensor* getTempSensor();
+    PresenceSensor* getPresenceSensor();
+
+    LCD* getLCD();
 };
 
 #endif

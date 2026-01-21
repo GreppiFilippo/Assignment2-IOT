@@ -6,6 +6,7 @@
 #include "devices/ButtonImpl.hpp"
 #include "devices/Led.hpp"
 #include "devices/LightSensorImpl.hpp"
+#include "devices/Pir.hpp"
 #include "devices/ServoMotorImpl.hpp"
 #include "devices/TempSensorTMP36.hpp"
 #include "kernel/Logger.hpp"
@@ -15,32 +16,35 @@ void wakeUp() {}
 
 HWPlatform::HWPlatform()
 {
-    pButton = new ButtonImpl(BT_PIN);
-    pLed = new Led(LED_PIN);
-    pMotor = new ServoMotorImpl(MOTOR_PIN);
-    pTempSensor = new TempSensorTMP36(TEMP_SENSOR_PIN);
+    button = new ButtonImpl(RESET_PIN);
+    l1 = new Led(L1_PIN);
+    l2 = new Led(L2_PIN);
+    l3 = new Led(L3_PIN);
+    presenceSensor = new Pir(DPD_PIN);
+
+    motor = new ServoMotorImpl(HD_PIN);
+    tempSensor = new TempSensorTMP36(TEMP_PIN);
 }
 
 void HWPlatform::init() {}
 
-Button* HWPlatform::getButton() { return this->pButton; }
+Button* HWPlatform::getButton() { return this->button; }
 
-Led* HWPlatform::getLed() { return this->pLed; }
+Light* HWPlatform::getL1() { return this->l1; }
 
-ServoMotor* HWPlatform::getMotor() { return this->pMotor; }
+Light* HWPlatform::getL2() { return this->l2; }
 
-TempSensor* HWPlatform::getTempSensor() { return this->pTempSensor; }
+Light* HWPlatform::getL3() { return this->l3; }
+
+ServoMotor* HWPlatform::getMotor() { return this->motor; }
+
+TempSensor* HWPlatform::getTempSensor() { return this->tempSensor; }
+
+PresenceSensor* HWPlatform::getPresenceSensor() { return this->presenceSensor; }
+
+LCD* HWPlatform::getLCD() { return this->lcd; }
 
 void HWPlatform::test()
 {
-    bool btPressed = pButton->isPressed();
-    pLed->switchOn();
-    pMotor->on();
-    pMotor->setPosition(90);
-    Logger.log("Button: " + String(btPressed ? "pressed" : " not pressed"));
-    delay(1000);
-    pMotor->setPosition(0);
-    delay(1000);
-    pMotor->off();
-    pLed->switchOff();
+    // TODO: implement hardware test
 }
