@@ -23,6 +23,7 @@ public final class App extends Application {
 
     private final List<Command> commandList = List.of(
             () -> "OPEN");
+    private DroneRemoteUnitControllerImpl controller;
 
     /**
      * Main entry point of the application.
@@ -38,8 +39,8 @@ public final class App extends Application {
     public void start(final Stage primaryStage) throws Exception {
         LOGGER.info("Initializing JavaFX application");
         final FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DroneRemoteUnit.fxml"));
-        loader.setControllerFactory(param -> new DroneRemoteUnitControllerImpl(
-                new DroneRemoteUnitModelImpl(this.commandList)));
+        this.controller = new DroneRemoteUnitControllerImpl(new DroneRemoteUnitModelImpl(this.commandList));
+        loader.setControllerFactory(param -> this.controller);
         final Parent root = loader.load();
         final Scene scene = new Scene(root);
 
@@ -50,8 +51,15 @@ public final class App extends Application {
     }
 
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+        value = "DM_EXIT",
+        justification = "System.exit is required to properly terminate the JavaFX application"
+    )
     public void stop() {
         LOGGER.info("Shutting down Drone Remote Unit application");
+        if (this.controller != null) {
+            this.controller.shutdown();
+        }
         System.exit(0);
     }
 }

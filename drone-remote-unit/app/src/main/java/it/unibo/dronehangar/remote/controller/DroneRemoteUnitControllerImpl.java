@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.unibo.dronehangar.remote.api.CommChannel;
+import it.unibo.dronehangar.remote.api.ConnectionState;
 import it.unibo.dronehangar.remote.api.DroneRemoteUnitController;
 import it.unibo.dronehangar.remote.api.DroneRemoteUnitModel;
 import it.unibo.dronehangar.remote.comm.JSSCCommChannel;
@@ -26,17 +27,37 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
     private static final Logger LOGGER = LoggerFactory.getLogger(DroneRemoteUnitControllerImpl.class);
     private static final int HANDSHAKE_TIMEOUT_MS = 5000;
     private static final int HANDSHAKE_DELAY_MS = 2000;
+    private static final int MESSAGE_POLL_TIMEOUT_MS = 100;
+    private static final int MESSAGE_POLL_SLEEP_MS = 50;
+    private static final double EPSILON = 1e-6;
+
+    private static final String CSS_LABEL_SUCCESS = "label-success";
+    private static final String CSS_LABEL_ERROR = "label-error";
+    private static final String CSS_LABEL_MUTED = "label-muted";
+    private static final String CSS_LABEL_INFO = "label-info";
+    private static final String CSS_LABEL_NORMAL = "label-normal";
+    private static final String CSS_HANGAR_NORMAL = "hangar-normal";
+    private static final String CSS_HANGAR_ALERT = "hangar-alert";
+
+    private static final String COLOR_GREEN = "#0fd26a";
+    private static final String COLOR_RED = "#ff4d4d";
+
+    private static final String MSG_NOT_CONNECTED = "Not connected. Please connect to a serial port first.";
+    private static final String MSG_CONNECTION_CANCELLED = "Connection cancelled";
+    private static final String MSG_CONNECTION_TIMEOUT = "Connection timeout";
 
     private final CommChannel channel;
     private final DroneRemoteUnitViewModel viewModel;
     private final AtomicReference<Thread> connectionThread = new AtomicReference<>();
     private final AtomicReference<Thread> timeoutThread = new AtomicReference<>();
+    private final AtomicReference<Thread> listenerThread = new AtomicReference<>();
     private volatile boolean waitingForHandshake;
+    private volatile boolean running = true;
 
     @FXML
     private ComboBox<String> serialComboBox;
     @FXML
-    private javafx.scene.control.Button btnRefreshPorts;
+    private Button btnRefreshPorts;
     @FXML
     private ComboBox<String> baudComboBox;
     @FXML
@@ -64,15 +85,11 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
     }
 
     @FXML
-    // @SuppressWarnings("javafx:useFXML") // TODO: Fix false positive
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private void initialize() {
-        /*
-         * Baud Rate Selection
-         */
         for (final var baudRate : this.channel.getSupportedBaudRates()) {
             this.baudComboBox.getItems().add(baudRate);
         }
-        // Select default initial baud rate (should be 9600)
         if (!this.baudComboBox.getItems().isEmpty()) {
             this.baudComboBox.setValue(this.baudComboBox.getItems().get(0));
             LOGGER.info("Default baud rate selected in UI: {}", this.baudComboBox.getValue());
@@ -84,22 +101,20 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                 LOGGER.info("Baud rate set to: {}", selectedBaud);
             }
         });
-        /*
-         * Command Buttons
-         */
+
         for (final var cmd : this.viewModel.getModel().getAvailableCommands()) {
             final var btn = new Button(cmd.getName().toUpperCase(Locale.ROOT));
             btn.setOnAction(event -> {
-                if (!viewModel.connectionStatusProperty().get().equals("CONNECTED")) {
+                if (!ConnectionState.CONNECTED.name().equals(viewModel.connectionStatusProperty().get())) {
                     LOGGER.warn("Cannot send command: not connected");
-                    showErrorMessage("Not connected. Please connect to a serial port first.");
+                    showErrorMessage(MSG_NOT_CONNECTED);
                     return;
                 }
                 try {
                     LOGGER.info("Sending command: {}", cmd.getName());
                     channel.sendMsg(cmd.getName().toUpperCase(Locale.ROOT));
                     clearErrorMessage();
-                } catch (final RuntimeException e) {
+                } catch (final IllegalStateException e) {
                     LOGGER.error("Failed to send command: {}", cmd.getName(), e);
                     showErrorMessage("Failed to send command: " + e.getMessage());
                 }
@@ -114,22 +129,17 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
             }
             this.buttonBox.getChildren().add(btn);
         }
-        /*
-         * Serial Port Selection
-         */
-        // Allow user to type a custom port path (e.g. /tmp/ttyV1)
+
         this.serialComboBox.setEditable(true);
 
         this.serialComboBox.setOnAction(event -> {
             final String selectedPort = this.serialComboBox.getValue();
             if (selectedPort != null) {
-                // Cancel any existing connection attempt
                 cancelConnectionThreads();
 
                 clearErrorMessage();
                 LOGGER.info("Attempting to connect to port: {}", selectedPort);
-                viewModel.setConnectionStatus("CONNECTING...");
-                waitingForHandshake = false;
+                viewModel.setConnectionStatus(ConnectionState.CONNECTING.name());
 
                 final Thread newThread = new Thread(() -> {
                     try {
@@ -146,16 +156,16 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                         Thread.currentThread().interrupt();
                         Platform.runLater(() -> {
                             if (Thread.currentThread().equals(connectionThread.get())) {
-                                viewModel.setConnectionStatus("CANCELLED");
+                                viewModel.setConnectionStatus(ConnectionState.CANCELLED.name());
                                 waitingForHandshake = false;
-                                showErrorMessage("Connection cancelled");
+                                showErrorMessage(MSG_CONNECTION_CANCELLED);
                             }
                         });
-                    } catch (final Exception e) {
+                    } catch (final IllegalStateException e) {
                         LOGGER.error("Failed to connect: {}", selectedPort, e);
                         Platform.runLater(() -> {
                             if (Thread.currentThread().equals(connectionThread.get())) {
-                                viewModel.setConnectionStatus("ERROR");
+                                viewModel.setConnectionStatus(ConnectionState.ERROR.name());
                                 waitingForHandshake = false;
                                 showErrorMessage(e.getMessage());
                             }
@@ -168,104 +178,111 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
             }
         });
         this.updateSerialPorts();
-        // Refresh button action
         if (this.btnRefreshPorts != null) {
             this.btnRefreshPorts.setOnAction(ev -> updateSerialPorts());
         }
-        /*
-         * Label Bindings
-         */
+
         lblDroneState.textProperty().bind(viewModel.droneStateProperty());
         lblHangarState.textProperty().bind(viewModel.hangarStateProperty());
         lblConnectionStatus.textProperty().bind(viewModel.connectionStatusProperty());
         lblDistance.textProperty().bind(viewModel.distanceProperty());
 
-        // Update connection label style according to status
         viewModel.connectionStatusProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal == null)
+            if (newVal == null) {
                 return;
-            // ensure on FX thread
+            }
             Platform.runLater(() -> {
-                lblConnectionStatus.getStyleClass().removeAll("label-success", "label-error", "label-muted");
-                if ("CONNECTED".equals(newVal)) {
-                    lblConnectionStatus.getStyleClass().add("label-success");
-                } else if ("DISCONNECTED".equals(newVal) || "ERROR".equals(newVal) || "TIMEOUT".equals(newVal)) {
-                    lblConnectionStatus.getStyleClass().add("label-error");
+                lblConnectionStatus.getStyleClass().removeAll(CSS_LABEL_SUCCESS, CSS_LABEL_ERROR, CSS_LABEL_MUTED);
+                if (ConnectionState.CONNECTED.name().equals(newVal)) {
+                    lblConnectionStatus.getStyleClass().add(CSS_LABEL_SUCCESS);
+                } else if (ConnectionState.DISCONNECTED.name().equals(newVal)
+                        || ConnectionState.ERROR.name().equals(newVal)
+                        || ConnectionState.TIMEOUT.name().equals(newVal)) {
+                    lblConnectionStatus.getStyleClass().add(CSS_LABEL_ERROR);
                 } else {
-                    lblConnectionStatus.getStyleClass().add("label-muted");
+                    lblConnectionStatus.getStyleClass().add(CSS_LABEL_MUTED);
                 }
             });
         });
 
-        // Update hangar label style according to hangar state (NORMAL -> green, ALERT
-        // -> red)
         viewModel.hangarStateProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal == null)
+            if (newVal == null) {
                 return;
+            }
             Platform.runLater(() -> {
                 lblHangarState.getStyleClass().removeAll(
-                        "hangar-normal", "hangar-alert", "label-muted",
-                        "label-success", "label-info", "label-error", "label-normal");
-                final String n = newVal.trim().toUpperCase();
+                        CSS_HANGAR_NORMAL, CSS_HANGAR_ALERT, CSS_LABEL_MUTED,
+                        CSS_LABEL_SUCCESS, CSS_LABEL_INFO, CSS_LABEL_ERROR, CSS_LABEL_NORMAL);
+                final String n = newVal.trim().toUpperCase(Locale.ROOT);
                 switch (n) {
                     case "NORMAL":
-                        lblHangarState.getStyleClass().add("hangar-normal");
-                        // remove any inline color override
+                        lblHangarState.getStyleClass().add(CSS_HANGAR_NORMAL);
                         lblHangarState.setStyle("");
                         try {
-                            lblHangarState.setTextFill(javafx.scene.paint.Color.web("#0fd26a"));
-                        } catch (final Exception e) {
-                            // ignore if not supported
+                            lblHangarState.setTextFill(javafx.scene.paint.Color.web(COLOR_GREEN));
+                        } catch (final IllegalArgumentException e) {
+                            LOGGER.debug("Failed to set color: {}", e.getMessage());
                         }
                         LOGGER.debug("HangarState NORMAL classes={} style={}", lblHangarState.getStyleClass(),
                                 lblHangarState.getStyle());
                         break;
                     case "ALARM":
-                        lblHangarState.getStyleClass().add("hangar-alert");
-                        // inline text color to ensure visibility (overrides other classes)
-                        lblHangarState.setStyle("-fx-text-fill: #ff4d4d;");
+                        lblHangarState.getStyleClass().add(CSS_HANGAR_ALERT);
+                        lblHangarState.setStyle("-fx-text-fill: " + COLOR_RED + ";");
                         try {
-                            lblHangarState.setTextFill(javafx.scene.paint.Color.web("#ff4d4d"));
-                        } catch (final Exception e) {
-                            // ignore
+                            lblHangarState.setTextFill(javafx.scene.paint.Color.web(COLOR_RED));
+                        } catch (final IllegalArgumentException e) {
+                            LOGGER.debug("Failed to set color: {}", e.getMessage());
                         }
                         LOGGER.debug("HangarState ALARM classes={} style={}", lblHangarState.getStyleClass(),
                                 lblHangarState.getStyle());
                         break;
                     default:
-                        lblHangarState.getStyleClass().add("label-muted");
+                        lblHangarState.getStyleClass().add(CSS_LABEL_MUTED);
                         break;
                 }
             });
         });
 
-        /*
-         * Start message listener thread
-         */
         startMessageListener();
     }
 
     private void startMessageListener() {
-        final Thread listenerThread = new Thread(() -> {
+        final Thread listener = new Thread(() -> {
             LOGGER.info("Message listener thread started");
-            while (true) {
+            while (running) {
                 try {
-                    final String msg = channel.pollMsg(100);
+                    final String msg = channel.pollMsg(MESSAGE_POLL_TIMEOUT_MS);
                     if (msg != null) {
                         LOGGER.debug("Received message: {}", msg);
                         processMessage(msg);
                     }
-                    // short sleep to avoid tight loop
-                    Thread.sleep(50);
+                    Thread.sleep(MESSAGE_POLL_SLEEP_MS);
                 } catch (final InterruptedException e) {
                     LOGGER.info("Message listener thread interrupted");
                     Thread.currentThread().interrupt();
                     break;
                 }
             }
+            LOGGER.info("Message listener thread stopped");
         });
-        listenerThread.setDaemon(true);
-        listenerThread.start();
+        listener.setDaemon(true);
+        listenerThread.set(listener);
+        listener.start();
+    }
+
+    /**
+     * Shutdown method to stop all threads gracefully.
+     */
+    public void shutdown() {
+        LOGGER.info("Shutting down controller");
+        running = false;
+        cancelConnectionThreads();
+        final Thread listener = listenerThread.getAndSet(null);
+        if (listener != null && listener.isAlive()) {
+            listener.interrupt();
+        }
+        channel.close();
     }
 
     private void processMessage(final String msg) {
@@ -273,7 +290,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
             if ("READY".equals(msg.trim()) && waitingForHandshake) {
                 waitingForHandshake = false;
                 cancelTimeoutThread();
-                viewModel.setConnectionStatus("CONNECTED");
+                viewModel.setConnectionStatus(ConnectionState.CONNECTED.name());
                 clearErrorMessage();
                 LOGGER.info("Connection established");
                 return;
@@ -285,7 +302,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
 
                 switch (key) {
                     case "DRONE_STATE": {
-                        final String v = value.toUpperCase();
+                        final String v = value.toUpperCase(Locale.ROOT);
                         if (isValidDroneState(v)) {
                             viewModel.setDroneState(v);
                         } else {
@@ -294,7 +311,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                         break;
                     }
                     case "HANGAR_STATE": {
-                        final String v = value.toUpperCase();
+                        final String v = value.toUpperCase(Locale.ROOT);
                         if (isValidHangarState(v)) {
                             viewModel.setHangarState(v);
                         } else {
@@ -312,7 +329,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                         break;
                     }
                     case "CONNECTION": {
-                        final String v = value.toUpperCase();
+                        final String v = value.toUpperCase(Locale.ROOT);
                         if (isValidConnectionState(v)) {
                             viewModel.setConnectionStatus(v);
                         } else {
@@ -332,7 +349,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
         try {
             it.unibo.dronehangar.remote.api.DroneState.valueOf(s);
             return true;
-        } catch (final Exception e) {
+        } catch (final IllegalArgumentException e) {
             return false;
         }
     }
@@ -341,7 +358,7 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
         try {
             it.unibo.dronehangar.remote.api.HangarState.valueOf(s);
             return true;
-        } catch (final Exception e) {
+        } catch (final IllegalArgumentException e) {
             return false;
         }
     }
@@ -349,38 +366,28 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
     private String sanitizeDistance(final String s) {
         final String trimmed = s.trim();
         try {
-            // accept integer or float, return integer if possible
-            if (trimmed.isEmpty())
+            if (trimmed.isEmpty()) {
                 return null;
+            }
             final double d = Double.parseDouble(trimmed);
-            if (Double.isNaN(d) || Double.isInfinite(d))
+            if (Double.isNaN(d) || Double.isInfinite(d)) {
                 return null;
-            // format without trailing .0 when integer
-            if (Math.abs(d - Math.round(d)) < 1e-6) {
-                return String.valueOf((long) Math.round(d));
+            }
+            if (Math.abs(d - Math.round(d)) < EPSILON) {
+                return String.valueOf(Math.round(d));
             }
             return String.valueOf(d);
-        } catch (final Exception e) {
+        } catch (final NumberFormatException e) {
             return null;
         }
     }
 
     private boolean isValidConnectionState(final String s) {
-        // finite set of allowed connection states
-        switch (s) {
-            case "CONNECTED":
-            case "DISCONNECTED":
-            case "CONNECTING":
-            case "CONNECTING...":
-            case "TIMEOUT":
-            case "ERROR":
-            case "OPENING":
-            case "OPEN":
-            case "CLOSED":
-            case "CANCELLED":
-                return true;
-            default:
-                return false;
+        try {
+            ConnectionState.valueOf(s);
+            return true;
+        } catch (final IllegalArgumentException e) {
+            return false;
         }
     }
 
@@ -418,8 +425,8 @@ public final class DroneRemoteUnitControllerImpl implements DroneRemoteUnitContr
                     LOGGER.warn("Handshake timeout");
                     Platform.runLater(() -> {
                         waitingForHandshake = false;
-                        viewModel.setConnectionStatus("TIMEOUT");
-                        showErrorMessage("Connection timeout");
+                        viewModel.setConnectionStatus(ConnectionState.TIMEOUT.name());
+                        showErrorMessage(MSG_CONNECTION_TIMEOUT);
                     });
                 }
             } catch (final InterruptedException e) {

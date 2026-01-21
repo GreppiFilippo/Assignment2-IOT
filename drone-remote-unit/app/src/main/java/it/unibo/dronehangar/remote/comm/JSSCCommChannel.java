@@ -1,19 +1,20 @@
 package it.unibo.dronehangar.remote.comm;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.unibo.dronehangar.remote.api.CommChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -27,10 +28,10 @@ import jssc.SerialPortList;
 public final class JSSCCommChannel implements CommChannel, SerialPortEventListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(JSSCCommChannel.class);
     private static final int QUEUE_SIZE = 100;
+    private static final int MAX_BUFFER_SIZE = 1024;
     private volatile SerialPort serialPort;
     private volatile int baudRate;
     private final BlockingQueue<String> queue;
-    private final StringBuilder currentMsg = new StringBuilder();
     private final Object portLock = new Object();
     private final List<String> baudRates = List.of(
             "9600",
@@ -71,7 +72,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
             }
         } catch (final SerialPortException ex) {
             LOGGER.error("Failed to send message: {}", msg, ex);
-            throw new RuntimeException("Failed to send message", ex);
+            throw new IllegalStateException("Failed to send message: " + ex.getMessage(), ex);
         }
     }
 
@@ -111,7 +112,6 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
     @Override
     public void setCommPort(final String commPort) {
         LOGGER.info("Setting comm port to: {}", commPort);
-        // Resolve symlinks or indirect paths (e.g. /tmp/ttyV1 -> /dev/ttys012)
         String portToUse = commPort;
         try {
             final Path p = Paths.get(commPort);
@@ -120,12 +120,11 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
                 portToUse = real.toString();
                 LOGGER.debug("Resolved comm port {} -> {}", commPort, portToUse);
             }
-        } catch (final Exception e) {
+        } catch (final IOException e) {
             LOGGER.debug("Could not resolve comm port path {}: {}", commPort, e.getMessage());
         }
 
         synchronized (portLock) {
-            // Only close if we're already connected to a DIFFERENT port
             if (this.serialPort != null) {
                 final String currentPort = this.serialPort.getPortName();
                 if (!currentPort.equals(commPort)) {
@@ -168,7 +167,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
                     errorMessage = ex.getMessage();
                 }
 
-                throw new RuntimeException(errorMessage, ex);
+                throw new IllegalStateException(errorMessage, ex);
             }
         }
     }
@@ -223,35 +222,41 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
                 }
 
                 final String cleanMsg = msg.replaceAll("\r", "");
-
-                synchronized (currentMsg) {
-                    this.currentMsg.append(cleanMsg);
-                    boolean goAhead = true;
-                    while (goAhead) {
-                        final String bufferedMsg = currentMsg.toString();
-                        final int index = bufferedMsg.indexOf('\n');
-
-                        if (index >= 0) {
-                            final String completeMsg = bufferedMsg.substring(0, index);
-
-                            // Use offer() instead of put() to avoid blocking
-                            if (queue.offer(completeMsg)) {
-                                LOGGER.debug("Complete message queued: {}", completeMsg);
-                            } else {
-                                LOGGER.warn("Message queue full, dropping message: {}", completeMsg);
-                            }
-
-                            this.currentMsg.setLength(0);
-                            if (index + 1 < bufferedMsg.length()) {
-                                this.currentMsg.append(bufferedMsg.substring(index + 1));
-                            }
-                        } else {
-                            goAhead = false;
-                        }
-                    }
-                }
+                processIncomingData(cleanMsg);
             } catch (final SerialPortException ex) {
                 LOGGER.error("Error reading from serial port", ex);
+            }
+        }
+    }
+
+    private void processIncomingData(final String data) {
+        final StringBuilder currentMsg = new StringBuilder(data);
+
+        if (currentMsg.length() > MAX_BUFFER_SIZE) {
+            LOGGER.warn("Message buffer overflow (size: {}), clearing", currentMsg.length());
+            return;
+        }
+
+        boolean goAhead = true;
+        while (goAhead) {
+            final String bufferedMsg = currentMsg.toString();
+            final int index = bufferedMsg.indexOf('\n');
+
+            if (index >= 0) {
+                final String completeMsg = bufferedMsg.substring(0, index);
+
+                if (queue.offer(completeMsg)) {
+                    LOGGER.debug("Complete message queued: {}", completeMsg);
+                } else {
+                    LOGGER.warn("Message queue full, dropping message: {}", completeMsg);
+                }
+
+                currentMsg.setLength(0);
+                if (index + 1 < bufferedMsg.length()) {
+                    currentMsg.append(bufferedMsg.substring(index + 1));
+                }
+            } else {
+                goAhead = false;
             }
         }
     }
@@ -264,26 +269,19 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
     }
 
     private void closeInternal() {
-        // Must be called inside portLock synchronization
         if (this.serialPort != null) {
             final SerialPort portToClose = this.serialPort;
             final String portName = portToClose.getPortName();
             LOGGER.info("Closing serial port: {}", portName);
 
-            // Set to null IMMEDIATELY
             this.serialPort = null;
 
-            // Clear buffers
-            synchronized (currentMsg) {
-                this.currentMsg.setLength(0);
-            }
             this.queue.clear();
 
-            // Try to close synchronously but with error suppression
             try {
                 portToClose.removeEventListener();
                 LOGGER.debug("Event listener removed from {}", portName);
-            } catch (final Exception e) {
+            } catch (final SerialPortException e) {
                 LOGGER.warn("Error removing listener: {}", e.getMessage());
             }
 
@@ -292,8 +290,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
                     portToClose.closePort();
                     LOGGER.info("Port {} closed", portName);
                 }
-            } catch (final Exception e) {
-                // If close fails, the port might be stuck - just log and continue
+            } catch (final SerialPortException e) {
                 LOGGER.warn("Error closing port {}: {} - port may be stuck", portName, e.getMessage());
             }
         }
