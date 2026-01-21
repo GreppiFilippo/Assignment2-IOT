@@ -10,7 +10,9 @@
 #define RESET_PIN 8  // RESET button pin - tactile button
 #define DPD_PIN 9    // Drone presence detector pin - PIR sensor
 #define HD_PIN 11    // Drone Hangar door pin - servo motor
-#define DDD_PIN 7    // Drone Distance Detector pin - ultrasonic sensor
+#define DDD_PIN_E 12    // Drone Distance Detector pin - ultrasonic sensor
+#define DDD_PIN_T 13
+#define TEMP_PIN A0
 
 #define LCD_ADR 0x27
 #define LCD_COL 20

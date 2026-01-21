@@ -121,6 +121,7 @@ class Context
     void closeTakeoffCheck();
     bool takeoffCheckRequested();
     void setDroneIn(bool state);
+    bool isDroneIn();
 
     // ======== MESSAGE QUEUE ========
 

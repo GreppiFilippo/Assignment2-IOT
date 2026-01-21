@@ -201,7 +201,6 @@ String Context::buildJSON()
 }
 
 void Context::clearJsonFields() { jsonDoc.clear(); }
-
 void Context::requestLandingCheck() { landingCheck = true; }
 void Context::closeLandingCheck() { landingCheck = false; }
 bool Context::landingCheckRequested() { return landingCheck; }
@@ -209,3 +208,4 @@ void Context::requestTakeoffCheck() { takeoffCheck = true; }
 void Context::closeTakeoffCheck() { takeoffCheck = false; }
 bool Context::takeoffCheckRequested() { return takeoffCheck; }
 void Context::setDroneIn(bool state) { droneIn = state; }
+bool Context::isDroneIn() { return droneIn; } 

@@ -65,12 +65,12 @@ void DroneTask::tick()
                 pContext->blink();
             }
 
-            if (pContext->isAlarmActive() && droneIn())
+            if (pContext->isAlarmActive() && this->pContext->isDroneIn())
             {
                 setState(REST);
             }
 
-            if (!droneIn())
+            if (!this->pContext->isDroneIn())
             {
                 setState(OPERATING);
             }
@@ -106,12 +106,12 @@ void DroneTask::tick()
                 this->pContext->blink();
             }
 
-            if (pContext->isAlarmActive() && !droneIn())
+            if (pContext->isAlarmActive() && !this->pContext->isDroneIn())
             {
                 setState(OPERATING);
             }
 
-            if (droneIn())
+            if (this->pContext->isDroneIn())
             {
                 setState(REST);
             }
@@ -119,16 +119,6 @@ void DroneTask::tick()
     }
 }
 
-/**
- * @brief Check if the drone is inside the hangar.
- *
- * @return true if the drone is inside
- * @return false if the drone is outside
- */
-bool droneIn()
-{  // TODO: da aggiustare
-    return false;
-}
 
 void DroneTask::setState(State state)
 {
