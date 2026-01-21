@@ -13,6 +13,7 @@ class Context
     // Door control requests (auto-clear)
     bool openDoorRequested;
     bool closeDoorRequested;
+    bool doorOpen;
 
     // System flags
     bool alarmActive;
@@ -23,12 +24,11 @@ class Context
     float currentTemperature;
     bool pirActive;
 
-    // Command requests (auto-clear)
-    bool takeoffRequested;
-    bool landingRequested;
-
     // LCD message to display
     const char* lcdMessage;
+
+    //blinking led
+    bool ledBlinking;
 
    public:
     Context();
@@ -39,10 +39,8 @@ class Context
      * @brief Request to open the door.
      *
      */
-    void requestOpenDoor();
-    bool isOpenDoorRequested();
-    void requestCloseDoor();
-    bool isCloseDoorRequested();
+    void closeDoor();
+    void openDoor();
     bool isDoorOpen();
     void setDoorClosed();
     void setDoorOpened();
@@ -80,9 +78,9 @@ class Context
 
     // ======== BLINKING TASK ========
 
-    bool isStarted();
-
-    bool isStopped();
+    void blink();
+    void stopBlink();
+    bool isBlinking();
 
     // ======== LCD data ========
     const char* getLCDMessage();
