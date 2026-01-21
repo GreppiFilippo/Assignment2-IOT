@@ -15,8 +15,8 @@
 #define TEMP_PIN A0
 
 #define LCD_ADR 0x27
-#define LCD_COL 20
-#define LCD_ROW 4
+#define LCD_COL 16
+#define LCD_ROW 2
 
 // TODO: Adjust pin definitions as per your hardware setup
 /* ===== Distance thresholds (cm) ===== */
