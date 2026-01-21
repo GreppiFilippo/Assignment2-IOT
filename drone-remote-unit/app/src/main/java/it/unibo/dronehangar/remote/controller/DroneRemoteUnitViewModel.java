@@ -1,5 +1,6 @@
 package it.unibo.dronehangar.remote.controller;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.unibo.dronehangar.remote.model.DroneRemoteUnitModelImpl;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -8,8 +9,9 @@ import javafx.beans.property.StringProperty;
  * ViewModel that bridges between pure Model and JavaFX View.
  * Contains JavaFX properties for UI binding.
  */
+@SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "JavaFX properties are meant to be exposed for binding")
 public final class DroneRemoteUnitViewModel {
-    
+
     private final DroneRemoteUnitModelImpl model;
     private final StringProperty droneState;
     private final StringProperty hangarState;

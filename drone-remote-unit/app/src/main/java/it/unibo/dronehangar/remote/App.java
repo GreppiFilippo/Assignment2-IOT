@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.unibo.dronehangar.remote.api.Command;
 import it.unibo.dronehangar.remote.controller.DroneRemoteUnitControllerImpl;
 import it.unibo.dronehangar.remote.model.DroneRemoteUnitModelImpl;
@@ -19,14 +20,20 @@ import javafx.stage.Stage;
  */
 public final class App extends Application {
 
+    /**
+     * Private constructor to prevent instantiation.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
-    private final List<Command> commandList = List.of(
-        () -> "OPEN",
-        () -> "CLOSE",
-        () -> "TAKEOFF",
-        () -> "LAND"
-    );
+    private final List<Command> commandList = List.of(() -> "OPEN");
+    private DroneRemoteUnitControllerImpl controller;
+
+    /**
+     * Private constructor to prevent instantiation.
+     */
+    public App() {
+        // Required public no-arg constructor for JavaFX
+    }
 
     /**
      * Main entry point of the application.
@@ -42,11 +49,8 @@ public final class App extends Application {
     public void start(final Stage primaryStage) throws Exception {
         LOGGER.info("Initializing JavaFX application");
         final FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DroneRemoteUnit.fxml"));
-        loader.setControllerFactory(param -> 
-            new DroneRemoteUnitControllerImpl(
-                new DroneRemoteUnitModelImpl(this.commandList)
-            )
-        );
+        this.controller = new DroneRemoteUnitControllerImpl(new DroneRemoteUnitModelImpl(this.commandList));
+        loader.setControllerFactory(param -> this.controller);
         final Parent root = loader.load();
         final Scene scene = new Scene(root);
 
@@ -57,7 +61,12 @@ public final class App extends Application {
     }
 
     @Override
+    @SuppressFBWarnings(value = "DM_EXIT", justification = "System.exit is required to properly terminate the JavaFX application")
     public void stop() {
         LOGGER.info("Shutting down Drone Remote Unit application");
+        if (this.controller != null) {
+            this.controller.shutdown();
+        }
+        System.exit(0);
     }
 }

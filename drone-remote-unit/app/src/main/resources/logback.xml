@@ -19,12 +19,38 @@
         </encoder>
     </appender>
 
-    <!-- Root logger -->
-    <root level="INFO">
+    <!-- 
+    LOG LEVELS (from most to least verbose):
+    - TRACE: Very detailed, step-by-step execution
+    - DEBUG: Detailed debugging info (use in development)
+    - INFO: General informational messages (default for production)
+    - WARN: Warning messages
+    - ERROR: Error messages
+    - OFF: Disable logging completely
+    
+    USAGE:
+    - Development: Use DEBUG to see all details
+    - Production: Use INFO to see only important events
+    - Troubleshooting: Switch to DEBUG temporarily
+    -->
+
+    <!-- Root logger (default for all classes) -->
+    <root level="DEBUG">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="FILE" />
     </root>
 
-    <!-- Application specific logging -->
+    <!-- 
+    Application specific logging 
+    Set to DEBUG for development, INFO for production
+    To disable app logs completely, set to OFF or WARN
+    -->
     <logger name="it.unibo.dronehangar" level="DEBUG" />
+    
+    <!-- 
+    External libraries (reduce noise)
+    Uncomment to suppress verbose library logs
+    -->
+    <!-- <logger name="jssc" level="WARN" /> -->
+    <!-- <logger name="javafx" level="WARN" /> -->
 </configuration>

@@ -6,7 +6,7 @@
     -fx-background-color: #2b2b2b;
 }
 
-.scrollPane > .viewport {
+.scrollPane>.viewport {
     -fx-background-color: transparent;
     background-color: transparent;
 }
@@ -49,30 +49,33 @@
 
 /* Section Container */
 .section {
-    -fx-background-color: rgba(255,255,255,0.03);
-    background-color: rgba(255,255,255,0.03);
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+    background-color: rgba(255, 255, 255, 0.03);
     -fx-background-radius: 12;
     -fx-padding: 14;
     padding: 14px;
     -fx-border-radius: 12;
     border-radius: 12px;
-    -fx-border-color: rgba(255,255,255,0.04);
-    border-color: rgba(255,255,255,0.04);
+    -fx-border-color: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.04);
     -fx-border-width: 1;
     border-width: 1px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 10, 0.2, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 10, 0.2, 0, 2);
 }
 
 /* Section spacing (for VBoxes with styleClass 'section') */
 .section {
-    -fx-spacing: 10; /* vertical spacing between children */
+    -fx-spacing: 10;
+    /* vertical spacing between children */
 }
 
 /* Content container inside ScrollPane */
 .content {
-    -fx-padding: 20; /* match previous Insets 20 */
+    -fx-padding: 20;
+    /* match previous Insets 20 */
     padding: 20px;
-    -fx-spacing: 20; /* space between sections */
+    -fx-spacing: 20;
+    /* space between sections */
 }
 
 /* TilePane used for command buttons */
@@ -94,8 +97,8 @@
 
 /* Separator */
 .section-separator {
-    -fx-background-color: rgba(255,255,255,0.06);
-    background-color: rgba(255,255,255,0.06);
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    background-color: rgba(255, 255, 255, 0.06);
 }
 
 /* Buttons */
@@ -148,6 +151,28 @@
     -fx-text-fill: #888888;
 }
 
+/* Hangar state emphasis */
+.hangar-normal {
+    -fx-text-fill: #0fd26a;
+    /* vivid green */
+    -fx-font-weight: 800;
+    -fx-background-color: rgba(15, 210, 106, 0.08);
+    -fx-padding: 6 10 6 10;
+    -fx-background-radius: 8;
+}
+
+.hangar-alert {
+    -fx-text-fill: #ff4d4d;
+    /* vivid red */
+    -fx-font-weight: 800;
+    -fx-background-color: rgba(255, 77, 77, 0.08);
+    -fx-padding: 6 10 6 10;
+    -fx-background-radius: 8;
+    -fx-border-color: rgba(255, 77, 77, 0.22);
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
 .label-normal {
     -fx-text-fill: #cccccc;
     -fx-font-size: 12px;
@@ -176,6 +201,7 @@
     -fx-cursor: hand;
     cursor: pointer;
 }
+
 .serialComboBox .list-cell {
     -fx-background-color: #3a3a3a;
     background-color: #3a3a3a;
@@ -183,6 +209,7 @@
     -fx-cursor: hand;
     cursor: pointer;
 }
+
 .serialComboBox .list-cell:selected {
     -fx-background-color: #606060;
     background-color: #606060;
@@ -190,10 +217,59 @@
     -fx-cursor: hand;
     cursor: pointer;
 }
-.serialComboBox:focused, .btn:focused {
+
+.serialComboBox:focused,
+.btn:focused {
     -fx-border-color: #4a9eff;
     border-color: #4a9eff;
-    -fx-effect: dropshadow(gaussian, rgba(74,158,255,0.3), 10, 0.2, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(74, 158, 255, 0.3), 10, 0.2, 0, 2);
     -fx-cursor: hand;
     cursor: pointer;
+}
+
+/* Editable ComboBox editor styling */
+.serialComboBox .text-field {
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+}
+
+/* Small button variant used for refresh */
+.button.small {
+    -fx-background-color: #2f6fbf;
+    -fx-font-size: 12px;
+    -fx-padding: 6px 10px;
+    -fx-background-radius: 8;
+}
+
+.button.small:hover {
+    -fx-background-color: #265ea6;
+}
+
+/* ComboBox arrow styling: replace default white arrow with themed glyph */
+.serialComboBox .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 4 6 4 6;
+}
+
+.serialComboBox .arrow {
+    /* simple triangle shape */
+    -fx-shape: "M0 0 L10 0 L5 6 Z";
+    -fx-background-color: #bfe1ff;
+    -fx-background-radius: 6;
+    -fx-padding: 2;
+    -fx-pref-width: 12;
+    -fx-pref-height: 12;
+    -fx-scale-x: 0.9;
+    -fx-scale-y: 0.9;
+}
+
+.serialComboBox:focused .arrow {
+    -fx-background-color: #4a9eff;
+}
+
+/* Ensure the editable text field caret and background match */
+.serialComboBox .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
 }

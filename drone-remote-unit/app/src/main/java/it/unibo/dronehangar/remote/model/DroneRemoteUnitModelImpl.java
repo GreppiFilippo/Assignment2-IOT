@@ -5,15 +5,13 @@ import java.util.List;
 
 import it.unibo.dronehangar.remote.api.Command;
 import it.unibo.dronehangar.remote.api.DroneRemoteUnitModel;
-import it.unibo.dronehangar.remote.api.DroneState;
-import it.unibo.dronehangar.remote.api.HangarState;
 
 /**
  * Pure model implementation without any UI dependencies.
  * All setters are thread-safe.
  */
 public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
-    
+
     private final List<Command> availableCommands;
     private volatile String droneState;
     private volatile String hangarState;
@@ -27,10 +25,10 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
      */
     public DroneRemoteUnitModelImpl(final List<Command> availableCommands) {
         this.availableCommands = new ArrayList<>(availableCommands);
-        this.droneState = DroneState.REST.name();
-        this.hangarState = HangarState.NORMAL.name();
+        this.droneState = "--";
+        this.hangarState = "--";
         this.distance = "-- cm";
-        this.connectionStatus = "DISCONNECTED";
+        this.connectionStatus = it.unibo.dronehangar.remote.api.ConnectionState.DISCONNECTED.name();
     }
 
     @Override
