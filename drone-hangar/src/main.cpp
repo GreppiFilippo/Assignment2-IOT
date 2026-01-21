@@ -13,12 +13,13 @@
 #include "task/HangarTask.hpp"
 #include "task/LCDTask.hpp"
 #include "task/MSGTask.hpp"
+#include "task/DistanceTask.hpp"
 
 #define BASE_PERIOD_MS 50
-#define TEMP_ALARM_TASK_PERIOD 50
 #define DRONE_TASK_PERIOD 50
 #define DOOR_CONTROL_TASK_PERIOD 50
 #define HANGAR_TASK_PERIOD 50
+#define DISTANCE_TASK_PERIOD 50
 #define LCD_TASK_PERIOD 50 
 #define MSG_TASK_PERIOD 50
 
@@ -36,7 +37,7 @@ void setup()
 {
     MsgService.init();
     sched.init(BASE_PERIOD_MS);
-
+    
     Logger.log(":::::: Drone Hangar ::::::");
 
     pHWPlatform = new HWPlatform();
@@ -46,9 +47,9 @@ void setup()
     // Tasks
     // TODO: add tasks here
 
-    Task* pTempAlarmTask =
+    Task* pHangarTask =
         new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(), pContext);
-    pTempAlarmTask->init(TEMP_ALARM_TASK_PERIOD);
+    pHangarTask->init(HANGAR_TASK_PERIOD);
 
     Task* pDroneTask = new DroneTask(pContext, pHWPlatform->getL1(), pHWPlatform->getL3(),
                                      pHWPlatform->getPresenceSensor());
@@ -60,10 +61,8 @@ void setup()
     Task* pDoorControlTask = new DoorControlTask(pContext, pHWPlatform->getMotor());
     pDoorControlTask->init(DOOR_CONTROL_TASK_PERIOD);
 
-    Task* pHangarTask =
-        new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(), pContext);
-
-    pHangarTask->init(HANGAR_TASK_PERIOD);
+    Task* pDistanceTask = new DistanceTask(pHWPlatform->getProximitySensor(), pContext);
+    pDistanceTask->init(DISTANCE_TASK_PERIOD);
 
     Task* pLcdTask = new LCDTask(pHWPlatform->getLCD(), pContext);
     pLcdTask->init(LCD_TASK_PERIOD);
@@ -71,11 +70,11 @@ void setup()
     Task* pMSGTask = new MsgTask(pContext, &MsgService);
     pMSGTask->init(MSG_TASK_PERIOD);
 
-    sched.addTask(pTempAlarmTask);
+    sched.addTask(pHangarTask);
     sched.addTask(pDroneTask);
     sched.addTask(pBlinkingTask);
     sched.addTask(pDoorControlTask);
-    sched.addTask(pHangarTask);
+    sched.addTask(pDistanceTask);
     sched.addTask(pLcdTask);
     sched.addTask(pMSGTask);
 

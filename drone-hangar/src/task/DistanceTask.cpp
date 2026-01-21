@@ -4,6 +4,12 @@
 
 #include "config.hpp"
 
+DistanceTask::DistanceTask(ProximitySensor* sonarSensor, Context* pContext)
+{
+    this->sonarSensor = sonarSensor;
+    this->pContext = pContext;
+}
+
 void DistanceTask::tick()
 {
     switch (state)

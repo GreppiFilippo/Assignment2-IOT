@@ -10,7 +10,7 @@
 class DistanceTask : public Task
 {
    private:
-    Sonar* sonarSensor;
+    ProximitySensor* sonarSensor;
     Context* pContext;
     float distance;
 
@@ -32,7 +32,7 @@ class DistanceTask : public Task
     bool checkAndSetJustEntered();
 
    public:
-    DistanceTask(Sonar* sonarSensor, Context* pContext);
+    DistanceTask(ProximitySensor* sonarSensor, Context* pContext);
     void tick();
 };
 

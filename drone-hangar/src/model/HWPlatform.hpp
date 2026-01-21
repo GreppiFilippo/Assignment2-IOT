@@ -8,6 +8,7 @@
 #include "devices/PresenceSensor.hpp"
 #include "devices/ServoMotor.hpp"
 #include "devices/TempSensor.hpp"
+#include "devices/ProximitySensor.hpp"
 
 /**
  * @brief Class representing the hardware platform abstraction.
@@ -24,6 +25,7 @@ class HWPlatform
     ServoMotor* motor;
     TempSensor* tempSensor;
     LCD* lcd;
+    ProximitySensor* proximitySensor;
 
    public:
     HWPlatform();
@@ -43,6 +45,7 @@ class HWPlatform
     PresenceSensor* getPresenceSensor();
 
     LCD* getLCD();
+    ProximitySensor* getProximitySensor();
 };
 
 #endif
