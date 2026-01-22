@@ -4,8 +4,8 @@
 /* ===== Pin definitions ===== */
 #define TEMP_PIN A0  // Temperature sensor pin TMP36 - analog input
 #define L1_PIN 2     // L1 green led pin - indicate on
-#define L2_PIN 5     // L2 green led pin (must be pwm~) - indicate in action
-#define L3_PIN 4     // L3 red led pin - indicate alarm
+#define L2_PIN 4    // L2 green led pin (must be pwm~) - indicate in action
+#define L3_PIN 6    // L3 red led pin - indicate alarm
 
 #define RESET_PIN 8   // RESET button pin - tactile button
 #define DPD_PIN 9     // Drone presence detector pin - PIR sensor
