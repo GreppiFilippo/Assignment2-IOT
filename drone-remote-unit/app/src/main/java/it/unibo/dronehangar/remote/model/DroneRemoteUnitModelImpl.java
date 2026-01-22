@@ -2,9 +2,14 @@ package it.unibo.dronehangar.remote.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import it.unibo.dronehangar.remote.api.Command;
+import it.unibo.dronehangar.remote.api.ConnectionState;
 import it.unibo.dronehangar.remote.api.DroneRemoteUnitModel;
+import it.unibo.dronehangar.remote.api.DroneState;
+import it.unibo.dronehangar.remote.api.HangarState;
 
 /**
  * Pure model implementation without any UI dependencies.
@@ -12,11 +17,13 @@ import it.unibo.dronehangar.remote.api.DroneRemoteUnitModel;
  */
 public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
 
+    private static final String STATE_BLANK_ERROR = "State cannot be blank";
+
     private final List<Command> availableCommands;
-    private volatile String droneState;
-    private volatile String hangarState;
-    private volatile String distance;
-    private volatile String connectionStatus;
+    private volatile Optional<DroneState> droneState;
+    private volatile Optional<HangarState> hangarState;
+    private volatile Optional<Float> distance;
+    private volatile ConnectionState connectionState;
 
     /**
      * Constructor for DroneRemoteUnitModelImpl.
@@ -25,10 +32,10 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
      */
     public DroneRemoteUnitModelImpl(final List<Command> availableCommands) {
         this.availableCommands = new ArrayList<>(availableCommands);
-        this.droneState = "--";
-        this.hangarState = "--";
-        this.distance = "-- cm";
-        this.connectionStatus = it.unibo.dronehangar.remote.api.ConnectionState.DISCONNECTED.name();
+        this.distance = Optional.empty();
+        this.droneState = Optional.empty();
+        this.hangarState = Optional.empty();
+        this.connectionState = ConnectionState.DISCONNECTED;
     }
 
     @Override
@@ -37,62 +44,87 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
     }
 
     @Override
-    public String droneStateProperty() {
+    public void setDistance(final float dist) {
+        this.distance = Optional.of(dist);
+    }
+
+    @Override
+    public void setConnectionState(final String state) {
+        Objects.requireNonNull(state);
+        if (state.isBlank()) {
+            throw new IllegalArgumentException(STATE_BLANK_ERROR);
+        }
+
+        boolean validState = false;
+        for (final var cs : ConnectionState.values()) {
+            if (cs.name().equals(state)) {
+                validState = true;
+                break;
+            }
+        }
+
+        if (!validState) {
+            throw new IllegalArgumentException("Invalid connection state: " + state);
+        }
+        this.connectionState = ConnectionState.valueOf(state);
+
+    }
+
+    @Override
+    public ConnectionState getConnectionState() {
+        return this.connectionState;
+    }
+
+    @Override
+    public Optional<DroneState> getDroneState() {
         return this.droneState;
     }
 
     @Override
-    public String distanceProperty() {
-        return this.distance;
-    }
-
-    @Override
-    public String hangarStateProperty() {
+    public Optional<HangarState> getHangarState() {
         return this.hangarState;
     }
 
     @Override
-    public String connectionStatusProperty() {
-        return this.connectionStatus;
+    public Optional<Float> getDistance() {
+        return this.distance;
     }
 
-    /**
-     * Set the drone state.
-     * Thread-safe.
-     * 
-     * @param state the new drone state
-     */
+    @Override
     public void setDroneState(final String state) {
-        this.droneState = state;
+        Objects.requireNonNull(state);
+        if (state.isBlank()) {
+            throw new IllegalArgumentException(STATE_BLANK_ERROR);
+        }
+        boolean validState = false;
+        for (final var ds : DroneState.values()) {
+            if (ds.name().equals(state)) {
+                validState = true;
+                break;
+            }
+        }
+        if (!validState) {
+            throw new IllegalArgumentException("Invalid drone state: " + state);
+        }
+        this.droneState = Optional.of(DroneState.valueOf(state));
     }
 
-    /**
-     * Set the hangar state.
-     * Thread-safe.
-     * 
-     * @param state the new hangar state
-     */
+    @Override
     public void setHangarState(final String state) {
-        this.hangarState = state;
-    }
-
-    /**
-     * Set the distance value.
-     * Thread-safe.
-     * 
-     * @param dist the new distance value
-     */
-    public void setDistance(final String dist) {
-        this.distance = dist;
-    }
-
-    /**
-     * Set the connection status.
-     * Thread-safe.
-     * 
-     * @param status the new connection status
-     */
-    public void setConnectionStatus(final String status) {
-        this.connectionStatus = status;
+        Objects.requireNonNull(state);
+        if (state.isBlank()) {
+            throw new IllegalArgumentException(STATE_BLANK_ERROR);
+        }
+        boolean validState = false;
+        for (final var hs : HangarState.values()) {
+            if (hs.name().equals(state)) {
+                validState = true;
+                break;
+            }
+        }
+        if (!validState) {
+            throw new IllegalArgumentException("Invalid hangar state: " + state);
+        }
+        this.hangarState = Optional.of(HangarState.valueOf(state));
     }
 }

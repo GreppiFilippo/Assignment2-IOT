@@ -1,14 +1,15 @@
 package it.unibo.dronehangar.remote;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.unibo.dronehangar.remote.api.Command;
 import it.unibo.dronehangar.remote.controller.DroneRemoteUnitControllerImpl;
 import it.unibo.dronehangar.remote.model.DroneRemoteUnitModelImpl;
+import it.unibo.dronehangar.remote.viewmodel.DroneRemoteUnitViewModel;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -20,53 +21,43 @@ import javafx.stage.Stage;
  */
 public final class App extends Application {
 
-    /**
-     * Private constructor to prevent instantiation.
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-
     private final List<Command> commandList = List.of(() -> "OPEN");
-    private DroneRemoteUnitControllerImpl controller;
 
-    /**
-     * Private constructor to prevent instantiation.
-     */
-    public App() {
-        // Required public no-arg constructor for JavaFX
-    }
+    @Override
+    public void start(final Stage primaryStage) {
+        LOGGER.debug("Initializing JavaFX application");
 
-    /**
-     * Main entry point of the application.
-     *
-     * @param args the commands line arguments
-     */
-    public static void main(final String... args) {
-        LOGGER.info("Starting Drone Remote Unit application");
-        launch(args);
+        try {
+            final var model = new DroneRemoteUnitModelImpl(commandList);
+            final var viewModel = new DroneRemoteUnitViewModel(model);
+            final var controller = new DroneRemoteUnitControllerImpl();
+            controller.setViewModel(viewModel);
+            final FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DroneRemoteUnit.fxml"));
+            loader.setControllerFactory(param -> controller);
+            final Parent root = loader.load();
+            final Scene scene = new Scene(root);
+            primaryStage.setTitle("Drone Remote Unit");
+            primaryStage.setScene(scene);
+            primaryStage.show();
+            LOGGER.debug("Application window shown");
+        } catch (final IOException e) {
+            LOGGER.error("Failed to initialize application", e);
+        }
     }
 
     @Override
-    public void start(final Stage primaryStage) throws Exception {
-        LOGGER.info("Initializing JavaFX application");
-        final FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DroneRemoteUnit.fxml"));
-        this.controller = new DroneRemoteUnitControllerImpl(new DroneRemoteUnitModelImpl(this.commandList));
-        loader.setControllerFactory(param -> this.controller);
-        final Parent root = loader.load();
-        final Scene scene = new Scene(root);
-
-        primaryStage.setTitle("Drone Remote Unit");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-        LOGGER.info("Application window shown");
-    }
-
-    @Override
-    @SuppressFBWarnings(value = "DM_EXIT", justification = "System.exit is required to properly terminate the JavaFX application")
     public void stop() {
         LOGGER.info("Shutting down Drone Remote Unit application");
-        if (this.controller != null) {
-            this.controller.shutdown();
-        }
-        System.exit(0);
+    }
+
+    /**
+     * Main method.
+     * 
+     * @param args command-line arguments
+     */
+    public static void main(final String... args) {
+        LOGGER.info("::::::: Drone Remote Unit :::::::");
+        launch(args);
     }
 }

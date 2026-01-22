@@ -1,6 +1,7 @@
 package it.unibo.dronehangar.remote.api;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interface representing the model of a drone remote unit.
@@ -15,30 +16,62 @@ public interface DroneRemoteUnitModel {
     List<Command> getAvailableCommands();
 
     /**
-     * Get the drone state property as a string.
+     * Get the drone state.
      * 
-     * @return the drone state property string
+     * @return the drone state
      */
-    String droneStateProperty();
+    Optional<DroneState> getDroneState();
 
     /**
-     * Get the hangar state property as a string.
+     * Get the hangar state.
      * 
-     * @return the hangar state property string
+     * @return the hangar state
      */
-    String hangarStateProperty();
+    Optional<HangarState> getHangarState();
 
     /**
-     * Get the connection status property as a string.
+     * Get the connection state.
      * 
-     * @return the connection status property string
+     * @return the connection state
      */
-    String connectionStatusProperty();
+    ConnectionState getConnectionState();
 
     /**
-     * Get the distance property as a string.
+     * Get the distance.
      * 
-     * @return the distance property string
+     * @return the distance
      */
-    String distanceProperty();
+    Optional<Float> getDistance();
+
+    /**
+     * Set the drone state.
+     * Thread-safe.
+     * 
+     * @param state the new drone state
+     */
+    void setDroneState(String state);
+
+    /**
+     * Set the hangar state.
+     * Thread-safe.
+     * 
+     * @param state the new hangar state
+     */
+    void setHangarState(String state);
+
+    /**
+     * Set the distance value.
+     * Thread-safe.
+     * 
+     * @param dist the new distance value
+     */
+    void setDistance(float dist);
+
+    /**
+     * Set the connection status.
+     * Thread-safe.
+     * 
+     * @param state the new connection status
+     */
+    void setConnectionState(String state);
 }

@@ -26,9 +26,8 @@ public interface CommChannel {
      * </p>
      * 
      * @return the received message
-     * @throws InterruptedException if the thread is interrupted while waiting
      */
-    String receiveMsg() throws InterruptedException;
+    String receiveMsg();
 
     /**
      * Poll for a message with timeout.
