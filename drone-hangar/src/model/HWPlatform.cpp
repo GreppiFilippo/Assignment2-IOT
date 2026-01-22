@@ -28,7 +28,9 @@ HWPlatform::HWPlatform()
     proximitySensor = new Sonar(DDD_PIN_E, DDD_PIN_T, 100);
 }
 
-void HWPlatform::init() {}
+void HWPlatform::init() {
+    motor->on();
+}
 
 Button* HWPlatform::getButton() { return this->button; }
 

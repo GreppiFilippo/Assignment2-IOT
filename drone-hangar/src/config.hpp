@@ -18,6 +18,9 @@
 #define LCD_COL 16
 #define LCD_ROW 2
 
+/* ====== DOOR CONFIG ====== */
+#define DOOR_OPEN_ANGLE 180
+#define MOVING_TIME 500 
 // TODO: Adjust pin definitions as per your hardware setup
 /* ===== Distance thresholds (cm) ===== */
 #define D1 100  // Distance threshold for drone exit detection

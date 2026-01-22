@@ -1,101 +1,97 @@
 #include "task/DoorControlTask.hpp"
 
 #include "config.hpp"
-#include "kernel/Logger.hpp"
 
-#define DOOR_OPEN_ANGLE 180
-#define DOOR_CLOSED_ANGLE 0
-//TODO: da misurare!!!!!!!!!
-#define MOVING_TIME 300 //tempo in cui si apre/chiude. Per isClosed/isOpen. 
 
 DoorControlTask::DoorControlTask(Context* ctx, ServoMotor* motor)
 {
-    this->pContext = ctx;
-    this->pDoorMotor = motor;
+    pContext = ctx;
+    pDoorMotor = motor;
+    currentPos = 0;
+    pDoorMotor->setPosition(currentPos);
+    pContext->openDoor();
     setState(CLOSED);
-    this->pDoorMotor->setPosition(DOOR_CLOSED_ANGLE);
 }
 
 void DoorControlTask::tick()
 {
     switch (state)
     {
-        case CLOSED:
-            if (checkAndSetJustEntered())
-            {
+        case CLOSED: {
+            if (checkAndSetJustEntered()) {
                 pContext->setDoorClosed();
-                this->log("CLOSED");
+                log("CLOSED");
             }
 
-            if (pContext->openDoorReq())
-            {
-                this->setState(OPENING);
+            if (pContext->openDoorReq()) {
+                setState(OPENING);
             }
             break;
-        case OPENING:
-            if (checkAndSetJustEntered())
-            {
-                this->log("OPENING");
+        }
+
+        case OPENING: {
+            if (checkAndSetJustEntered()) {
+                log("OPENING");
             }
 
-            this->openDoorStep();
+            long dt = elapsedTimeInState();
+            if (dt > MOVING_TIME) dt = MOVING_TIME;
 
-            if (pContext->closeDoorReq())
-            {
-                this->setState(CLOSING);
+            currentPos = ((float)dt / MOVING_TIME) * DOOR_OPEN_ANGLE;
+            pDoorMotor->setPosition(currentPos);
+
+            if (pContext->closeDoorReq()) {
+                setState(CLOSING);
             }
-            else if (isDoorOpened())
-            {
-                this->setState(OPEN);
+            else if (isDoorOpened()) {
+                setState(OPEN);
             }
             break;
-        case OPEN:
-            if (checkAndSetJustEntered())
-            {
-                this->log("OPEN");
+        }
+
+        case OPEN: {
+            if (checkAndSetJustEntered()) {
                 pContext->setDoorOpened();
+                log("OPEN");
             }
 
-            if (pContext->closeDoorReq())
-            {
-                this->setState(CLOSING);
+            if (pContext->closeDoorReq()) {
+                setState(CLOSING);
             }
             break;
-        case CLOSING:
-            if (checkAndSetJustEntered())
-            {
-                this->log("CLOSING");
+        }
+
+        case CLOSING: {
+            if (checkAndSetJustEntered()) {
+                log("CLOSING");
             }
 
-            this->closeDoorStep();
+            long dt = elapsedTimeInState();
+            if (dt > MOVING_TIME) dt = MOVING_TIME;
 
-            if (isDoorClosed())
-            {
-                this->setState(CLOSED);
+            currentPos = DOOR_OPEN_ANGLE -
+                         ((float)dt / MOVING_TIME) * DOOR_OPEN_ANGLE;
+            pDoorMotor->setPosition(currentPos);
+
+            if (isDoorClosed()) {
+                setState(CLOSED);
             }
             break;
+        }
     }
 }
 
+
 bool DoorControlTask::isDoorOpened()
 {
-    return elapsedTimeInState() > MOVING_TIME;
+    return currentPos==DOOR_OPEN_ANGLE;
 }
 
 bool DoorControlTask::isDoorClosed()
 {
-    return elapsedTimeInState() > MOVING_TIME;
+    return currentPos==0;
 }
 
-void DoorControlTask::openDoorStep()
-{
-    this->pDoorMotor->setPosition(DOOR_OPEN_ANGLE);
-}
-
-void DoorControlTask::closeDoorStep()
-{
-    this->pDoorMotor->setPosition(DOOR_CLOSED_ANGLE);
-}
 
 void DoorControlTask::setState(State state)
 {

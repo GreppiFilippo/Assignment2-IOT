@@ -22,36 +22,32 @@
  */
 class DoorControlTask : public Task
 {
-   private:
-    Context* pContext;
-    ServoMotor* pDoorMotor;
+    private:
+        Context* pContext;
+        ServoMotor* pDoorMotor;
 
-    enum State
-    {
-        CLOSED,
-        OPENING,
-        OPEN,
-        CLOSING
-    } state;
+        enum State
+        {
+            CLOSED,
+            OPENING,
+            OPEN,
+            CLOSING
+        } state;
 
-    long stateTimestamp;
-    bool justEntered;
-    int currentAngle;
+        long stateTimestamp;
+        bool justEntered;
+        int currentPos;
 
-    void setState(State state);
-    long elapsedTimeInState();
-    void log(const String& msg);
-    bool checkAndSetJustEntered();
+        void setState(State state);
+        long elapsedTimeInState();
+        void log(const String& msg);
+        bool checkAndSetJustEntered();
 
-    bool isDoorOpened();
-    bool isDoorClosed();
-
-    void openDoorStep();
-    void closeDoorStep();
-
-   public:
-    DoorControlTask(Context* ctx, ServoMotor* motor);
-    void tick();
+        bool isDoorOpened();
+        bool isDoorClosed();
+    public:
+        DoorControlTask(Context* ctx, ServoMotor* motor);
+        void tick();
 };
 
 #endif
