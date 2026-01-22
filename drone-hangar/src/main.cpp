@@ -57,8 +57,6 @@ void setup()
     Task* pMSGTask = new MsgTask(pContext, &MsgService);
     pMSGTask->init(MSG_TASK_PERIOD);
 
-#ifdef PROVA
-
     Task* pHangarTask =
         new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(), pContext);
     pHangarTask->init(HANGAR_TASK_PERIOD);
@@ -76,8 +74,6 @@ void setup()
     sched.addTask(pBlinkingTask);
     sched.addTask(pDoorControlTask);
     sched.addTask(pDistanceTask);
-#endif
-
     sched.addTask(pDroneTask);
     sched.addTask(pLcdTask);
     sched.addTask(pMSGTask);
