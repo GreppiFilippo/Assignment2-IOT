@@ -1,18 +1,16 @@
 #include "LCD.hpp"
-#include "kernel/Logger.hpp"
+
 #include "config.hpp"
+#include "kernel/Logger.hpp"
 
 #define MAX_WORDS 4
 #define MAX_WORD_LEN 10
 
-LiquidCrystal_I2C lcd(LCD_ADR, LCD_COL, LCD_ROW);
-
 LCD::LCD(uint8_t addr, uint8_t cols, uint8_t rows)
 {
-    Logger.log("1");
-    lcd.init();
-    Logger.log("2");
-    lcd.backlight();
+    _lcd = new LiquidCrystal_I2C(addr, cols, rows);
+    _lcd->init();
+    _lcd->backlight();
     _cols = cols;
     _rows = rows;
 }
@@ -23,11 +21,10 @@ void LCD::print(const char* message)
     if (message == nullptr || message[0] == '\0')
         return;
 
-    int len = strlen(message);
     int maxChars = this->_cols * this->_rows;
     (void)maxChars;  // keep if you want to add truncation logic later
 
-    lcd.setCursor(0, 0);
+    _lcd->setCursor(0, 0);
 
     // Split into words safely (bounded buffers)
     char words[MAX_WORDS][MAX_WORD_LEN];
@@ -81,7 +78,7 @@ void LCD::print(const char* message)
         {
             if ((int)wlen <= this->_cols)
             {
-                lcd.print(words[idx]);
+                _lcd->print(words[idx]);
                 current_line_chars = (int)wlen;
                 idx++;
             }
@@ -93,11 +90,11 @@ void LCD::print(const char* message)
                     this->_cols < (int)sizeof(buf) - 1 ? this->_cols : (int)sizeof(buf) - 1;
                 strncpy(buf, words[idx], tocopy);
                 buf[tocopy] = '\0';
-                lcd.print(buf);
+                _lcd->print(buf);
                 idx++;  // drop the rest of the long word
                 current_line++;
                 if (current_line < this->_rows)
-                    lcd.setCursor(0, current_line);
+                    _lcd->setCursor(0, current_line);
                 current_line_chars = 0;
             }
         }
@@ -106,8 +103,8 @@ void LCD::print(const char* message)
             // Need a space before the next word
             if (current_line_chars + 1 + (int)wlen <= this->_cols)
             {
-                lcd.print(" ");
-                lcd.print(words[idx]);
+                _lcd->print(" ");
+                _lcd->print(words[idx]);
                 current_line_chars += 1 + (int)wlen;
                 idx++;
             }
@@ -117,11 +114,11 @@ void LCD::print(const char* message)
                 current_line++;
                 if (current_line >= this->_rows)
                     break;
-                lcd.setCursor(0, current_line);
+                _lcd->setCursor(0, current_line);
                 current_line_chars = 0;
             }
         }
     }
 }
 
-void LCD::clear() { lcd.clear(); }
+void LCD::clear() { _lcd->clear(); }

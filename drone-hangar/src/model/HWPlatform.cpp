@@ -6,14 +6,12 @@
 #include "devices/ButtonImpl.hpp"
 #include "devices/LCD.hpp"
 #include "devices/Led.hpp"
-#include "devices/LightSensorImpl.hpp"
 #include "devices/Pir.hpp"
 #include "devices/ServoMotorImpl.hpp"
 #include "devices/Sonar.hpp"
 #include "devices/TempSensorTMP36.hpp"
 #include "kernel/Logger.hpp"
 #include "kernel/MsgService.hpp"
-
 
 void wakeUp() {}
 
@@ -53,93 +51,98 @@ ProximitySensor* HWPlatform::getProximitySensor() { return this->proximitySensor
 void HWPlatform::test()
 {
     static int testStep = 0;
-    
+
     Logger.log("=== HW TEST STEP " + String(testStep) + " ===");
-    
-    switch(testStep) {
+
+    switch (testStep)
+    {
         case 0:
             Logger.log("Testing LEDs...");
             l1->switchOn();
             l2->switchOn();
             l3->switchOn();
             break;
-            
+
         case 1:
             Logger.log("Testing L1 OFF");
             l1->switchOff();
             break;
-            
+
         case 2:
             Logger.log("Testing L2 OFF");
             l2->switchOff();
             break;
-            
+
         case 3:
             Logger.log("Testing L3 OFF");
             l3->switchOff();
             break;
-            
+
         case 4:
             Logger.log("Testing LCD...");
             lcd->clear();
             lcd->print("HW TEST OK");
             break;
-            
+
         case 5:
             Logger.log("Testing LCD line 2");
             lcd->clear();
             lcd->print("Line 1 Line 2 Line 3 Line 4");
             break;
-            
+
         case 6:
             Logger.log("Testing Servo - Position 0");
             motor->on();
             motor->setPosition(0);
             break;
-            
+
         case 7:
             Logger.log("Testing Servo - Position 90");
             motor->setPosition(90);
             break;
-            
+
         case 8:
             Logger.log("Testing Servo - Position 180");
             motor->setPosition(180);
             break;
-            
+
         case 9:
             Logger.log("Testing Servo OFF");
             motor->off();
             break;
-            
-        case 10: {
+
+        case 10:
+        {
             Logger.log("Testing Temp Sensor...");
             int temp = tempSensor->getTemperature();
             Logger.log("Temperature: " + String(temp) + " C");
             break;
         }
-            
-        case 11: {
+
+        case 11:
+        {
             Logger.log("Testing Sonar...");
             float distance = proximitySensor->getDistance();
             Logger.log("Distance: " + String(distance) + " cm");
             break;
         }
-            
-        case 12: {
+
+        case 12:
+        {
             Logger.log("Testing PIR...");
             bool presence = presenceSensor->isDetected();
             Logger.log("Presence detected: " + String(presence ? "YES" : "NO"));
             break;
         }
-            
-        case 13: {
+
+        case 13:
+        {
             Logger.log("Testing Button...");
             bool pressed = button->isPressed();
             Logger.log("Button pressed: " + String(pressed ? "YES" : "NO"));
             break;
         }
-            
+
         case 14:
             Logger.log("=== TEST COMPLETE - RESTARTING ===");
             lcd->clear();
@@ -148,7 +151,7 @@ void HWPlatform::test()
             l2->switchOn();
             l3->switchOn();
             break;
-            
+
         case 15:
             l1->switchOff();
             l2->switchOff();
@@ -156,6 +159,6 @@ void HWPlatform::test()
             testStep = -1;  // Will become 0 after increment
             break;
     }
-    
+
     testStep++;
 }

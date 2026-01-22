@@ -31,7 +31,6 @@ void DroneTask::sendState(const String& state)
 
 void DroneTask::tick()
 {
-    Logger.log("culo");
     switch (this->state)
     {
         case REST:
@@ -115,7 +114,6 @@ void DroneTask::tick()
             break;
     }
 }
-
 
 void DroneTask::setState(State state)
 {

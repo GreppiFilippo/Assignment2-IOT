@@ -6,6 +6,7 @@ LCDTask::LCDTask(LCD* lcd, Context* pContext)
 {
     this->lcd = lcd;
     this->pContext = pContext;
+    this->lastMsg = nullptr;
 }
 
 void LCDTask::tick()

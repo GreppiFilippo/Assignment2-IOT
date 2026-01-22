@@ -211,4 +211,4 @@ void Context::requestTakeoffCheck() { takeoffCheck = true; }
 void Context::closeTakeoffCheck() { takeoffCheck = false; }
 bool Context::takeoffCheckRequested() { return takeoffCheck; }
 void Context::setDroneIn(bool state) { droneIn = state; }
-bool Context::isDroneIn() { return droneIn; } 
+bool Context::isDroneIn() { return droneIn; }
