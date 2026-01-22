@@ -40,6 +40,9 @@
 /* ===== Message update period ===== */
 #define JSON_UPDATE_PERIOD_MS 500  // Send JSON state update every 500ms
 
+/* ===== Command TTL (milliseconds) ===== */
+#define CONFIG_CMD_TTL_MS 5000  // Commands older than this are dropped from queue
+
 /* ===== LCD message definitions ===== */
 #define LCD_REST_STATE "DRONE INSIDE"    // Drone is inside hangar and at rest
 #define LCD_TAKING_OFF_STATE "TAKE OFF"  // Drone is taking off

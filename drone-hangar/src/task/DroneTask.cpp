@@ -1,19 +1,8 @@
 #include "task/DroneTask.hpp"
 
-#include "DroneTask.hpp"
 #include "config.hpp"
 #include "devices/Led.hpp"
 #include "kernel/Logger.hpp"
-
-/**
- * @brief Pattern to match OPEN_CMD messages.
- *
- */
-class OpenPattern : public Pattern
-{
-   public:
-    bool match(const Msg& m) override { return m.getContent().equals(OPEN_CMD); }
-};
 
 DroneTask::DroneTask(Context* pContext, Light* L1, Light* L3, PresenceSensor* presenceSensor)
 {
@@ -35,25 +24,29 @@ void DroneTask::tick()
     {
         case REST:
             Logger.log(F(DRONE_REST_STATE));
-            this->sendState(DRONE_REST_STATE);
+            sendState(DRONE_REST_STATE);
+
             if (checkAndSetJustEntered())
             {
-                this->pContext->closeDoor();
-                this->L1->switchOn();
-                this->pContext->stopBlink();
-                this->L3->switchOff();
+                pContext->closeDoor();
+                L1->switchOn();
+                pContext->stopBlink();
+                L3->switchOff();
             }
-            this->pContext->setLCDMessage(this->pContext->isAlarmActive() ? LCD_ALARM_STATE
-                                                                          : LCD_REST_STATE);
 
-            if (receiveOpenCMD() && !(pContext->isPreAlarmActive() || pContext->isAlarmActive()))
+            pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE : LCD_REST_STATE);
+
+            if (pContext->consumeCommand(CommandType::OPEN) &&
+                !(pContext->isPreAlarmActive() || pContext->isAlarmActive()))
             {
                 setState(TAKING_OFF);
             }
             break;
+
         case TAKING_OFF:
             Logger.log(F(DRONE_TAKING_OFF_STATE));
-            this->sendState(DRONE_TAKING_OFF_STATE);
+            sendState(DRONE_TAKING_OFF_STATE);
+
             if (checkAndSetJustEntered())
             {
                 pContext->openDoor();
@@ -61,53 +54,55 @@ void DroneTask::tick()
                 pContext->blink();
             }
 
-            if (pContext->isAlarmActive() && this->pContext->isDroneIn())
+            if (pContext->isAlarmActive() && pContext->isDroneIn())
             {
                 setState(REST);
             }
-
-            if (!this->pContext->isDroneIn())
+            else if (!pContext->isDroneIn())
             {
                 setState(OPERATING);
             }
             break;
+
         case OPERATING:
             Logger.log(F(DRONE_OPERATING_STATE));
-            this->sendState(DRONE_OPERATING_STATE);
-            if (this->checkAndSetJustEntered())
+            sendState(DRONE_OPERATING_STATE);
+
+            if (checkAndSetJustEntered())
             {
-                this->pContext->closeDoor();
-                this->L1->switchOff();
-                this->pContext->stopBlink();
-                this->L3->switchOff();
+                pContext->closeDoor();
+                L1->switchOff();
+                pContext->stopBlink();
+                L3->switchOff();
             }
 
-            this->pContext->setLCDMessage(this->pContext->isAlarmActive() ? LCD_ALARM_STATE
-                                                                          : LCD_OPERATING_STATE);
+            pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE
+                                                              : LCD_OPERATING_STATE);
 
-            if (receiveOpenCMD() && !(pContext->isPreAlarmActive() || pContext->isAlarmActive()) &&
-                this->presenceSensor->isDetected())
+            if (pContext->consumeCommand(CommandType::OPEN) &&
+                !(pContext->isPreAlarmActive() || pContext->isAlarmActive()) &&
+                presenceSensor->isDetected())
             {
                 setState(LANDING);
             }
             break;
+
         case LANDING:
             Logger.log(F(DRONE_LANDING_STATE));
-            this->sendState(DRONE_LANDING_STATE);
+            sendState(DRONE_LANDING_STATE);
 
-            if (this->checkAndSetJustEntered())
+            if (checkAndSetJustEntered())
             {
-                this->pContext->openDoor();
-                this->pContext->setLCDMessage(LCD_LANDING_STATE);
-                this->pContext->blink();
+                pContext->openDoor();
+                pContext->setLCDMessage(LCD_LANDING_STATE);
+                pContext->blink();
             }
 
-            if (pContext->isAlarmActive() && !this->pContext->isDroneIn())
+            if (pContext->isAlarmActive() && !pContext->isDroneIn())
             {
                 setState(OPERATING);
             }
-
-            if (this->pContext->isDroneIn())
+            else if (pContext->isDroneIn())
             {
                 setState(REST);
             }
@@ -128,15 +123,6 @@ bool DroneTask::checkAndSetJustEntered()
 {
     bool bak = justEntered;
     if (justEntered)
-    {
         justEntered = false;
-    }
     return bak;
-}
-
-bool DroneTask::receiveOpenCMD()
-{
-    OpenPattern pattern;
-    // Returns true if message consumed, false otherwise
-    return this->pContext->consumeMessage(pattern);
 }

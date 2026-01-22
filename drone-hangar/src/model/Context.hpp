@@ -4,66 +4,71 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
+#include "kernel/CommandType.hpp"
 #include "kernel/MsgService.hpp"
 
 #define MSG_QUEUE_SIZE 10
-#define MSG_TIMEOUT_MS 5000  // Messages older than 5 seconds are discarded
 
-/**
- * @brief Structure for timestamped messages in the queue.
- */
-struct TimestampedMsg
+struct CommandEntry
 {
-    String content;
-    unsigned long timestamp;
-    bool valid;  // false if slot is empty
+    const char* name;
+    CommandType type;
 };
 
 /**
  * @brief Class representing the shared context of the system.
- *
  */
 class Context
 {
    private:
-    // Door control requests (auto-clear)
+    // ===== DOOR CONTROL =====
     bool openDoorRequested;
     bool closeDoorRequested;
     bool doorOpen;
 
-    // System flags
+    // ===== SYSTEM FLAGS =====
     bool alarmActive;
     bool preAlarmActive;
 
-    // Sensor data
+    // ===== SENSOR DATA =====
     float currentDistance;
     float currentTemperature;
     bool pirActive;
 
-    // LCD message to display
+    // ===== LCD =====
     const char* lcdMessage;
 
-    // blinking led
+    // ===== LED =====
     bool ledBlinking;
 
-    //
+    // ===== DRONE =====
     bool landingCheck;
     bool takeoffCheck;
     bool droneIn;
 
-    // Message queue (FIFO with timestamp)
-    TimestampedMsg messageQueue[MSG_QUEUE_SIZE];
-    int queueHead;
-    int queueTail;
-    int queueCount;
+    // ===== COMMAND QUEUE =====
+    struct QueuedCommand
+    {
+        CommandType cmd;
+        uint32_t timestamp;
+    };
+    QueuedCommand commandQueue[MSG_QUEUE_SIZE];
+    int commandHead;
+    int commandTail;
+    int commandCount;
 
-    // JSON document for outgoing messages
+    // ===== JSON OUTPUT FIELDS =====
     JsonDocument jsonDoc;
+    bool enqueueCommand(CommandType cmd, uint32_t now);
+
+    // ===== COMMAND TABLE =====
+    static const CommandEntry commandTable[];
+    static const int COMMAND_TABLE_SIZE;
 
    public:
     Context();
 
-    // === DOOR CONTROL ===
+    // ===== DOOR CONTROL =====
     void closeDoor();
     void openDoor();
     bool openDoorReq();
@@ -72,48 +77,22 @@ class Context
     void setDoorClosed();
     void setDoorOpened();
 
-    // ======== TEMP ALARM TASK ========
-    /**
-     * @brief Set the Alarm state
-     *
-     * @param active true to activate the alarm, false to deactivate
-     */
+    // ===== ALARM =====
     void setAlarm(bool active);
-
-    /**
-     * @brief Check if the alarm is active.
-     *
-     * @return true if the alarm is active
-     * @return false if the alarm is not active
-     */
     bool isAlarmActive();
-
-    /**
-     * @brief Set the Pre Alarm state
-     *
-     * @param active true to activate the pre-alarm, false to deactivate
-     */
     void setPreAlarm(bool active);
-
-    /**
-     * @brief Check if the pre-alarm is active.
-     *
-     * @return true if the pre-alarm is active
-     * @return false if the pre-alarm is not active
-     */
     bool isPreAlarmActive();
 
-    // ======== BLINKING TASK ========
-
+    // ===== BLINKING =====
     void blink();
     void stopBlink();
     bool isBlinking();
 
-    // ======== LCD data ========
+    // ===== LCD =====
     const char* getLCDMessage();
     void setLCDMessage(const char* msg);
 
-    // ======== DISTANCE TASK =========
+    // ===== DRONE STATE =====
     void requestLandingCheck();
     void closeLandingCheck();
     bool landingCheckRequested();
@@ -123,103 +102,28 @@ class Context
     void setDroneIn(bool state);
     bool isDroneIn();
 
-    // ======== MESSAGE QUEUE ========
-
+    // ===== COMMAND INTERFACE =====
     /**
-     * @brief Add a message to the queue with current timestamp.
+     * @brief Try to enqueue a command based on message content.
+     * Messages not in the table are ignored automatically.
      *
-     * @param msg Message to add
-     * @return true if added successfully, false if queue full
+     * @param msg Message to process
+     * @return true if command recognized and enqueued
      */
-    bool addMessage(const String& msg);
+    bool tryEnqueueMsg(const String& msg);
 
-    /**
-     * @brief Check if a message matching the pattern exists in the queue.
-     * Only considers messages within MSG_TIMEOUT_MS age.
-     *
-     * @param pattern Pattern to match
-     * @return true if matching message found
-     */
-    bool hasMessage(Pattern& pattern);
+    bool consumeCommand(CommandType cmd);
 
-    /**
-     * @brief Consume (remove) the FIRST (oldest) message in queue if it matches pattern.
-     * FIFO behavior: only checks head of queue.
-     *
-     * @param pattern Pattern to match
-     * @return true if message was consumed, false if no match
-     */
-    bool consumeMessage(Pattern& pattern);
+    // Remove expired commands based on timestamp
+    void cleanupExpired(uint32_t now);
 
-    /**
-     * @brief Remove expired messages from the queue (older than MSG_TIMEOUT_MS).
-     * Should be called periodically by MsgTask.
-     *
-     * @return Number of messages removed
-     */
-    int cleanExpiredMessages();
-
-    /**
-     * @brief Check if message queue is full.
-     */
-    bool isMessageQueueFull();
-
-    /**
-     * @brief Get number of messages in queue.
-     */
-    int getMessageQueueSize();
-
-    // ======== JSON OUTPUT INTERFACE ========
-
-    /**
-     * @brief Set a JSON field with string value.
-     *
-     * @param key Field name
-     * @param value Field value
-     */
+    // ===== JSON OUTPUT INTERFACE =====
     void setJsonField(const String& key, const String& value);
-
-    /**
-     * @brief Set a JSON field with float value.
-     *
-     * @param key Field name
-     * @param value Field value
-     */
     void setJsonField(const String& key, float value);
-
-    /**
-     * @brief Set a JSON field with int value.
-     *
-     * @param key Field name
-     * @param value Field value
-     */
     void setJsonField(const String& key, int value);
-
-    /**
-     * @brief Set a JSON field with boolean value.
-     *
-     * @param key Field name
-     * @param value Field value
-     */
     void setJsonField(const String& key, bool value);
-
-    /**
-     * @brief Remove a JSON field from output.
-     *
-     * @param key Field name to remove
-     */
     void removeJsonField(const String& key);
-
-    /**
-     * @brief Build JSON string from all active fields.
-     *
-     * @return String containing JSON object
-     */
     String buildJSON();
-
-    /**
-     * @brief Clear all JSON fields.
-     */
     void clearJsonFields();
 };
 

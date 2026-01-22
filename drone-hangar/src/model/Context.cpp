@@ -1,214 +1,180 @@
 #include "model/Context.hpp"
 
+#include "config.hpp"
+
+// ===== COMMAND TABLE =====
+const CommandEntry Context::commandTable[] = {{"OPEN", CommandType::OPEN}};
+const int Context::COMMAND_TABLE_SIZE =
+    sizeof(Context::commandTable) / sizeof(Context::commandTable[0]);
+
+// ===== CONSTRUCTOR =====
 Context::Context()
 {
-    this->openDoorRequested = false;
-    this->closeDoorRequested = false;
-    this->doorOpen = false;
-    this->alarmActive = false;
-    this->preAlarmActive = false;
-    this->currentDistance = 0;
-    this->currentTemperature = 0;
-    this->pirActive = false;
-    this->lcdMessage = "";
-    this->ledBlinking = false;
-    this->droneIn = true;
-    this->landingCheck = false;
-    this->takeoffCheck = false;
+    openDoorRequested = false;
+    closeDoorRequested = false;
+    doorOpen = false;
+    alarmActive = false;
+    preAlarmActive = false;
 
-    // Initialize message queue
-    this->queueHead = 0;
-    this->queueTail = 0;
-    this->queueCount = 0;
-    for (int i = 0; i < MSG_QUEUE_SIZE; i++)
-    {
-        messageQueue[i].valid = false;
-    }
+    currentDistance = 0;
+    currentTemperature = 0;
+    pirActive = false;
+
+    lcdMessage = "";
+    ledBlinking = false;
+    droneIn = true;
+
+    landingCheck = false;
+    takeoffCheck = false;
+
+    // Command queue init
+    commandHead = 0;
+    commandTail = 0;
+    commandCount = 0;
 }
 
-void Context::closeDoor() { this->closeDoorRequested = true; }
+// ===== DOOR CONTROL =====
+void Context::closeDoor() { closeDoorRequested = true; }
+void Context::openDoor() { openDoorRequested = true; }
 
-bool Context::closeDoorReq() { return this->closeDoorRequested; }
+bool Context::closeDoorReq() { return closeDoorRequested; }
+bool Context::openDoorReq() { return openDoorRequested; }
 
-void Context::openDoor() { this->openDoorRequested = true; }
+bool Context::isDoorOpen() { return doorOpen; }
 
-bool Context::openDoorReq() { return this->openDoorRequested; }
-
-bool Context::isDoorOpen() { return this->doorOpen; }
-
-void Context::setDoorOpened() { this->doorOpen = true; }
+void Context::setDoorOpened() { doorOpen = true; }
 
 void Context::setDoorClosed()
 {
-    this->closeDoorRequested = false;
-    this->openDoorRequested = false;
-    this->doorOpen = false;
+    closeDoorRequested = false;
+    openDoorRequested = false;
+    doorOpen = false;
 }
 
-void Context::setAlarm(bool active) { this->alarmActive = active; }
+// ===== ALARM =====
+void Context::setAlarm(bool active) { alarmActive = active; }
+bool Context::isAlarmActive() { return alarmActive; }
+void Context::setPreAlarm(bool active) { preAlarmActive = active; }
+bool Context::isPreAlarmActive() { return preAlarmActive; }
 
-bool Context::isAlarmActive() { return this->alarmActive; }
+// ===== BLINKING =====
+void Context::blink() { ledBlinking = true; }
+void Context::stopBlink() { ledBlinking = false; }
+bool Context::isBlinking() { return ledBlinking; }
 
-void Context::setPreAlarm(bool active) { this->preAlarmActive = active; }
+// ===== LCD =====
+void Context::setLCDMessage(const char* msg) { lcdMessage = msg; }
+const char* Context::getLCDMessage() { return lcdMessage; }
 
-bool Context::isPreAlarmActive() { return this->preAlarmActive; }
+// ===== DRONE =====
+void Context::setDroneIn(bool state) { droneIn = state; }
+bool Context::isDroneIn() { return droneIn; }
 
-void Context::blink() { this->ledBlinking = true; }
+void Context::requestLandingCheck() { landingCheck = true; }
+void Context::closeLandingCheck() { landingCheck = false; }
+bool Context::landingCheckRequested() { return landingCheck; }
 
-void Context::stopBlink() { this->ledBlinking = false; }
+void Context::requestTakeoffCheck() { takeoffCheck = true; }
+void Context::closeTakeoffCheck() { takeoffCheck = false; }
+bool Context::takeoffCheckRequested() { return takeoffCheck; }
 
-bool Context::isBlinking() { return this->ledBlinking; }
-
-void Context::setLCDMessage(const char* msg) { this->lcdMessage = msg; }
-
-const char* Context::getLCDMessage() { return this->lcdMessage; }
-
-// ======== MESSAGE QUEUE IMPLEMENTATION ========
-
-bool Context::addMessage(const String& msg)
+// ===== COMMAND QUEUE =====
+bool Context::enqueueCommand(CommandType cmd, uint32_t now)
 {
-    if (queueCount >= MSG_QUEUE_SIZE)
-    {
-        return false;  // Queue full
-    }
+    if (commandCount >= MSG_QUEUE_SIZE)
+        return false;
 
-    messageQueue[queueTail].content = msg;
-    messageQueue[queueTail].timestamp = millis();
-    messageQueue[queueTail].valid = true;
+    commandQueue[commandTail].cmd = cmd;
+    commandQueue[commandTail].timestamp = now;
+    commandTail = (commandTail + 1) % MSG_QUEUE_SIZE;
+    commandCount++;
 
-    queueTail = (queueTail + 1) % MSG_QUEUE_SIZE;
-    queueCount++;
     return true;
 }
 
-bool Context::hasMessage(Pattern& pattern)
+bool Context::consumeCommand(CommandType cmd)
 {
-    unsigned long now = millis();
-
-    // Search through entire queue, not just head
-    for (int i = 0; i < queueCount; i++)
+    for (int i = 0; i < commandCount; i++)
     {
-        int index = (queueHead + i) % MSG_QUEUE_SIZE;
-
-        if (messageQueue[index].valid)
+        int index = (commandHead + i) % MSG_QUEUE_SIZE;
+        if (commandQueue[index].cmd == cmd)
         {
-            // Check if message is not expired
-            if ((now - messageQueue[index].timestamp) <= MSG_TIMEOUT_MS)
+            // shift left
+            for (int j = i; j < commandCount - 1; j++)
             {
-                Msg tempMsg(messageQueue[index].content);
-                if (pattern.match(tempMsg))
-                {
-                    return true;
-                }
+                int from = (commandHead + j + 1) % MSG_QUEUE_SIZE;
+                int to = (commandHead + j) % MSG_QUEUE_SIZE;
+                commandQueue[to] = commandQueue[from];
             }
+            commandTail = (commandTail - 1 + MSG_QUEUE_SIZE) % MSG_QUEUE_SIZE;
+            commandCount--;
+            return true;
         }
     }
     return false;
 }
 
-bool Context::consumeMessage(Pattern& pattern)
+// ===== TRY ENQUEUE MESSAGE =====
+
+bool Context::tryEnqueueMsg(const String& msg)
 {
-    unsigned long now = millis();
+    // Normalize incoming message: trim whitespace and compare case-insensitively
+    String s = msg;
+    s.trim();
+    s.toUpperCase();
 
-    // Search through entire queue for matching message
-    for (int i = 0; i < queueCount; i++)
+    for (int i = 0; i < COMMAND_TABLE_SIZE; i++)
     {
-        int index = (queueHead + i) % MSG_QUEUE_SIZE;
+        String name = String(commandTable[i].name);
 
-        if (messageQueue[index].valid)
+        if (s.equals(name))
         {
-            // Check if message is not expired
-            if ((now - messageQueue[index].timestamp) <= MSG_TIMEOUT_MS)
-            {
-                Msg tempMsg(messageQueue[index].content);
-                if (pattern.match(tempMsg))
-                {
-                    // Mark as consumed
-                    messageQueue[index].valid = false;
-
-                    // If it was the head, advance head pointer
-                    if (i == 0)
-                    {
-                        // Skip all invalid messages at head
-                        while (queueCount > 0 && !messageQueue[queueHead].valid)
-                        {
-                            queueHead = (queueHead + 1) % MSG_QUEUE_SIZE;
-                            queueCount--;
-                        }
-                    }
-                    else
-                    {
-                        // Just decrement count, will be cleaned up later
-                        queueCount--;
-                    }
-
-                    return true;
-                }
-            }
-            else
-            {
-                // Message expired, mark invalid
-                messageQueue[index].valid = false;
-            }
+            enqueueCommand(commandTable[i].type, millis());
+            return true;  // command recognized and enqueued
         }
     }
 
-    return false;
+    return false;  // unknown command ignored
 }
 
-int Context::cleanExpiredMessages()
+void Context::cleanupExpired(uint32_t now)
 {
-    unsigned long now = millis();
-    int removedCount = 0;
-
-    // Remove expired messages from head
-    while (queueCount > 0 && messageQueue[queueHead].valid)
+    for (int i = 0; i < commandCount;)
     {
-        if ((now - messageQueue[queueHead].timestamp) > MSG_TIMEOUT_MS)
+        int index = (commandHead + i) % MSG_QUEUE_SIZE;
+        uint32_t ts = commandQueue[index].timestamp;
+        if ((now - ts) >= CONFIG_CMD_TTL_MS)
         {
-            messageQueue[queueHead].valid = false;
-            queueHead = (queueHead + 1) % MSG_QUEUE_SIZE;
-            queueCount--;
-            removedCount++;
+            // remove this element by shifting left
+            for (int j = i; j < commandCount - 1; j++)
+            {
+                int from = (commandHead + j + 1) % MSG_QUEUE_SIZE;
+                int to = (commandHead + j) % MSG_QUEUE_SIZE;
+                commandQueue[to] = commandQueue[from];
+            }
+            commandTail = (commandTail - 1 + MSG_QUEUE_SIZE) % MSG_QUEUE_SIZE;
+            commandCount--;
+            // do not increment i, check the new element at this position
         }
         else
         {
-            break;  // Head is still valid, stop cleaning
+            i++;
         }
     }
-
-    return removedCount;
 }
 
-bool Context::isMessageQueueFull() { return queueCount >= MSG_QUEUE_SIZE; }
-
-int Context::getMessageQueueSize() { return queueCount; }
-
-// ======== JSON OUTPUT INTERFACE ========
-
+// ===== JSON OUTPUT =====
 void Context::setJsonField(const String& key, const String& value) { jsonDoc[key] = value; }
-
 void Context::setJsonField(const String& key, float value) { jsonDoc[key] = value; }
-
 void Context::setJsonField(const String& key, int value) { jsonDoc[key] = value; }
-
 void Context::setJsonField(const String& key, bool value) { jsonDoc[key] = value; }
-
 void Context::removeJsonField(const String& key) { jsonDoc.remove(key); }
 
 String Context::buildJSON()
 {
-    String output;
-    serializeJson(jsonDoc, output);
-    return output;
+    String out;
+    serializeJson(jsonDoc, out);
+    return out;
 }
 
 void Context::clearJsonFields() { jsonDoc.clear(); }
-void Context::requestLandingCheck() { landingCheck = true; }
-void Context::closeLandingCheck() { landingCheck = false; }
-bool Context::landingCheckRequested() { return landingCheck; }
-void Context::requestTakeoffCheck() { takeoffCheck = true; }
-void Context::closeTakeoffCheck() { takeoffCheck = false; }
-bool Context::takeoffCheckRequested() { return takeoffCheck; }
-void Context::setDroneIn(bool state) { droneIn = state; }
-bool Context::isDroneIn() { return droneIn; }
