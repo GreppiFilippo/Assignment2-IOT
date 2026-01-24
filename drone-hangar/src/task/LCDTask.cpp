@@ -6,17 +6,16 @@ LCDTask::LCDTask(LCD* lcd, Context* pContext)
 {
     this->lcd = lcd;
     this->pContext = pContext;
-    this->lastMsg = nullptr;
+    this->lastMsg = nullptr;  // Initialize lastMsg to nullptr to ensure first update
 }
 
 void LCDTask::tick()
 {
-    const char* msg = pContext->getLCDMessage();
+    const char* msg = this->pContext->getLCDMessage();
 
-    if (msg != lastMsg)
+    if (msg != this->lastMsg)
     {
-        lcd->clear();
-        lcd->print(msg);
-        lastMsg = msg;
+        this->lcd->print(msg);
+        this->lastMsg = msg;
     }
 }

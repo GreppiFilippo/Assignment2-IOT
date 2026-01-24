@@ -18,8 +18,19 @@ class LCDTask : public Task
     const char* lastMsg;
 
    public:
+    /**
+     * @brief Construct a new LCDTask object
+     *
+     * @param lcd the LCD device to manage
+     * @param pContext the system context to read messages from
+     */
     LCDTask(LCD* lcd, Context* pContext);
-    void tick();
+
+    /**
+     * @brief Task execution method called by the scheduler when the task runs.
+     * Updates the LCD display if the message has changed.
+     */
+    void tick() override;
 };
 
 #endif  // __LCD_TASK__
