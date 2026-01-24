@@ -1,101 +1,101 @@
 #include "task/DoorControlTask.hpp"
 
 #include "config.hpp"
+#include "kernel/Logger.hpp"
 
 DoorControlTask::DoorControlTask(Context* ctx, ServoMotor* motor)
 {
-    pContext = ctx;
-    pDoorMotor = motor;
-    currentPos = 0;
-    pDoorMotor->setPosition(currentPos);
-    setState(CLOSED);
+    this->pContext = ctx;
+    this->pDoorMotor = motor;
+    this->currentPos = 0;
+    this->pDoorMotor->setPosition(this->currentPos);
+    this->setState(CLOSED);
 }
 
 void DoorControlTask::tick()
 {
-    switch (state)
+    switch (this->state)
     {
         case CLOSED:
         {
-            if (checkAndSetJustEntered())
+            if (this->checkAndSetJustEntered())
             {
-                pContext->setDoorClosed();
-                log("CLOSED");
+                this->pContext->setDoorClosed();
+                this->log("CLOSED");
             }
 
-            if (pContext->openDoorReq())
+            if (this->pContext->openDoorReq())
             {
-                setState(OPENING);
+                this->setState(OPENING);
             }
             break;
         }
 
         case OPENING:
         {
-            if (checkAndSetJustEntered())
+            if (this->checkAndSetJustEntered())
             {
-                log("OPENING");
+                this->log("OPENING");
             }
 
-            long dt = elapsedTimeInState();
+            long dt = this->elapsedTimeInState();
             if (dt > MOVING_TIME)
                 dt = MOVING_TIME;
 
-            currentPos = ((float)dt / MOVING_TIME) * DOOR_OPEN_ANGLE;
-            pDoorMotor->setPosition(currentPos);
+            this->currentPos = ((float)dt / MOVING_TIME) * DOOR_OPEN_ANGLE;
+            this->pDoorMotor->setPosition(this->currentPos);
 
-            if (pContext->closeDoorReq())
+            if (this->pContext->closeDoorReq())
             {
-                setState(CLOSING);
+                this->setState(CLOSING);
             }
-            else if (isDoorOpened())
+            else if (this->isDoorOpen())
             {
-                setState(OPEN);
+                this->setState(OPEN);
             }
             break;
         }
 
         case OPEN:
         {
-            if (checkAndSetJustEntered())
+            if (this->checkAndSetJustEntered())
             {
-                pContext->setDoorOpened();
-                log("OPEN");
+                this->pContext->setDoorOpened();
+                this->log("OPEN");
             }
 
-            if (pContext->closeDoorReq())
+            if (this->pContext->closeDoorReq())
             {
-                setState(CLOSING);
+                this->setState(CLOSING);
             }
             break;
         }
 
         case CLOSING:
         {
-            if (checkAndSetJustEntered())
+            if (this->checkAndSetJustEntered())
             {
-                log("CLOSING");
+                this->log("CLOSING");
             }
 
-            long dt = elapsedTimeInState();
+            long dt = this->elapsedTimeInState();
             if (dt > MOVING_TIME)
                 dt = MOVING_TIME;
 
-            currentPos = DOOR_OPEN_ANGLE - ((float)dt / MOVING_TIME) * DOOR_OPEN_ANGLE;
-            pDoorMotor->setPosition(currentPos);
+            this->currentPos = DOOR_OPEN_ANGLE - ((float)dt / MOVING_TIME) * DOOR_OPEN_ANGLE;
+            this->pDoorMotor->setPosition(this->currentPos);
 
-            if (isDoorClosed())
+            if (this->isDoorClosed())
             {
-                setState(CLOSED);
+                this->setState(CLOSED);
             }
             break;
         }
     }
 }
 
-bool DoorControlTask::isDoorOpened() { return currentPos == DOOR_OPEN_ANGLE; }
-
-bool DoorControlTask::isDoorClosed() { return currentPos == 0; }
+bool DoorControlTask::isDoorOpen() { return this->currentPos == DOOR_OPEN_ANGLE; }
+bool DoorControlTask::isDoorClosed() { return this->currentPos == 0; }
 
 void DoorControlTask::setState(State state)
 {
@@ -104,20 +104,16 @@ void DoorControlTask::setState(State state)
     this->justEntered = true;
 }
 
-long DoorControlTask::elapsedTimeInState() { return millis() - stateTimestamp; }
+long DoorControlTask::elapsedTimeInState() { return millis() - this->stateTimestamp; }
 
 bool DoorControlTask::checkAndSetJustEntered()
 {
-    bool bak = justEntered;
-    if (justEntered)
+    bool bak = this->justEntered;
+    if (this->justEntered)
     {
-        justEntered = false;
+        this->justEntered = false;
     }
     return bak;
 }
 
-void DoorControlTask::log(const String& msg)
-{
-    Serial.print("[DOOR] ");
-    Serial.println(msg);
-}
+void DoorControlTask::log(const String& msg) { Logger.log("[DOOR] " + msg); }

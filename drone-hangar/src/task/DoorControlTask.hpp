@@ -11,10 +11,10 @@
  * Task responsible for controlling the hangar door using a servo motor.
  *
  * State machine:
- * - DOOR_CLOSED: Door is fully closed, waiting for open request
- * - DOOR_OPENING: Door is gradually opening over DOOR_OPERATION_TIME ms
- * - DOOR_OPEN: Door is fully open, waiting for close request or alarm
- * - DOOR_CLOSING: Door is gradually closing over DOOR_OPERATION_TIME ms
+ * - CLOSED: Door is fully closed, waiting for open request
+ * - OPENING: Door is gradually opening over DOOR_OPERATION_TIME ms
+ * - OPEN: Door is fully open, waiting for close request or alarm
+ * - CLOSING: Door is gradually closing over DOOR_OPERATION_TIME ms
  *
  * The door opens when Context::isOpenDoorRequested() is true
  * The door closes when Context::isCloseDoorRequested() is true or on alarm
@@ -22,32 +22,48 @@
  */
 class DoorControlTask : public Task
 {
-    private:
-        Context* pContext;
-        ServoMotor* pDoorMotor;
+   private:
+    Context* pContext;
+    ServoMotor* pDoorMotor;
 
-        enum State
-        {
-            CLOSED,
-            OPENING,
-            OPEN,
-            CLOSING
-        } state;
+    /**
+     * @brief Door states for the FSM
+     *
+     */
+    enum State
+    {
+        CLOSED,
+        OPENING,
+        OPEN,
+        CLOSING
+    } state;
 
-        long stateTimestamp;
-        bool justEntered;
-        int currentPos;
+    long stateTimestamp;
+    bool justEntered;
+    int currentPos;
 
-        void setState(State state);
-        long elapsedTimeInState();
-        void log(const String& msg);
-        bool checkAndSetJustEntered();
+    void setState(State state);
+    long elapsedTimeInState();
+    void log(const String& msg);
+    bool checkAndSetJustEntered();
 
-        bool isDoorOpened();
-        bool isDoorClosed();
-    public:
-        DoorControlTask(Context* ctx, ServoMotor* motor);
-        void tick();
+    bool isDoorOpen();
+    bool isDoorClosed();
+
+   public:
+    /**
+     * @brief Construct a new Door Control Task object
+     *
+     * @param ctx the context shared across tasks
+     * @param motor the servo motor controlling the door
+     */
+    DoorControlTask(Context* ctx, ServoMotor* motor);
+
+    /**
+     * @brief Task execution method called by the scheduler when the task runs.
+     *
+     */
+    void tick() override;
 };
 
 #endif
