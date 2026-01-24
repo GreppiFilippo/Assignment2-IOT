@@ -35,20 +35,23 @@ Context* pContext;
 
 void setup()
 {
+    /* ======== Serial Initialization ======== */
     MsgService.init();
+
+    /* ======== Scheduler Initialization ======== */
     sched.init(BASE_PERIOD_MS);
 
-#ifndef __TESTING_HW__
     /* ======== Hardware Platform Initialization ======== */
     pHWPlatform = new HWPlatform();
     pHWPlatform->init();
 
+#ifndef __TESTING_HW__
     /* ======== Context Initialization ======== */
     pContext = new Context();
 
     /* ======== Tasks initialization ======== */
-    Task* pDroneTask = new DroneTask(pContext, pHWPlatform->getL1(), pHWPlatform->getL3(),
-                                     pHWPlatform->getPresenceSensor());
+    Task* pDroneTask =
+        new DroneTask(pContext, pHWPlatform->getL1(), pHWPlatform->getPresenceSensor());
     pDroneTask->init(DRONE_TASK_PERIOD);
 
     Task* pLcdTask = new LCDTask(pHWPlatform->getLCD(), pContext);
@@ -57,8 +60,8 @@ void setup()
     Task* pMSGTask = new MsgTask(pContext, &MsgService);
     pMSGTask->init(MSG_TASK_PERIOD);
 
-    Task* pHangarTask =
-        new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(), pContext);
+    Task* pHangarTask = new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(),
+                                       pHWPlatform->getL3(), pContext);
     pHangarTask->init(HANGAR_TASK_PERIOD);
 
     Task* pBlinkingTask = new BlinkingTask(pHWPlatform->getL2(), pContext);
@@ -70,6 +73,7 @@ void setup()
     Task* pDistanceTask = new DistanceTask(pHWPlatform->getProximitySensor(), pContext);
     pDistanceTask->init(DISTANCE_TASK_PERIOD);
 
+    /* ======== Adding Tasks to Scheduler ======== */
     sched.addTask(pHangarTask);
     sched.addTask(pBlinkingTask);
     sched.addTask(pDoorControlTask);
@@ -86,6 +90,7 @@ void setup()
     Task* pTestHWTask = new TestHWTask(pHWPlatform);
     pTestHWTask->init(2000);
     sched.addTask(pTestHWTask);
+
     Logger.log(":::::: Hardware Testing Mode ::::::");
 #endif
 }
