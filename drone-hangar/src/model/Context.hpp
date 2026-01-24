@@ -4,11 +4,12 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
+#include "config.hpp"
 #include "kernel/CommandType.hpp"
 #include "kernel/MsgService.hpp"
 
 #define MSG_QUEUE_SIZE 10
-#define JSON_DOC_SIZE 256
+#define LCD_BUFFER_SIZE LCD_ROW* LCD_COL + 1
 
 struct CommandEntry
 {
@@ -19,14 +20,22 @@ struct CommandEntry
 class Context
 {
    private:
-    // DOOR
-    bool openDoorRequested;
-    bool closeDoorRequested;
-    bool doorOpen;
+    // DOOR FLAGS
+    uint8_t openDoorRequested : 1;
+    uint8_t closeDoorRequested : 1;
+    uint8_t doorOpen : 1;
 
     // SYSTEM FLAGS
-    bool alarmActive;
-    bool preAlarmActive;
+    uint8_t alarmActive : 1;
+    uint8_t preAlarmActive : 1;
+
+    // LED FLAG
+    uint8_t ledBlinking : 1;
+
+    // DRONE FLAGS
+    uint8_t landingCheck : 1;
+    uint8_t takeoffCheck : 1;
+    uint8_t droneIn : 1;
 
     // SENSORS
     float currentDistance;
@@ -34,15 +43,7 @@ class Context
     bool pirActive;
 
     // LCD
-    const char* lcdMessage;
-
-    // LED
-    bool ledBlinking;
-
-    // DRONE
-    bool landingCheck;
-    bool takeoffCheck;
-    bool droneIn;
+    char lcdMessage[LCD_BUFFER_SIZE];
 
     // COMMAND QUEUE
     struct QueuedCommand
@@ -58,11 +59,12 @@ class Context
     // JSON
     JsonDocument jsonDoc;
 
-    bool enqueueCommand(CommandType cmd, uint32_t now);
-
     // COMMAND TABLE
     static const CommandEntry commandTable[];
     static const int COMMAND_TABLE_SIZE;
+
+    // enqueue privata
+    bool enqueueCommand(CommandType cmd, uint32_t now);
 
    public:
     Context();
@@ -70,39 +72,39 @@ class Context
     // DOOR CONTROL
     void closeDoor();
     void openDoor();
-    bool openDoorReq();
-    bool closeDoorReq();
-    bool isDoorOpen();
+    bool openDoorReq() const;
+    bool closeDoorReq() const;
+    bool isDoorOpen() const;
     void setDoorClosed();
     void setDoorOpened();
 
     // ALARM
     void setAlarm(bool active);
-    bool isAlarmActive();
+    bool isAlarmActive() const;
     void setPreAlarm(bool active);
-    bool isPreAlarmActive();
+    bool isPreAlarmActive() const;
 
     // LED
     void blink();
     void stopBlink();
-    bool isBlinking();
+    bool isBlinking() const;
 
     // LCD
-    const char* getLCDMessage();
+    const char* getLCDMessage() const;
     void setLCDMessage(const char* msg);
 
     // DRONE
     void requestLandingCheck();
     void closeLandingCheck();
-    bool landingCheckRequested();
+    bool landingCheckRequested() const;
     void requestTakeoffCheck();
     void closeTakeoffCheck();
-    bool takeoffCheckRequested();
+    bool takeoffCheckRequested() const;
     void setDroneIn(bool state);
-    bool isDroneIn();
+    bool isDroneIn() const;
 
     // COMMAND
-    bool tryEnqueueMsg(const char* msg);  // usa const char* per risparmiare RAM
+    bool tryEnqueueMsg(const char* msg);
     bool consumeCommand(CommandType cmd);
     void cleanupExpired(uint32_t now);
 
@@ -112,7 +114,7 @@ class Context
     void setJsonField(const char* key, int value);
     void setJsonField(const char* key, bool value);
     void removeJsonField(const char* key);
-    String buildJSON();
+    String buildJSON() const;
     void clearJsonFields();
 };
 

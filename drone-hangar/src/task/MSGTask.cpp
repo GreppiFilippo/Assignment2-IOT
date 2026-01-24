@@ -40,11 +40,11 @@ void MsgTask::tick()
         }
         else if (doc["command"].is<const char*>())
         {
-            String commandStr = doc["command"].as<String>();
+            const char* commandStr = doc["command"].as<const char*>();
             if (this->pContext->tryEnqueueMsg(commandStr))
-                Logger.log("Command recognized and enqueued: " + commandStr);
+                Logger.log("Command recognized and enqueued: " + String(commandStr));
             else
-                Logger.log("Command not recognized, ignored: " + commandStr);
+                Logger.log("Command not recognized, ignored: " + String(commandStr));
         }
 
         // free Msg allocated by MsgService to avoid memory leak

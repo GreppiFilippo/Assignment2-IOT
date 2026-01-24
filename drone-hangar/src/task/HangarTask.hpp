@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "devices/Button.hpp"
+#include "devices/Light.hpp"
 #include "devices/TempSensor.hpp"
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
@@ -11,9 +12,10 @@
 class HangarTask : public Task
 {
    private:
-    Context* pContext;
     TempSensor* tempSensor;
     Button* resetButton;
+    Light* L3;
+    Context* pContext;
 
     long stateTimestamp;
     bool justEntered;
@@ -36,7 +38,7 @@ class HangarTask : public Task
     void setHangarState(const String& state);
 
    public:
-    HangarTask(TempSensor* tempSensor, Button* resetButton, Context* pContext);
+    HangarTask(TempSensor* tempSensor, Button* resetButton, Light* L3, Context* pContext);
     void tick();
 };
 
