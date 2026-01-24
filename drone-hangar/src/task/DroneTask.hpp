@@ -17,33 +17,44 @@
  */
 class DroneTask : public Task
 {
-    private:
-        Context* pContext;
+   private:
+    Context* pContext;
 
-        enum State
-        {
-            REST,
-            TAKING_OFF,
-            OPERATING,
-            LANDING
-        } state;
+    enum State
+    {
+        REST,
+        TAKING_OFF,
+        OPERATING,
+        LANDING
+    } state;
 
-        long stateTimestamp;
-        bool justEntered;
-        Light* L1;
-        Light* L3;
-        PresenceSensor* presenceSensor;
+    long stateTimestamp;
+    bool justEntered;
+    Light* L1;
+    PresenceSensor* presenceSensor;
 
-        void setState(State state);
-        long elapsedTimeInState();
-        void log(const String& msg);
-        bool checkAndSetJustEntered();
-        bool receiveOpenCMD();
-        void sendState(const String& state);
+    void setState(State state);
+    long elapsedTimeInState();
+    void log(const String& msg);
+    bool checkAndSetJustEntered();
+    bool receiveOpenCMD();
+    void sendState(const String& state);
 
-    public:
-        DroneTask(Context* pContext, Light* L1, Light* L3, PresenceSensor* presenceSensor);
-        void tick();
+   public:
+    /**
+     * @brief Construct a new Drone Task object
+     *
+     * @param pContext Pointer to the shared context object
+     * @param L1 Pointer to the Light device
+     * @param presenceSensor Pointer to the Presence Sensor device
+     */
+    DroneTask(Context* pContext, Light* L1, PresenceSensor* presenceSensor);
+
+    /**
+     * @brief Task execution method called by the scheduler when the task runs.
+     *
+     */
+    void tick() override;
 };
 
 #endif /* __HANGAR_TASK__ */
