@@ -4,8 +4,8 @@
 /* ===== Pin definitions ===== */
 #define TEMP_PIN A0  // Temperature sensor pin TMP36 - analog input
 #define L1_PIN 2     // L1 green led pin - indicate on
-#define L2_PIN 5     // L2 green led pin (must be pwm~) - indicate in action
-#define L3_PIN 4     // L3 red led pin - indicate alarm
+#define L2_PIN 4     // L2 green led pin (must be pwm~) - indicate in action
+#define L3_PIN 6     // L3 red led pin - indicate alarm
 
 #define RESET_PIN 8   // RESET button pin - tactile button
 #define DPD_PIN 9     // Drone presence detector pin - PIR sensor
@@ -15,13 +15,13 @@
 #define TEMP_PIN A0
 
 #define LCD_ADR 0x27
-#define LCD_COL 16
-#define LCD_ROW 2
+#define LCD_COL 20
+#define LCD_ROW 4
 
 /* ====== DOOR CONFIG ====== */
 #define DOOR_OPEN_ANGLE 180
-#define MOVING_TIME 500 
-// TODO: Adjust pin definitions as per your hardware setup
+#define MOVING_TIME 500
+
 /* ===== Distance thresholds (cm) ===== */
 #define D1 100  // Distance threshold for drone exit detection
 #define D2 10   // Distance threshold for drone landing detection
@@ -45,6 +45,8 @@
 
 /* ===== Command TTL (milliseconds) ===== */
 #define CONFIG_CMD_TTL_MS 5000  // Commands older than this are dropped from queue
+
+#define BAUD_RATE 115200  // Serial communication baud rate
 
 /* ===== LCD message definitions ===== */
 #define LCD_REST_STATE "DRONE INSIDE"    // Drone is inside hangar and at rest
