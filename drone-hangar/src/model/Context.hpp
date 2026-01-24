@@ -8,6 +8,7 @@
 #include "kernel/MsgService.hpp"
 
 #define MSG_QUEUE_SIZE 10
+#define JSON_DOC_SIZE 256
 
 struct CommandEntry
 {
@@ -15,38 +16,35 @@ struct CommandEntry
     CommandType type;
 };
 
-/**
- * @brief Class representing the shared context of the system.
- */
 class Context
 {
    private:
-    // ===== DOOR CONTROL =====
+    // DOOR
     bool openDoorRequested;
     bool closeDoorRequested;
     bool doorOpen;
 
-    // ===== SYSTEM FLAGS =====
+    // SYSTEM FLAGS
     bool alarmActive;
     bool preAlarmActive;
 
-    // ===== SENSOR DATA =====
+    // SENSORS
     float currentDistance;
     float currentTemperature;
     bool pirActive;
 
-    // ===== LCD =====
+    // LCD
     const char* lcdMessage;
 
-    // ===== LED =====
+    // LED
     bool ledBlinking;
 
-    // ===== DRONE =====
+    // DRONE
     bool landingCheck;
     bool takeoffCheck;
     bool droneIn;
 
-    // ===== COMMAND QUEUE =====
+    // COMMAND QUEUE
     struct QueuedCommand
     {
         CommandType cmd;
@@ -57,18 +55,19 @@ class Context
     int commandTail;
     int commandCount;
 
-    // ===== JSON OUTPUT FIELDS =====
+    // JSON
     JsonDocument jsonDoc;
+
     bool enqueueCommand(CommandType cmd, uint32_t now);
 
-    // ===== COMMAND TABLE =====
+    // COMMAND TABLE
     static const CommandEntry commandTable[];
     static const int COMMAND_TABLE_SIZE;
 
    public:
     Context();
 
-    // ===== DOOR CONTROL =====
+    // DOOR CONTROL
     void closeDoor();
     void openDoor();
     bool openDoorReq();
@@ -77,22 +76,22 @@ class Context
     void setDoorClosed();
     void setDoorOpened();
 
-    // ===== ALARM =====
+    // ALARM
     void setAlarm(bool active);
     bool isAlarmActive();
     void setPreAlarm(bool active);
     bool isPreAlarmActive();
 
-    // ===== BLINKING =====
+    // LED
     void blink();
     void stopBlink();
     bool isBlinking();
 
-    // ===== LCD =====
+    // LCD
     const char* getLCDMessage();
     void setLCDMessage(const char* msg);
 
-    // ===== DRONE STATE =====
+    // DRONE
     void requestLandingCheck();
     void closeLandingCheck();
     bool landingCheckRequested();
@@ -102,27 +101,17 @@ class Context
     void setDroneIn(bool state);
     bool isDroneIn();
 
-    // ===== COMMAND INTERFACE =====
-    /**
-     * @brief Try to enqueue a command based on message content.
-     * Messages not in the table are ignored automatically.
-     *
-     * @param msg Message to process
-     * @return true if command recognized and enqueued
-     */
-    bool tryEnqueueMsg(const String& msg);
-
+    // COMMAND
+    bool tryEnqueueMsg(const char* msg);  // usa const char* per risparmiare RAM
     bool consumeCommand(CommandType cmd);
-
-    // Remove expired commands based on timestamp
     void cleanupExpired(uint32_t now);
 
-    // ===== JSON OUTPUT INTERFACE =====
-    void setJsonField(const String& key, const String& value);
-    void setJsonField(const String& key, float value);
-    void setJsonField(const String& key, int value);
-    void setJsonField(const String& key, bool value);
-    void removeJsonField(const String& key);
+    // JSON
+    void setJsonField(const char* key, const char* value);
+    void setJsonField(const char* key, float value);
+    void setJsonField(const char* key, int value);
+    void setJsonField(const char* key, bool value);
+    void removeJsonField(const char* key);
     String buildJSON();
     void clearJsonFields();
 };

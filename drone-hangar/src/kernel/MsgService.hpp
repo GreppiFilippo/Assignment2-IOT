@@ -9,10 +9,10 @@
  */
 class Msg
 {
-    private:
+   private:
     String content;
 
-    public:
+   public:
     /**
      * Construct a message with the provided content.
      *
@@ -25,7 +25,7 @@ class Msg
      *
      * @return String containing the message text
      */
-    String getContent() const { return content; }
+    String getContent() { return this->content; }
 };
 
 /**

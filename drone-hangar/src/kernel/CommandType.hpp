@@ -6,7 +6,8 @@
  */
 enum class CommandType
 {
-    OPEN  // Command to open the hangar door
+    /// @brief Command to open the hangar door
+    OPEN
 };
 
 #endif

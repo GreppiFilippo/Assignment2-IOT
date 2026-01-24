@@ -1,49 +1,42 @@
 #include "model/Context.hpp"
 
+#include <string.h>  // per strcasecmp
+
 #include "config.hpp"
 
-// ===== COMMAND TABLE =====
+// COMMAND TABLE
 const CommandEntry Context::commandTable[] = {{"OPEN", CommandType::OPEN}};
 const int Context::COMMAND_TABLE_SIZE =
     sizeof(Context::commandTable) / sizeof(Context::commandTable[0]);
 
-// ===== CONSTRUCTOR =====
+// CONSTRUCTOR
 Context::Context()
+    : openDoorRequested(false),
+      closeDoorRequested(false),
+      doorOpen(false),
+      alarmActive(false),
+      preAlarmActive(false),
+      currentDistance(0),
+      currentTemperature(0),
+      pirActive(false),
+      lcdMessage(nullptr),
+      ledBlinking(false),
+      landingCheck(false),
+      takeoffCheck(false),
+      droneIn(true),
+      commandHead(0),
+      commandTail(0),
+      commandCount(0)
 {
-    openDoorRequested = false;
-    closeDoorRequested = false;
-    doorOpen = false;
-    alarmActive = false;
-    preAlarmActive = false;
-
-    currentDistance = 0;
-    currentTemperature = 0;
-    pirActive = false;
-
-    lcdMessage = "";
-    ledBlinking = false;
-    droneIn = true;
-
-    landingCheck = false;
-    takeoffCheck = false;
-
-    // Command queue init
-    commandHead = 0;
-    commandTail = 0;
-    commandCount = 0;
 }
 
-// ===== DOOR CONTROL =====
+// DOOR
 void Context::closeDoor() { closeDoorRequested = true; }
 void Context::openDoor() { openDoorRequested = true; }
-
 bool Context::closeDoorReq() { return closeDoorRequested; }
 bool Context::openDoorReq() { return openDoorRequested; }
-
 bool Context::isDoorOpen() { return doorOpen; }
-
 void Context::setDoorOpened() { doorOpen = true; }
-
 void Context::setDoorClosed()
 {
     closeDoorRequested = false;
@@ -51,22 +44,22 @@ void Context::setDoorClosed()
     doorOpen = false;
 }
 
-// ===== ALARM =====
+// ALARM
 void Context::setAlarm(bool active) { alarmActive = active; }
 bool Context::isAlarmActive() { return alarmActive; }
 void Context::setPreAlarm(bool active) { preAlarmActive = active; }
 bool Context::isPreAlarmActive() { return preAlarmActive; }
 
-// ===== BLINKING =====
+// LED
 void Context::blink() { ledBlinking = true; }
 void Context::stopBlink() { ledBlinking = false; }
 bool Context::isBlinking() { return ledBlinking; }
 
-// ===== LCD =====
+// LCD
 void Context::setLCDMessage(const char* msg) { lcdMessage = msg; }
 const char* Context::getLCDMessage() { return lcdMessage; }
 
-// ===== DRONE =====
+// DRONE
 void Context::setDroneIn(bool state) { droneIn = state; }
 bool Context::isDroneIn() { return droneIn; }
 
@@ -78,17 +71,15 @@ void Context::requestTakeoffCheck() { takeoffCheck = true; }
 void Context::closeTakeoffCheck() { takeoffCheck = false; }
 bool Context::takeoffCheckRequested() { return takeoffCheck; }
 
-// ===== COMMAND QUEUE =====
+// COMMAND QUEUE
 bool Context::enqueueCommand(CommandType cmd, uint32_t now)
 {
     if (commandCount >= MSG_QUEUE_SIZE)
         return false;
 
-    commandQueue[commandTail].cmd = cmd;
-    commandQueue[commandTail].timestamp = now;
+    commandQueue[commandTail] = {cmd, now};
     commandTail = (commandTail + 1) % MSG_QUEUE_SIZE;
     commandCount++;
-
     return true;
 }
 
@@ -99,7 +90,6 @@ bool Context::consumeCommand(CommandType cmd)
         int index = (commandHead + i) % MSG_QUEUE_SIZE;
         if (commandQueue[index].cmd == cmd)
         {
-            // shift left
             for (int j = i; j < commandCount - 1; j++)
             {
                 int from = (commandHead + j + 1) % MSG_QUEUE_SIZE;
@@ -114,38 +104,13 @@ bool Context::consumeCommand(CommandType cmd)
     return false;
 }
 
-// ===== TRY ENQUEUE MESSAGE =====
-
-bool Context::tryEnqueueMsg(const String& msg)
-{
-    // Normalize incoming message: trim whitespace and compare case-insensitively
-    String s = msg;
-    s.trim();
-    s.toUpperCase();
-
-    for (int i = 0; i < COMMAND_TABLE_SIZE; i++)
-    {
-        String name = String(commandTable[i].name);
-
-        if (s.equals(name))
-        {
-            enqueueCommand(commandTable[i].type, millis());
-            return true;  // command recognized and enqueued
-        }
-    }
-
-    return false;  // unknown command ignored
-}
-
 void Context::cleanupExpired(uint32_t now)
 {
     for (int i = 0; i < commandCount;)
     {
         int index = (commandHead + i) % MSG_QUEUE_SIZE;
-        uint32_t ts = commandQueue[index].timestamp;
-        if ((now - ts) >= CONFIG_CMD_TTL_MS)
+        if ((now - commandQueue[index].timestamp) >= CONFIG_CMD_TTL_MS)
         {
-            // remove this element by shifting left
             for (int j = i; j < commandCount - 1; j++)
             {
                 int from = (commandHead + j + 1) % MSG_QUEUE_SIZE;
@@ -154,21 +119,38 @@ void Context::cleanupExpired(uint32_t now)
             }
             commandTail = (commandTail - 1 + MSG_QUEUE_SIZE) % MSG_QUEUE_SIZE;
             commandCount--;
-            // do not increment i, check the new element at this position
         }
         else
-        {
             i++;
-        }
     }
 }
 
-// ===== JSON OUTPUT =====
-void Context::setJsonField(const String& key, const String& value) { jsonDoc[key] = value; }
-void Context::setJsonField(const String& key, float value) { jsonDoc[key] = value; }
-void Context::setJsonField(const String& key, int value) { jsonDoc[key] = value; }
-void Context::setJsonField(const String& key, bool value) { jsonDoc[key] = value; }
-void Context::removeJsonField(const String& key) { jsonDoc.remove(key); }
+// tryEnqueueMsg ottimizzato per const char* senza String temporanei
+bool Context::tryEnqueueMsg(const char* msg)
+{
+    if (!msg)
+        return false;
+
+    // rimuovi spazi iniziali/finali
+    while (*msg == ' ' || *msg == '\t') msg++;
+
+    for (int i = 0; i < COMMAND_TABLE_SIZE; i++)
+    {
+        if (strcasecmp(msg, commandTable[i].name) == 0)
+        {
+            enqueueCommand(commandTable[i].type, millis());
+            return true;
+        }
+    }
+    return false;
+}
+
+// JSON
+void Context::setJsonField(const char* key, const char* value) { jsonDoc[key] = value; }
+void Context::setJsonField(const char* key, float value) { jsonDoc[key] = value; }
+void Context::setJsonField(const char* key, int value) { jsonDoc[key] = value; }
+void Context::setJsonField(const char* key, bool value) { jsonDoc[key] = value; }
+void Context::removeJsonField(const char* key) { jsonDoc.remove(key); }
 
 String Context::buildJSON()
 {

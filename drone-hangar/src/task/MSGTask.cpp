@@ -1,3 +1,4 @@
+
 #include "task/MSGTask.hpp"
 
 #include <ArduinoJson.h>
@@ -16,14 +17,16 @@ MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 void MsgTask::tick()
 {
     // Cleanup expired queued commands before processing new messages
-    pContext->cleanupExpired(millis());
+    this->pContext->cleanupExpired(millis());
 
-    /* Process new messages from serial */
-    while (pMsgService->isMsgAvailable())
+    // Process new command messages from serial
+    while (this->pMsgService->isMsgAvailable())
     {
-        msg = pMsgService->receiveMsg();
+        Msg* msg = this->pMsgService->receiveMsg();
         if (!msg)
+        {
             continue;
+        }
 
         String content = msg->getContent();
         Logger.log("MSG received: " + content);
@@ -38,7 +41,7 @@ void MsgTask::tick()
         else if (doc["command"].is<const char*>())
         {
             String commandStr = doc["command"].as<String>();
-            if (pContext->tryEnqueueMsg(commandStr))
+            if (this->pContext->tryEnqueueMsg(commandStr))
                 Logger.log("Command recognized and enqueued: " + commandStr);
             else
                 Logger.log("Command not recognized, ignored: " + commandStr);
@@ -49,12 +52,13 @@ void MsgTask::tick()
         msg = nullptr;
     }
 
-    /* Periodically send JSON state (OUTPUT) */
-    if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
+    // Periodically send JSON state (OUTPUT)
+    if (millis() - this->lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
-        String json = pContext->buildJSON();
-        pMsgService->sendMsg(json);
-        pContext->clearJsonFields();
-        lastJsonSent = millis();
+        this->pContext->setJsonField("alive", true);
+        String json = this->pContext->buildJSON();
+        this->pMsgService->sendMsg(json);
+        this->pContext->clearJsonFields();
+        this->lastJsonSent = millis();
     }
 }

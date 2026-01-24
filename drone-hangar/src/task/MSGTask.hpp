@@ -22,6 +22,13 @@ class MsgTask : public Task
 
    public:
     MsgTask(Context* pContext, MsgServiceClass* pMsgService);
+
+    /**
+     * @brief Task execution method called by the scheduler when the task runs.
+     *
+     * Processes incoming messages and sends periodic JSON updates.
+     *
+     */
     void tick() override;
 };
 
