@@ -18,7 +18,7 @@
 #define BASE_PERIOD_MS 50
 #define DRONE_TASK_PERIOD 50
 #define DOOR_CONTROL_TASK_PERIOD 50
-#define HANGAR_TASK_PERIOD 50
+#define HANGAR_TASK_PERIOD 200
 #define DISTANCE_TASK_PERIOD 50
 #define LCD_TASK_PERIOD 50
 #define MSG_TASK_PERIOD 50
@@ -47,18 +47,18 @@ void setup()
     pContext = new Context();
 
     /* ======== Tasks initialization ======== */
-    Task* pDroneTask = new DroneTask(pContext, pHWPlatform->getL1(), pHWPlatform->getL3(),
+    Task* pDroneTask = new DroneTask(pContext, pHWPlatform->getL1(),
                                      pHWPlatform->getPresenceSensor());
     pDroneTask->init(DRONE_TASK_PERIOD);
 
     Task* pLcdTask = new LCDTask(pHWPlatform->getLCD(), pContext);
     pLcdTask->init(LCD_TASK_PERIOD);
 
-    Task* pMSGTask = new MsgTask(pContext, &MsgService);
-    pMSGTask->init(MSG_TASK_PERIOD);
+    // Task* pMSGTask = new MsgTask(pContext, &MsgService);
+    // pMSGTask->init(MSG_TASK_PERIOD);
 
     Task* pHangarTask =
-        new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(), pContext);
+        new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getL3(), pHWPlatform->getButton(), pContext);
     pHangarTask->init(HANGAR_TASK_PERIOD);
 
     Task* pBlinkingTask = new BlinkingTask(pHWPlatform->getL2(), pContext);
@@ -76,7 +76,7 @@ void setup()
     sched.addTask(pDistanceTask);
     sched.addTask(pDroneTask);
     sched.addTask(pLcdTask);
-    sched.addTask(pMSGTask);
+    //sched.addTask(pMSGTask);
 
     Logger.log(":::::: Drone Hangar ::::::");
 #endif

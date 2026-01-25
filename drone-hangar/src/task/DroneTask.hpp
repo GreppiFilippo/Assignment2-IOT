@@ -31,7 +31,6 @@ class DroneTask : public Task
         long stateTimestamp;
         bool justEntered;
         Light* L1;
-        Light* L3;
         PresenceSensor* presenceSensor;
 
         void setState(State state);
@@ -42,7 +41,7 @@ class DroneTask : public Task
         void sendState(const String& state);
 
     public:
-        DroneTask(Context* pContext, Light* L1, Light* L3, PresenceSensor* presenceSensor);
+        DroneTask(Context* pContext, Light* L1, PresenceSensor* presenceSensor);
         void tick();
 };
 

@@ -5,6 +5,7 @@
 
 #include "devices/Button.hpp"
 #include "devices/TempSensor.hpp"
+#include "devices/Light.hpp"
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
 
@@ -14,6 +15,7 @@ class HangarTask : public Task
     Context* pContext;
     TempSensor* tempSensor;
     Button* resetButton;
+    Light* L3;
 
     long stateTimestamp;
     bool justEntered;
@@ -36,7 +38,7 @@ class HangarTask : public Task
     void setHangarState(const String& state);
 
    public:
-    HangarTask(TempSensor* tempSensor, Button* resetButton, Context* pContext);
+    HangarTask(TempSensor* tempSensor, Light* L3, Button* resetButton, Context* pContext);
     void tick();
 };
 

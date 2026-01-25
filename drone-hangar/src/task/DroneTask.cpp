@@ -4,12 +4,11 @@
 #include "devices/Led.hpp"
 #include "kernel/Logger.hpp"
 
-DroneTask::DroneTask(Context* pContext, Light* L1, Light* L3, PresenceSensor* presenceSensor)
+DroneTask::DroneTask(Context* pContext, Light* L1, PresenceSensor* presenceSensor)
 {
     this->pContext = pContext;
     this->setState(REST);
     this->L1 = L1;
-    this->L3 = L3;
     this->presenceSensor = presenceSensor;
 }
 
@@ -23,7 +22,6 @@ void DroneTask::tick()
     switch (this->state)
     {
         case REST:
-            Logger.log(F(DRONE_REST_STATE));
             sendState(DRONE_REST_STATE);
 
             if (checkAndSetJustEntered())
@@ -31,7 +29,6 @@ void DroneTask::tick()
                 pContext->closeDoor();
                 L1->switchOn();
                 pContext->stopBlink();
-                L3->switchOff();
             }
 
             pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE : LCD_REST_STATE);
@@ -73,7 +70,6 @@ void DroneTask::tick()
                 pContext->closeDoor();
                 L1->switchOff();
                 pContext->stopBlink();
-                L3->switchOff();
             }
 
             pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE
