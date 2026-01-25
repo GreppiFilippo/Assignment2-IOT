@@ -1,11 +1,10 @@
 #include "task/HangarTask.hpp"
 
-#include "HangarTask.hpp"
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
-HangarTask::HangarTask(TempSensor* tempSensor, Light* L3, Button* resetButton, Context* pContext)
-    : pContext(pContext), tempSensor(tempSensor), resetButton(resetButton), L3(L3)
+HangarTask::HangarTask(TempSensor* tempSensor, Button* resetButton, Light* L3, Context* pContext)
+    : tempSensor(tempSensor), resetButton(resetButton), L3(L3), pContext(pContext)
 {
     setState(NORMAL);
 }
