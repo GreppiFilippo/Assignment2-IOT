@@ -2,74 +2,60 @@
 
 #include <Arduino.h>
 
-String content;
+// Internal buffer for serial input
+static String content;
 
 MsgServiceClass MsgService;
+
+// === PUBLIC API ===
 
 bool MsgServiceClass::isMsgAvailable() { return msgAvailable; }
 
 Msg* MsgServiceClass::receiveMsg()
 {
-    if (msgAvailable)
-    {
-        Msg* msg = currentMsg;
-        msgAvailable = false;
-        currentMsg = NULL;
-        content = "";
-        return msg;
-    }
-    else
-    {
-        return NULL;
-    }
+    if (!msgAvailable)
+        return nullptr;
+
+    Msg* msg = currentMsg;
+    currentMsg = nullptr;
+    msgAvailable = false;
+    return msg;
 }
 
 void MsgServiceClass::init()
 {
     Serial.begin(115200);
+
     content.reserve(256);
     content = "";
-    currentMsg = NULL;
+
+    currentMsg = nullptr;
     msgAvailable = false;
 }
 
 void MsgServiceClass::sendMsg(const String& msg) { Serial.println(msg); }
 
+// === SERIAL EVENT HANDLER ===
+// Called automatically by Arduino core between loop() iterations
 void serialEvent()
 {
-    /* reading the content */
     while (Serial.available())
     {
         char ch = (char)Serial.read();
+
         if (ch == '\n')
         {
-            MsgService.currentMsg = new Msg(content);
-            MsgService.msgAvailable = true;
+            // Ignore empty lines
+            if (content.length() > 0 && !MsgService.msgAvailable)
+            {
+                MsgService.currentMsg = new Msg(content);
+                MsgService.msgAvailable = true;
+            }
+            content = "";  // 🔥 RESET BUFFER
         }
-        else
+        else if (ch != '\r')
         {
             content += ch;
         }
-    }
-}
-
-bool MsgServiceClass::isMsgAvailable(Pattern& pattern)
-{
-    return (msgAvailable && pattern.match(*currentMsg));
-}
-
-Msg* MsgServiceClass::receiveMsg(Pattern& pattern)
-{
-    if (msgAvailable && pattern.match(*currentMsg))
-    {
-        Msg* msg = currentMsg;
-        msgAvailable = false;
-        currentMsg = NULL;
-        content = "";
-        return msg;
-    }
-    else
-    {
-        return NULL;
     }
 }

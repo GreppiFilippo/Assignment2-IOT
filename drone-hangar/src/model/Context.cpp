@@ -171,9 +171,8 @@ void Context::removeJsonField(const char* key) { jsonDoc.remove(key); }
 
 String Context::buildJSON() const
 {
-    char buffer[JSON_DOC_SIZE];
-    serializeJson(this->jsonDoc, buffer);
-    return String(buffer);
+    String out;
+    serializeJson(jsonDoc, out);
+    return out;
 }
-
 void Context::clearJsonFields() { jsonDoc.clear(); }

@@ -14,18 +14,18 @@ class Msg
 
    public:
     /**
-     * Construct a message with the provided content.
+     * @brief Construct a new Msg object.
      *
-     * @param content the message text
+     * @param content the message content
      */
-    Msg(const String content) { this->content = content; }
+    Msg(const String& content) : content(content) {}
 
     /**
-     * Return the message content.
+     * @brief Get the message content.
      *
-     * @return String containing the message text
+     * @return const String& reference to the message content
      */
-    String getContent() { return this->content; }
+    const String& getContent() const { return content; }
 };
 
 /**
@@ -51,8 +51,8 @@ class Pattern
 class MsgServiceClass
 {
    public:
-    Msg* currentMsg;
-    bool msgAvailable;
+    Msg* currentMsg = nullptr;
+    bool msgAvailable = false;
 
    public:
     /**
