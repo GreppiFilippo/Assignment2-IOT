@@ -31,8 +31,8 @@ void MsgTask::tick()
         String content = msg->getContent();
         Logger.log("MSG received: " + content);
 
-        JsonDocument doc;
-        DeserializationError error = deserializeJson(doc, content);
+        StaticJsonDocument<256> doc;
+        DeserializationError error = deserializeJson(doc, content.c_str());
 
         if (error)
         {
