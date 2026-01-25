@@ -38,8 +38,8 @@ float TempSensorTMP36::getTemperature()
     for (int i = 0; i < 5; i++)
     {
         int value = analogRead(pin);
-        /* this is the formula for the TMP36*/
-        float valueInCelsius = ((value * 0.00488) - 0.5) / 0.01;
+        float voltage = value * (VCC / 1023.0);
+        float valueInCelsius = (voltage - 0.5) * 100.0;
         values[i] = valueInCelsius;
         if (valueInCelsius < min)
         {

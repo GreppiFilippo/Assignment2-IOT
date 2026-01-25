@@ -4,13 +4,10 @@
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
-HangarTask::HangarTask(TempSensor* tempSensor, Button* resetButton, Light* L3, Context* pContext)
+HangarTask::HangarTask(TempSensor* tempSensor, Light* L3, Button* resetButton, Context* pContext)
+    : pContext(pContext), tempSensor(tempSensor), resetButton(resetButton), L3(L3)
 {
-    this->tempSensor = tempSensor;
-    this->resetButton = resetButton;
-    this->L3 = L3;
-    this->pContext = pContext;
-    this->setState(NORMAL);
+    setState(NORMAL);
 }
 
 void HangarTask::setHangarState(const String& state)
@@ -31,6 +28,7 @@ void HangarTask::tick()
                 Logger.log(F("[HT] NORMAL"));
                 this->pContext->setPreAlarm(false);
                 this->pContext->setAlarm(false);
+                this->L3->switchOff();
             }
 
             if (this->temperature >= TEMP1)
@@ -99,6 +97,7 @@ void HangarTask::tick()
                 Logger.log(F("[HT] ALARM"));
                 this->pContext->setPreAlarm(false);
                 this->pContext->setAlarm(true);
+                this->L3->switchOn();
             }
 
             if (this->resetButton->isPressed())

@@ -22,7 +22,6 @@ void DroneTask::tick()
     switch (this->state)
     {
         case REST:
-            Logger.log(F(DRONE_REST_STATE));
             sendState(DRONE_REST_STATE);
 
             if (checkAndSetJustEntered())
