@@ -37,6 +37,8 @@ void setup()
 {
     /* ======== Serial Initialization ======== */
     MsgService.init();
+    // Quick runtime check: ensure MsgService writes to Serial
+    MsgService.sendMsg("[SYS] MsgService initialized");
 
     /* ======== Scheduler Initialization ======== */
     sched.init(BASE_PERIOD_MS);
@@ -83,6 +85,7 @@ void setup()
     sched.addTask(pMSGTask);
 
     Logger.log(":::::: Drone Hangar ::::::");
+    Logger.log("[SYS] Logger initialized");
 #endif
 
 #ifdef __TESTING_HW__
