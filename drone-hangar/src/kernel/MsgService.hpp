@@ -1,43 +1,57 @@
 #ifndef __MSGSERVICE__
 #define __MSGSERVICE__
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 /**
- * @brief Class representing a message.
- *
+ * @brief Class representing a message with fixed-size content.
  */
 class Msg
 {
    private:
-    String content;
+    char content[128];  // Reduced fixed-size buffer for message content
+    size_t length;      // Actual length of the content
 
    public:
     /**
-     * @brief Construct a new Msg object.
-     *
-     * @param content the message content
+     * @brief Default constructor for Msg.
      */
-    Msg(const String& content) : content(content) {}
+    Msg() : length(0) { content[0] = '\0'; }
 
     /**
-     * @brief Get the message content.
-     *
-     * @return const String& reference to the message content
+     * @brief Construct a new Msg object with fixed content.
+     * @param str The string to copy into content (truncated if too long).
      */
-    const String& getContent() const { return content; }
+    Msg(const char* str)
+    {
+        length = strlen(str);
+        if (length >= sizeof(content))
+            length = sizeof(content) - 1;
+        memcpy(content, str, length);
+        content[length] = '\0';
+    }
+
+    /**
+     * @brief Get the message content as a C-string.
+     * @return const char* Pointer to the content.
+     */
+    const char* getContent() const { return content; }
+
+    /**
+     * @brief Get the length of the content.
+     * @return size_t Length.
+     */
+    size_t getLength() const { return length; }
 };
 
 /**
  * @brief Abstract base class for message patterns.
- *
  */
 class Pattern
 {
    public:
     /**
      * Check whether message `m` matches the pattern.
-     *
      * @param m reference to the message to test
      * @return true if the pattern matches, false otherwise
      */
@@ -45,43 +59,39 @@ class Pattern
 };
 
 /**
- * @brief Message service class for sending and receiving messages.
- *
+ * @brief Message service class for sending and receiving messages with a circular queue.
  */
 class MsgServiceClass
 {
-   public:
-    // Single-slot removed in favor of a small circular queue
-    static const int MSG_SERVICE_QUEUE_SIZE = 8;
-    Msg* queue[MSG_SERVICE_QUEUE_SIZE];
-    int qHead = 0;
-    int qTail = 0;
-    int qCount = 0;
+   private:
+    static const int MSG_SERVICE_QUEUE_SIZE = 4;  // Reduced queue size
+    Msg queue[MSG_SERVICE_QUEUE_SIZE];            // Fixed array of Msg objects
+    int qHead;
+    int qTail;
+    int qCount;
 
    public:
     /**
-     * Initialize the message service (call at startup).
+     * @brief Initialize the message service (call at startup).
      */
     void init();
 
     /**
-     * Check if at least one message is available.
-     *
+     * @brief Check if at least one message is available.
      * @return true if a message is present, false otherwise
      */
     bool isMsgAvailable();
 
     /**
-     * Receive (consume) the current message and return it.
+     * @brief Receive (consume) the current message and return it.
      * After calling this, the message is no longer considered available.
      * @return pointer to the received `Msg` (nullptr if no message)
      */
     Msg* receiveMsg();
 
     /**
-     * Check if there is a message that matches `pattern`.
+     * @brief Check if there is a message that matches `pattern`.
      * Does not consume the message; only verifies presence.
-     *
      * @param pattern reference to the pattern used to test messages
      * @return true if a matching message exists
      */
@@ -90,28 +100,24 @@ class MsgServiceClass
     /**
      * Receive (consume) the first message that matches `pattern`.
      * Returns nullptr if no matching message is found.
-     *
      * @param pattern pattern used to filter messages
      * @return pointer to the received `Msg` or nullptr
      */
     Msg* receiveMsg(Pattern& pattern);
 
     /**
-     * Send a new message into the service.
-     *
-     * @param msg the message text to send
-     */
-    void sendMsg(const String& msg);
-    /**
-     * Send a C-string message without constructing a temporary String.
+     * @brief Send a new message into the service.
+     * @param msg the message text to send (C-string)
      */
     void sendMsg(const char* msg);
 
     /**
-     * Enqueue an already-constructed Msg into the receive queue.
+     * @brief Enqueue an already-constructed Msg into the receive queue.
      * Returns true if enqueued, false if queue was full.
+     * @param msg pointer to the Msg to enqueue
+     * @return true if enqueued, false otherwise
      */
-    bool enqueueMsg(Msg* msg);
+    bool enqueueMsg(const char* content);
 };
 
 extern MsgServiceClass MsgService;

@@ -2,4 +2,26 @@
 
 #include "MsgService.hpp"
 
-void LoggerService::log(const String& msg) { MsgService.sendMsg("lo:" + msg); }
+LoggerService Logger;
+
+void LoggerService::log(const char* msg)
+{
+    char buf[128];
+    size_t len = snprintf(buf, sizeof(buf), "lo:%s", msg);
+    if (len < sizeof(buf))
+    {
+        MsgService.sendMsg(buf);
+    }
+    else
+    {
+        // Truncated, send anyway
+        MsgService.sendMsg(buf);
+    }
+}
+
+void LoggerService::log(const __FlashStringHelper* msg)
+{
+    char buf[128];
+    strcpy_P(buf, (PGM_P)msg);
+    log(buf);
+}

@@ -2,12 +2,23 @@
 
 #include <Arduino.h>
 
-// Internal buffer for serial input
-static String content;
+// Internal buffer for serial input (fixed size)
+static char serialBuffer[128];
+static size_t serialBufferIndex = 0;
 
 MsgServiceClass MsgService;
 
 // === PUBLIC API ===
+
+void MsgServiceClass::init()
+{
+    Serial.begin(115200);
+    qHead = 0;
+    qTail = 0;
+    qCount = 0;
+    serialBufferIndex = 0;
+    serialBuffer[0] = '\0';
+}
 
 bool MsgServiceClass::isMsgAvailable() { return qCount > 0; }
 
@@ -16,37 +27,10 @@ Msg* MsgServiceClass::receiveMsg()
     if (qCount == 0)
         return nullptr;
 
-    Msg* msg = queue[qHead];
-    queue[qHead] = nullptr;
+    Msg* msg = &queue[qHead];
     qHead = (qHead + 1) % MSG_SERVICE_QUEUE_SIZE;
     qCount--;
     return msg;
-}
-
-void MsgServiceClass::init()
-{
-    Serial.begin(115200);
-
-    content.reserve(256);
-    content = "";
-
-    // initialize queue
-    for (int i = 0; i < MSG_SERVICE_QUEUE_SIZE; i++) queue[i] = nullptr;
-    qHead = qTail = qCount = 0;
-}
-
-void MsgServiceClass::sendMsg(const String& msg) { Serial.println(msg); }
-
-void MsgServiceClass::sendMsg(const char* msg) { Serial.println(msg); }
-
-bool MsgServiceClass::enqueueMsg(Msg* msg)
-{
-    if (qCount >= MSG_SERVICE_QUEUE_SIZE)
-        return false;
-    queue[qTail] = msg;
-    qTail = (qTail + 1) % MSG_SERVICE_QUEUE_SIZE;
-    qCount++;
-    return true;
 }
 
 bool MsgServiceClass::isMsgAvailable(Pattern& pattern)
@@ -54,7 +38,7 @@ bool MsgServiceClass::isMsgAvailable(Pattern& pattern)
     for (int i = 0; i < qCount; i++)
     {
         int idx = (qHead + i) % MSG_SERVICE_QUEUE_SIZE;
-        if (queue[idx] && pattern.match(*queue[idx]))
+        if (pattern.match(queue[idx]))
             return true;
     }
     return false;
@@ -65,11 +49,11 @@ Msg* MsgServiceClass::receiveMsg(Pattern& pattern)
     for (int i = 0; i < qCount; i++)
     {
         int idx = (qHead + i) % MSG_SERVICE_QUEUE_SIZE;
-        if (queue[idx] && pattern.match(*queue[idx]))
+        if (pattern.match(queue[idx]))
         {
-            Msg* found = queue[idx];
+            Msg* found = &queue[idx];
 
-            // shift elements after idx one position toward head
+            // Shift elements after idx one position toward head
             for (int k = 0; k < qCount - i - 1; k++)
             {
                 int from = (idx + 1 + k) % MSG_SERVICE_QUEUE_SIZE;
@@ -77,8 +61,7 @@ Msg* MsgServiceClass::receiveMsg(Pattern& pattern)
                 queue[to] = queue[from];
             }
 
-            int last = (qHead + qCount - 1) % MSG_SERVICE_QUEUE_SIZE;
-            queue[last] = nullptr;
+            // No need to set to nullptr since Msg is not a pointer
             qCount--;
             qTail = (qHead + qCount) % MSG_SERVICE_QUEUE_SIZE;
 
@@ -86,6 +69,19 @@ Msg* MsgServiceClass::receiveMsg(Pattern& pattern)
         }
     }
     return nullptr;
+}
+
+void MsgServiceClass::sendMsg(const char* msg) { Serial.println(msg); }
+
+bool MsgServiceClass::enqueueMsg(const char* content)
+{
+    if (qCount >= MSG_SERVICE_QUEUE_SIZE)
+        return false;
+
+    queue[qTail] = Msg(content);
+    qTail = (qTail + 1) % MSG_SERVICE_QUEUE_SIZE;
+    qCount++;
+    return true;
 }
 
 // === SERIAL EVENT HANDLER ===
@@ -98,21 +94,19 @@ void serialEvent()
 
         if (ch == '\n')
         {
-            // Ignore empty lines, try to enqueue the message
-            if (content.length() > 0)
+            if (serialBufferIndex > 0)
             {
-                Msg* m = new Msg(content);
-                if (!MsgService.enqueueMsg(m))
+                serialBuffer[serialBufferIndex] = '\0';
+                if (!MsgService.enqueueMsg(serialBuffer))
                 {
-                    // queue full: drop message and free memory
-                    delete m;
+                    // Queue full: silently drop (could log, but avoid recursion)
                 }
             }
-            content = "";  // RESET BUFFER
+            serialBufferIndex = 0;  // Reset buffer
         }
-        else if (ch != '\r')
+        else if (ch != '\r' && serialBufferIndex < sizeof(serialBuffer) - 1)
         {
-            content += ch;
+            serialBuffer[serialBufferIndex++] = ch;
         }
     }
 }

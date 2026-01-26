@@ -6,7 +6,6 @@
 
 #include "config.hpp"
 #include "kernel/CommandType.hpp"
-#include "kernel/MsgService.hpp"
 
 #define MSG_QUEUE_SIZE 10
 #define LCD_BUFFER_SIZE LCD_ROW* LCD_COL + 1
@@ -80,7 +79,7 @@ class Context
     static const CommandEntry commandTable[];
     static const int COMMAND_TABLE_SIZE;
 
-    // enqueue privata
+    // Private enqueue
     bool enqueueCommand(CommandType cmd, uint32_t now);
 
     const char* hangarStateToJson() const;
@@ -135,7 +134,7 @@ class Context
     // SENSORS
     void setDistance(float distance);
 
-    // MSGS
+    // SERIALIZATION
     void serializeData(JsonDocument& doc) const;
 };
 

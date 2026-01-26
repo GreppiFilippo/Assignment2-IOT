@@ -23,7 +23,7 @@ void MsgTask::tick()
         if (!msg)
             break;
 
-        const char* payload = msg->getContent().c_str();
+        const char* payload = msg->getContent();
 
         StaticJsonDocument<128> in;
         if (deserializeJson(in, payload) == DeserializationError::Ok)
@@ -33,13 +33,13 @@ void MsgTask::tick()
                 pContext->tryEnqueueMsg(cmd);
         }
 
-        delete msg;
+        // No delete since Msg is not dynamically allocated
         processed++;
     }
 
     if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
-        // Serialize into a stack buffer then send through MsgService (no dynamic String)
+        // Serialize into a stack buffer then send through MsgService
         StaticJsonDocument<128> out;
         this->pContext->serializeData(out);
         out["alive"] = true;
@@ -48,10 +48,8 @@ void MsgTask::tick()
         size_t len = serializeJson(out, buf, sizeof(buf));
         if (len < sizeof(buf))
         {
-            buf[len] = '\0';
             pMsgService->sendMsg(buf);
         }
         lastJsonSent = millis();
     }
-} 
-
+}

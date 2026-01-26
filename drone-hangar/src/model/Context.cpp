@@ -1,12 +1,8 @@
-#include "model/Context.hpp"
-
 #include "Context.hpp"
+
 #include "config.hpp"
 
-/**
- * @brief Command table mapping command names to CommandType enums.
- *
- */
+// COMMAND TABLE
 const CommandEntry Context::commandTable[] = {{"OPEN", CommandType::OPEN}};
 const int Context::COMMAND_TABLE_SIZE =
     sizeof(Context::commandTable) / sizeof(Context::commandTable[0]);
@@ -50,6 +46,7 @@ void Context::setAlarm(bool active) { alarmActive = active; }
 bool Context::isAlarmActive() const { return alarmActive; }
 void Context::setPreAlarm(bool active) { preAlarmActive = active; }
 bool Context::isPreAlarmActive() const { return preAlarmActive; }
+void Context::setHangarState(HangarState state) { hangarState = state; }
 
 // LED
 void Context::blink() { ledBlinking = true; }
@@ -64,8 +61,11 @@ void Context::setLCDMessage(const char* msg)
         lcdMessage[0] = '\0';
         return;
     }
-    strncpy(lcdMessage, msg, sizeof(lcdMessage) - 1);
-    lcdMessage[sizeof(lcdMessage) - 1] = '\0';
+    size_t len = strlen(msg);
+    if (len >= sizeof(lcdMessage))
+        len = sizeof(lcdMessage) - 1;
+    memcpy(lcdMessage, msg, len);
+    lcdMessage[len] = '\0';
 }
 const char* Context::getLCDMessage() const { return lcdMessage; }
 
@@ -95,24 +95,22 @@ bool Context::enqueueCommand(CommandType cmd, uint32_t now)
 
 bool Context::consumeCommand(CommandType cmd)
 {
-    int scanned = 0;
-    while (scanned < commandCount)
+    for (int i = 0; i < commandCount; i++)
     {
-        int index = (commandHead + scanned) % MSG_QUEUE_SIZE;
+        int index = (commandHead + i) % MSG_QUEUE_SIZE;
         if (commandQueue[index].cmd == cmd)
         {
-            if (scanned != 0)
+            // Remove by shifting
+            for (int j = i; j < commandCount - 1; j++)
             {
-                QueuedCommand temp = commandQueue[index];
-                commandQueue[index] = commandQueue[commandHead];
-                commandQueue[commandHead] = temp;
+                int from = (commandHead + j + 1) % MSG_QUEUE_SIZE;
+                int to = (commandHead + j) % MSG_QUEUE_SIZE;
+                commandQueue[to] = commandQueue[from];
             }
-
-            commandHead = (commandHead + 1) % MSG_QUEUE_SIZE;
             commandCount--;
+            commandTail = (commandHead + commandCount) % MSG_QUEUE_SIZE;
             return true;
         }
-        scanned++;
     }
     return false;
 }
@@ -139,14 +137,9 @@ void Context::cleanupExpired(uint32_t now)
 bool Context::tryEnqueueMsg(const char* msg)
 {
     if (!msg)
-    {
         return false;
-    }
 
-    while (*msg == ' ' || *msg == '\t')
-    {
-        msg++;
-    }
+    while (*msg == ' ' || *msg == '\t') msg++;
 
     for (int i = 0; i < COMMAND_TABLE_SIZE; i++)
     {
@@ -159,30 +152,28 @@ bool Context::tryEnqueueMsg(const char* msg)
     return false;
 }
 
-void Context::setDistance(float distance) { this->currentDistance = distance; }
-void Context::setDroneState(DroneState state) { this->droneState = state; }
-void Context::setHangarState(HangarState state) { this->hangarState = state; }
+void Context::setDistance(float distance) { currentDistance = distance; }
+void Context::setDroneState(DroneState state) { droneState = state; }
 
 void Context::serializeData(JsonDocument& doc) const
 {
     doc[JSON_HANGAR_STATE] = hangarStateToJson();
     doc[JSON_DRONE_STATE] = droneStateToJson();
 
-    if (this->currentDistance >= 0)
+    if (currentDistance >= 0)
     {
         char distBuf[16];
-        dtostrf(this->currentDistance, 0, 2, distBuf);  // two decimal places
+        dtostrf(currentDistance, 0, 2, distBuf);
         doc[JSON_DISTANCE] = distBuf;
     }
 }
 
 const char* Context::hangarStateToJson() const
 {
-    switch (this->hangarState)
+    switch (hangarState)
     {
         case ALARM:
             return HANGAR_ALARM_STATE;
-
         case NORMAL:
         case TRACKING_PRE_ALARM:
         case PREALARM:
@@ -194,17 +185,14 @@ const char* Context::hangarStateToJson() const
 
 const char* Context::droneStateToJson() const
 {
-    switch (this->droneState)
+    switch (droneState)
     {
         case REST:
             return DRONE_REST_STATE;
-
         case TAKING_OFF:
             return DRONE_TAKING_OFF_STATE;
-
         case OPERATING:
             return DRONE_OPERATING_STATE;
-
         case LANDING:
             return DRONE_LANDING_STATE;
         default:
