@@ -10,22 +10,52 @@
 class Msg
 {
    private:
-    String content;
+    static const int MAX_CONTENT_LEN = 256;
+    char content[MAX_CONTENT_LEN];
 
    public:
     /**
-     * @brief Construct a new Msg object.
+     * @brief Construct a new Msg object from Arduino String
      *
-     * @param content the message content
+     * @param content_str the message content
      */
-    Msg(const String& content) : content(content) {}
+    Msg(const String& content_str)
+    {
+        if (!content_str.c_str())
+        {
+            content[0] = '\0';
+        }
+        else
+        {
+            strncpy(content, content_str.c_str(), MAX_CONTENT_LEN - 1);
+            content[MAX_CONTENT_LEN - 1] = '\0';
+        }
+    }
 
     /**
-     * @brief Get the message content.
+     * @brief Construct a new Msg object from C-string.
      *
-     * @return const String& reference to the message content
+     * @param content_cstr the C-string message content
      */
-    const String& getContent() const { return content; }
+    Msg(const char* content_cstr)
+    {
+        if (!content_cstr)
+        {
+            content[0] = '\0';
+        }
+        else
+        {
+            strncpy(content, content_cstr, MAX_CONTENT_LEN - 1);
+            content[MAX_CONTENT_LEN - 1] = '\0';
+        }
+    }
+
+    /**
+     * @brief Get the message content as C-string.
+     *
+     * @return const char* pointer to the message content
+     */
+    const char* getContent() const { return content; }
 };
 
 /**

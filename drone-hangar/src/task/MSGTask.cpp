@@ -5,6 +5,11 @@
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
+// Use static/global JSON documents and buffer to avoid large stack usage on AVR
+static StaticJsonDocument<128> _jsonIn;
+static StaticJsonDocument<128> _jsonOut;
+static char _jsonBuf[128];
+
 MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 {
     this->pContext = pContext;
@@ -23,12 +28,12 @@ void MsgTask::tick()
         if (!msg)
             break;
 
-        const char* payload = msg->getContent().c_str();
+        const char* payload = msg->getContent();
 
-        StaticJsonDocument<128> in;
-        if (deserializeJson(in, payload) == DeserializationError::Ok)
+        _jsonIn.clear();
+        if (deserializeJson(_jsonIn, payload) == DeserializationError::Ok)
         {
-            const char* cmd = in["command"] | "";
+            const char* cmd = _jsonIn["command"] | "";
             if (*cmd)
                 pContext->tryEnqueueMsg(cmd);
         }
@@ -39,19 +44,18 @@ void MsgTask::tick()
 
     if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
-        // Serialize into a stack buffer then send through MsgService (no dynamic String)
-        StaticJsonDocument<128> out;
-        this->pContext->serializeData(out);
-        out["alive"] = true;
+        // Use global buffer to avoid stack allocation
+        _jsonOut.clear();
+        this->pContext->serializeData(_jsonOut);
+        _jsonOut["alive"] = true;
 
-        char buf[128];
-        size_t len = serializeJson(out, buf, sizeof(buf));
-        if (len < sizeof(buf))
+        size_t len = serializeJson(_jsonOut, _jsonBuf, sizeof(_jsonBuf));
+        if (len < sizeof(_jsonBuf))
         {
-            buf[len] = '\0';
-            pMsgService->sendMsg(buf);
+            _jsonBuf[len] = '\0';
+            pMsgService->sendMsg(_jsonBuf);
         }
         lastJsonSent = millis();
     }
-} 
+}
 
