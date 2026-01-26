@@ -9,7 +9,7 @@ CommandQueue::CommandQueue() : head(0), tail(0), count(0) {}
 bool CommandQueue::enqueue(CommandType cmd, uint32_t now)
 {
     bool success = false;
-    noInterrupts();  // protezione da ISR
+    noInterrupts();
     if (count < CMD_QUEUE_SIZE)
     {
         queue[tail].cmd = cmd;
