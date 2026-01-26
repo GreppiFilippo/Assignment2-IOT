@@ -27,6 +27,12 @@ class LCD
     LCD(uint8_t addr, uint8_t cols, uint8_t rows);
 
     /**
+     * @brief Destroy the LCD object
+     *
+     */
+    ~LCD();
+
+    /**
      * @brief Print a message to the LCD, handling word wrapping
      *
      * @param message The message to print
