@@ -68,4 +68,9 @@
 /* ===== Command definitions ===== */
 #define OPEN_CMD "OPEN DOOR"  // Command to open the hangar door
 
+/* ===== JSON KEYS ===== */
+#define JSON_HANGAR_STATE "hangar_state"
+#define JSON_DRONE_STATE "drone_state"
+#define JSON_DISTANCE "distance"
+
 #endif

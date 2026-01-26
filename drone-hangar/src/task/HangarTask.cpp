@@ -9,22 +9,16 @@ HangarTask::HangarTask(TempSensor* tempSensor, Button* resetButton, Light* L3, C
     setState(NORMAL);
 }
 
-void HangarTask::setHangarState(const String& state)
-{
-    this->pContext->setJsonField("hangar_state", state);
-}
-
 void HangarTask::tick()
 {
     this->temperature = tempSensor->getTemperature();
     switch (state)
     {
         case NORMAL:
-            this->setHangarState(HANGAR_NORMAL_STATE);
-
             if (this->checkAndSetJustEntered())
             {
                 Logger.log(F("[HT] NORMAL"));
+                this->pContext->setHangarState(NORMAL);
                 this->pContext->setPreAlarm(false);
                 this->pContext->setAlarm(false);
                 this->L3->switchOff();
@@ -36,10 +30,10 @@ void HangarTask::tick()
             }
             break;
         case TRACKING_PRE_ALARM:
-            this->setHangarState(HANGAR_NORMAL_STATE);
-
             if (this->checkAndSetJustEntered())
             {
+                this->pContext->setHangarState(NORMAL);
+
                 Logger.log(F("[HT] TRACKING_PRE_ALARM"));
                 this->startTime = millis();
             }
@@ -54,10 +48,10 @@ void HangarTask::tick()
             }
             break;
         case PREALARM:
-            this->setHangarState(HANGAR_NORMAL_STATE);
-
             if (this->checkAndSetJustEntered())
             {
+                this->pContext->setHangarState(NORMAL);
+
                 Logger.log(F("[HT] PREALARM"));
                 this->pContext->setPreAlarm(true);
             }
@@ -72,10 +66,11 @@ void HangarTask::tick()
             }
             break;
         case TRACKING_ALARM:
-            this->setHangarState(HANGAR_NORMAL_STATE);
 
             if (this->checkAndSetJustEntered())
             {
+                this->pContext->setHangarState(NORMAL);
+
                 Logger.log(F("[HT] TRACKING_ALARM"));
                 this->startTime = millis();
             }
@@ -90,9 +85,10 @@ void HangarTask::tick()
             }
             break;
         case ALARM:
-            this->setHangarState(HANGAR_ALARM_STATE);
             if (this->checkAndSetJustEntered())
             {
+                this->pContext->setHangarState(ALARM);
+
                 Logger.log(F("[HT] ALARM"));
                 this->pContext->setPreAlarm(false);
                 this->pContext->setAlarm(true);
@@ -107,7 +103,7 @@ void HangarTask::tick()
     }
 }
 
-void HangarTask::setState(State state)
+void HangarTask::setState(HangarState state)
 {
     this->state = state;
     stateTimestamp = millis();

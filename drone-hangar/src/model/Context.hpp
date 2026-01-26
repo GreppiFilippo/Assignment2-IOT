@@ -17,9 +17,29 @@ struct CommandEntry
     CommandType type;
 };
 
+typedef enum
+{
+    REST,
+    TAKING_OFF,
+    OPERATING,
+    LANDING
+} DroneState;
+
+typedef enum
+{
+    NORMAL,
+    TRACKING_PRE_ALARM,
+    PREALARM,
+    TRACKING_ALARM,
+    ALARM
+} HangarState;
+
 class Context
 {
    private:
+    HangarState hangarState;
+    DroneState droneState;
+
     // DOOR FLAGS
     uint8_t openDoorRequested : 1;
     uint8_t closeDoorRequested : 1;
@@ -56,15 +76,15 @@ class Context
     int commandTail;
     int commandCount;
 
-    // JSON
-    JsonDocument jsonDoc;
-
     // COMMAND TABLE
     static const CommandEntry commandTable[];
     static const int COMMAND_TABLE_SIZE;
 
     // enqueue privata
     bool enqueueCommand(CommandType cmd, uint32_t now);
+
+    const char* hangarStateToJson() const;
+    const char* droneStateToJson() const;
 
    public:
     Context();
@@ -83,6 +103,8 @@ class Context
     bool isAlarmActive() const;
     void setPreAlarm(bool active);
     bool isPreAlarmActive() const;
+
+    void setHangarState(HangarState state);
 
     // LED
     void blink();
@@ -103,19 +125,18 @@ class Context
     void setDroneIn(bool state);
     bool isDroneIn() const;
 
+    void setDroneState(DroneState state);
+
     // COMMAND
     bool tryEnqueueMsg(const char* msg);
     bool consumeCommand(CommandType cmd);
     void cleanupExpired(uint32_t now);
 
-    // JSON
-    void setJsonField(const char* key, const char* value);
-    void setJsonField(const char* key, float value);
-    void setJsonField(const char* key, int value);
-    void setJsonField(const char* key, bool value);
-    void removeJsonField(const char* key);
-    String buildJSON() const;
-    void clearJsonFields();
+    // SENSORS
+    void setDistance(float distance);
+
+    // MSGS
+    void serializeData(JsonDocument& doc) const;
 };
 
 #endif

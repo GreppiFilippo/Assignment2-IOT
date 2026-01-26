@@ -51,8 +51,12 @@ class Pattern
 class MsgServiceClass
 {
    public:
-    Msg* currentMsg = nullptr;
-    bool msgAvailable = false;
+    // Single-slot removed in favor of a small circular queue
+    static const int MSG_SERVICE_QUEUE_SIZE = 8;
+    Msg* queue[MSG_SERVICE_QUEUE_SIZE];
+    int qHead = 0;
+    int qTail = 0;
+    int qCount = 0;
 
    public:
     /**
@@ -98,6 +102,12 @@ class MsgServiceClass
      * @param msg the message text to send
      */
     void sendMsg(const String& msg);
+
+    /**
+     * Enqueue an already-constructed Msg into the receive queue.
+     * Returns true if enqueued, false if queue was full.
+     */
+    bool enqueueMsg(Msg* msg);
 };
 
 extern MsgServiceClass MsgService;

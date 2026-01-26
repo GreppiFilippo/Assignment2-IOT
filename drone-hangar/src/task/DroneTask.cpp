@@ -12,20 +12,15 @@ DroneTask::DroneTask(Context* pContext, Light* L1, PresenceSensor* presenceSenso
     this->presenceSensor = presenceSensor;
 }
 
-void DroneTask::sendState(const String& state)
-{
-    this->pContext->setJsonField("drone_state", state);
-}
-
 void DroneTask::tick()
 {
     switch (this->state)
     {
         case REST:
-            sendState(DRONE_REST_STATE);
-
             if (checkAndSetJustEntered())
             {
+                this->pContext->setDroneState(DroneState::REST);
+
                 pContext->closeDoor();
                 L1->switchOn();
                 pContext->stopBlink();
@@ -41,11 +36,11 @@ void DroneTask::tick()
             break;
 
         case TAKING_OFF:
-            Logger.log(F(DRONE_TAKING_OFF_STATE));
-            sendState(DRONE_TAKING_OFF_STATE);
 
             if (checkAndSetJustEntered())
             {
+                this->pContext->setDroneState(DroneState::TAKING_OFF);
+
                 pContext->openDoor();
                 pContext->setLCDMessage(LCD_TAKING_OFF_STATE);
                 pContext->blink();
@@ -62,11 +57,10 @@ void DroneTask::tick()
             break;
 
         case OPERATING:
-            Logger.log(F(DRONE_OPERATING_STATE));
-            sendState(DRONE_OPERATING_STATE);
 
             if (checkAndSetJustEntered())
             {
+                this->pContext->setDroneState(DroneState::OPERATING);
                 pContext->closeDoor();
                 L1->switchOff();
                 pContext->stopBlink();
@@ -84,11 +78,9 @@ void DroneTask::tick()
             break;
 
         case LANDING:
-            Logger.log(F(DRONE_LANDING_STATE));
-            sendState(DRONE_LANDING_STATE);
-
             if (checkAndSetJustEntered())
             {
+                this->pContext->setDroneState(DroneState::LANDING);
                 pContext->openDoor();
                 pContext->setLCDMessage(LCD_LANDING_STATE);
                 pContext->blink();
@@ -106,7 +98,7 @@ void DroneTask::tick()
     }
 }
 
-void DroneTask::setState(State state)
+void DroneTask::setState(DroneState state)
 {
     this->state = state;
     this->stateTimestamp = millis();

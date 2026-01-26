@@ -17,25 +17,16 @@ class HangarTask : public Task
     Light* L3;
     Context* pContext;
 
+    HangarState state;
     long stateTimestamp;
     bool justEntered;
     float temperature;
     unsigned long startTime;
 
-    enum State
-    {
-        NORMAL,
-        TRACKING_PRE_ALARM,
-        PREALARM,
-        TRACKING_ALARM,
-        ALARM
-    } state;
-
-    void setState(State state);
+    void setState(HangarState state);
     long elapsedTimeInState();
     void log(const String& msg);
     bool checkAndSetJustEntered();
-    void setHangarState(const String& state);
 
    public:
     HangarTask(TempSensor* tempSensor, Button* resetButton, Light* L3, Context* pContext);

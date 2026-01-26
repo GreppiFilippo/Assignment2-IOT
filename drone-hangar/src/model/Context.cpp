@@ -5,8 +5,6 @@
 #include "Context.hpp"
 #include "config.hpp"
 
-#define JSON_DOC_SIZE 256
-
 /**
  * @brief Command table mapping command names to CommandType enums.
  *
@@ -163,16 +161,52 @@ bool Context::tryEnqueueMsg(const char* msg)
     return false;
 }
 
-void Context::setJsonField(const char* key, const char* value) { jsonDoc[key] = value; }
-void Context::setJsonField(const char* key, float value) { jsonDoc[key] = value; }
-void Context::setJsonField(const char* key, int value) { jsonDoc[key] = value; }
-void Context::setJsonField(const char* key, bool value) { jsonDoc[key] = value; }
-void Context::removeJsonField(const char* key) { jsonDoc.remove(key); }
+void setDistance(float distance);
+void Context::setDistance(float distance) { this->currentDistance = distance; }
 
-String Context::buildJSON() const
+void setDroneState(DroneState state);
+void Context::setDroneState(DroneState state) { this->droneState = state; }
+void Context::setHangarState(HangarState state) { this->hangarState = state; }
+
+void Context::serializeData(JsonDocument& doc) const
 {
-    String out;
-    serializeJson(jsonDoc, out);
-    return out;
+    doc[JSON_HANGAR_STATE] = hangarStateToJson();
+    doc[JSON_DRONE_STATE] = droneStateToJson();
+    doc[JSON_DISTANCE] = this->currentDistance;
 }
-void Context::clearJsonFields() { jsonDoc.clear(); }
+
+const char* Context::hangarStateToJson() const
+{
+    switch (this->hangarState)
+    {
+        case ALARM:
+            return HANGAR_ALARM_STATE;
+
+        case NORMAL:
+        case TRACKING_PRE_ALARM:
+        case PREALARM:
+        case TRACKING_ALARM:
+        default:
+            return HANGAR_NORMAL_STATE;
+    }
+}
+
+const char* Context::droneStateToJson() const
+{
+    switch (this->droneState)
+    {
+        case REST:
+            return DRONE_REST_STATE;
+
+        case TAKING_OFF:
+            return DRONE_TAKING_OFF_STATE;
+
+        case OPERATING:
+            return DRONE_OPERATING_STATE;
+
+        case LANDING:
+            return DRONE_LANDING_STATE;
+        default:
+            return DRONE_REST_STATE;
+    }
+}

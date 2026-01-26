@@ -20,25 +20,16 @@ class DroneTask : public Task
    private:
     Context* pContext;
 
-    enum State
-    {
-        REST,
-        TAKING_OFF,
-        OPERATING,
-        LANDING
-    } state;
-
+    DroneState state;
     long stateTimestamp;
     bool justEntered;
     Light* L1;
     PresenceSensor* presenceSensor;
 
-    void setState(State state);
+    void setState(DroneState state);
     long elapsedTimeInState();
-    void log(const String& msg);
     bool checkAndSetJustEntered();
     bool receiveOpenCMD();
-    void sendState(const String& state);
 
    public:
     /**

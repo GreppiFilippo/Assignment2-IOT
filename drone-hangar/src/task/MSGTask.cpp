@@ -11,52 +11,39 @@ MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
     this->pMsgService = pMsgService;
     this->lastJsonSent = millis();
 }
-
 void MsgTask::tick()
 {
-    // Cleanup expired commands
     pContext->cleanupExpired(millis());
 
-    // === INPUT: receive ONE message per tick (safe) ===
-    if (pMsgService->isMsgAvailable())
+    uint8_t processed = 0;
+    while (pMsgService->isMsgAvailable() && processed < 5)
     {
         Msg* msg = pMsgService->receiveMsg();
-        if (msg)
+        if (!msg)
+            break;
+
+        const char* payload = msg->getContent().c_str();
+
+        StaticJsonDocument<128> in;
+        if (deserializeJson(in, payload) == DeserializationError::Ok)
         {
-            const String& content = msg->getContent();
-            Logger.log("MSG received: " + content);
-
-            JsonDocument doc;
-            DeserializationError err = deserializeJson(doc, content);
-
-            if (err)
-            {
-                Logger.log("WARNING: Invalid JSON received");
-            }
-            else
-            {
-                const char* cmd = doc["command"] | "";
-                if (*cmd)
-                {
-                    if (pContext->tryEnqueueMsg(cmd))
-                        Logger.log("Command enqueued: " + String(cmd));
-                    else
-                        Logger.log("Unknown command: " + String(cmd));
-                }
-            }
-
-            delete msg;
+            const char* cmd = in["command"] | "";
+            if (*cmd)
+                pContext->tryEnqueueMsg(cmd);
         }
+
+        delete msg;
+        processed++;
     }
 
-    // === OUTPUT: periodic JSON state ===
     if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
-        pContext->clearJsonFields();
-        pContext->setJsonField("alive", true);
+        StaticJsonDocument<256> out;
+        this->pContext->serializeData(out);
 
-        String json = pContext->buildJSON();
-        pMsgService->sendMsg(json);
+        char buf[256];
+        serializeJson(out, buf, sizeof(buf));
+        pMsgService->sendMsg(buf);
 
         lastJsonSent = millis();
     }
