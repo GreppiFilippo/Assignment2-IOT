@@ -38,7 +38,7 @@ void MsgTask::tick()
 
     if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
-        // Serialize into a stack buffer then send through MsgService (no dynamic String)
+        /* // Serialize into a stack buffer then send through MsgService (no dynamic String)
         StaticJsonDocument<512> out;
         this->pContext->serializeData(out);
         out["alive"] = true;
@@ -49,7 +49,11 @@ void MsgTask::tick()
         {
             buf[len] = '\0';
             pMsgService->sendMsg(buf);
-        }
+        } */
+
+        pMsgService->sendMsg(
+            "djqaoidjqaiofdjaoidja woie aoijnedoiawedjoiawn eaweoied jqweoiejqwoiej "
+            "h30iehjaw0oiedhjaW0OI8EH");
 
         lastJsonSent = millis();
     }
