@@ -40,7 +40,7 @@ void MsgTask::tick()
     {
         StaticJsonDocument<256> out;
         this->pContext->serializeData(out);
-        out["alive"] = true;
+        out["alive"] = "true";
 
         char buf[256];
         serializeJson(out, buf, sizeof(buf));

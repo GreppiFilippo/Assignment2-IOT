@@ -5,6 +5,9 @@
 #include "Context.hpp"
 #include "config.hpp"
 
+// dtostrf is provided by avr-libc for float->string formatting on Arduino
+extern "C" char* dtostrf(double __val, signed char __width, unsigned char __prec, char* __s);
+
 /**
  * @brief Command table mapping command names to CommandType enums.
  *
@@ -172,7 +175,13 @@ void Context::serializeData(JsonDocument& doc) const
 {
     doc[JSON_HANGAR_STATE] = hangarStateToJson();
     doc[JSON_DRONE_STATE] = droneStateToJson();
-    doc[JSON_DISTANCE] = this->currentDistance;
+
+    if (this->currentDistance >= 0)
+    {
+        char distBuf[16];
+        dtostrf(this->currentDistance, 0, 2, distBuf);  // two decimal places
+        doc[JSON_DISTANCE] = distBuf;
+    }
 }
 
 const char* Context::hangarStateToJson() const

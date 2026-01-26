@@ -37,6 +37,8 @@ void MsgServiceClass::init()
 
 void MsgServiceClass::sendMsg(const String& msg) { Serial.println(msg); }
 
+void MsgServiceClass::sendMsg(const char* msg) { Serial.println(msg); }
+
 bool MsgServiceClass::enqueueMsg(Msg* msg)
 {
     if (qCount >= MSG_SERVICE_QUEUE_SIZE)

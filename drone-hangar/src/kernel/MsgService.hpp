@@ -102,6 +102,10 @@ class MsgServiceClass
      * @param msg the message text to send
      */
     void sendMsg(const String& msg);
+    /**
+     * Send a C-string message without constructing a temporary String.
+     */
+    void sendMsg(const char* msg);
 
     /**
      * Enqueue an already-constructed Msg into the receive queue.

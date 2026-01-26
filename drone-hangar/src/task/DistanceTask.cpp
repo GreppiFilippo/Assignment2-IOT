@@ -15,6 +15,10 @@ void DistanceTask::tick()
     switch (state)
     {
         case IDLE:
+            if (this->checkAndSetJustEntered())
+            {
+                this->pContext->setDistance(-1);  // invalid distance
+            }
             if (this->pContext->landingCheckRequested())
             {
                 setState(LANDING_MONITORING);
