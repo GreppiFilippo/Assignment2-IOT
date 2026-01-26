@@ -30,13 +30,4 @@ void LCD::print(const char* message)
     }
 }
 
-LCD::~LCD()
-{
-    if (this->_lcd)
-    {
-        delete this->_lcd;
-        this->_lcd = nullptr;
-    }
-}
-
 void LCD::clear() { this->_lcd->clear(); }
