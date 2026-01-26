@@ -11,7 +11,8 @@ MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
     this->pMsgService = pMsgService;
     this->lastJsonSent = millis();
 }
-void MsgTask::tick()
+
+/* void MsgTask::tick()
 {
     pContext->cleanupExpired(millis());
 
@@ -38,7 +39,7 @@ void MsgTask::tick()
 
     if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
-        /* // Serialize into a stack buffer then send through MsgService (no dynamic String)
+        // Serialize into a stack buffer then send through MsgService (no dynamic String)
         StaticJsonDocument<512> out;
         this->pContext->serializeData(out);
         out["alive"] = true;
@@ -49,11 +50,29 @@ void MsgTask::tick()
         {
             buf[len] = '\0';
             pMsgService->sendMsg(buf);
-        } */
+        }
 
         pMsgService->sendMsg(
             "djqaoidjqaiofdjaoidja woie aoijnedoiawedjoiawn eaweoied jqweoiejqwoiej "
             "h30iehjaw0oiedhjaW0OI8EH");
+
+        lastJsonSent = millis();
+    }
+} */
+
+void MsgTask::tick()
+{
+    if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
+    {
+        // Serialize into a stack buffer then send through MsgService (no dynamic String)
+        StaticJsonDocument<512> out;
+        this->pContext->serializeData(out);
+        out["alive"] = true;
+
+        String str;
+        serializeJson(out, str);
+
+        Logger.log(str);
 
         lastJsonSent = millis();
     }
