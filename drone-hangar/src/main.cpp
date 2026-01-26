@@ -56,8 +56,8 @@ void setup()
         new DroneTask(pContext, pHWPlatform->getL1(), pHWPlatform->getPresenceSensor());
     pDroneTask->init(DRONE_TASK_PERIOD);
 
-    Task* pLcdTask = new LCDTask(pHWPlatform->getLCD(), pContext);
-    pLcdTask->init(LCD_TASK_PERIOD);
+    // Task* pLcdTask = new LCDTask(pHWPlatform->getLCD(), pContext);
+    // pLcdTask->init(LCD_TASK_PERIOD);
 
     Task* pMSGTask = new MsgTask(pContext, &MsgService);
     pMSGTask->init(MSG_TASK_PERIOD);
@@ -81,7 +81,7 @@ void setup()
     sched.addTask(pDoorControlTask);
     sched.addTask(pDistanceTask);
     sched.addTask(pDroneTask);
-    sched.addTask(pLcdTask);
+    //sched.addTask(pLcdTask);
     sched.addTask(pMSGTask);
 
     Logger.log(":::::: Drone Hangar ::::::");
