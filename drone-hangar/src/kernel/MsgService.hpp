@@ -10,7 +10,7 @@
 class Msg
 {
    private:
-    static const int MAX_CONTENT_LEN = 256;
+    static const int MAX_CONTENT_LEN = 128;
     char content[MAX_CONTENT_LEN];
 
    public:
@@ -82,7 +82,7 @@ class MsgServiceClass
 {
    public:
     // Single-slot removed in favor of a small circular queue
-    static const int MSG_SERVICE_QUEUE_SIZE = 8;
+    static const int MSG_SERVICE_QUEUE_SIZE = 4;
     Msg* queue[MSG_SERVICE_QUEUE_SIZE];
     int qHead = 0;
     int qTail = 0;

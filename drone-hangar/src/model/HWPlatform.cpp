@@ -54,7 +54,7 @@ void HWPlatform::test()
 {
     static int testStep = 0;
 
-    Logger.log("=== HW TEST STEP " + String(testStep) + " ===");
+    char _buf[64]; snprintf(_buf, sizeof(_buf), "=== HW TEST STEP %d ===", testStep); Logger.log(_buf);
 
     switch (testStep)
     {
@@ -117,7 +117,7 @@ void HWPlatform::test()
         {
             Logger.log("Testing Temp Sensor...");
             int temp = tempSensor->getTemperature();
-            Logger.log("Temperature: " + String(temp) + " C");
+            char _tb[32]; snprintf(_tb, sizeof(_tb), "Temperature: %d C", temp); Logger.log(_tb);
             break;
         }
 
@@ -125,7 +125,7 @@ void HWPlatform::test()
         {
             Logger.log("Testing Sonar...");
             float distance = proximitySensor->getDistance();
-            Logger.log("Distance: " + String(distance) + " cm");
+            char _db[32]; snprintf(_db, sizeof(_db), "Distance: %.2f cm", distance); Logger.log(_db);
             break;
         }
 
@@ -133,7 +133,7 @@ void HWPlatform::test()
         {
             Logger.log("Testing PIR...");
             bool presence = presenceSensor->isDetected();
-            Logger.log("Presence detected: " + String(presence ? "YES" : "NO"));
+            Logger.log(presence ? "Presence detected: YES" : "Presence detected: NO");
             break;
         }
 
@@ -141,7 +141,7 @@ void HWPlatform::test()
         {
             Logger.log("Testing Button...");
             bool pressed = button->isPressed();
-            Logger.log("Button pressed: " + String(pressed ? "YES" : "NO"));
+            Logger.log(pressed ? "Button pressed: YES" : "Button pressed: NO");
             break;
         }
 
