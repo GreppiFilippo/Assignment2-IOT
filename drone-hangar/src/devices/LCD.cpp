@@ -1,7 +1,6 @@
 #include "LCD.hpp"
 
 #include "config.hpp"
-#include "kernel/Logger.hpp"
 
 LCD::LCD(uint8_t addr, uint8_t cols, uint8_t rows)
 {
