@@ -1,12 +1,7 @@
 #include "model/Context.hpp"
 
-#include <string.h>
-
 #include "Context.hpp"
 #include "config.hpp"
-
-// dtostrf is provided by avr-libc for float->string formatting on Arduino
-extern "C" char* dtostrf(double __val, signed char __width, unsigned char __prec, char* __s);
 
 /**
  * @brief Command table mapping command names to CommandType enums.
@@ -164,10 +159,7 @@ bool Context::tryEnqueueMsg(const char* msg)
     return false;
 }
 
-void setDistance(float distance);
 void Context::setDistance(float distance) { this->currentDistance = distance; }
-
-void setDroneState(DroneState state);
 void Context::setDroneState(DroneState state) { this->droneState = state; }
 void Context::setHangarState(HangarState state) { this->hangarState = state; }
 

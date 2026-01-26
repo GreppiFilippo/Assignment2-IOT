@@ -3,7 +3,7 @@
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 #include "kernel/MsgService.hpp"
-#include "kernel/Skedulone.hpp"
+#include "kernel/Scheduler.hpp"
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
 #include "model/HWPlatform.hpp"
@@ -29,7 +29,7 @@
 #include "task/TestHWTask.hpp"
 #endif
 
-Skedulone sched;
+Scheduler sched;
 HWPlatform* pHWPlatform;
 Context* pContext;
 
@@ -81,7 +81,7 @@ void setup()
     sched.addTask(pDoorControlTask);
     sched.addTask(pDistanceTask);
     sched.addTask(pDroneTask);
-    //sched.addTask(pLcdTask);
+    // sched.addTask(pLcdTask);
     sched.addTask(pMSGTask);
 
     Logger.log(":::::: Drone Hangar ::::::");
