@@ -75,7 +75,7 @@ void HangarTask::tick()
                 pContext->setPreAlarm(false);
                 pContext->setAlarm(true);
                 L3->switchOn();
-                Logger.log(F("[HT] ALARM STATE"));
+                Logger.log(F("[HT] ALARM"));
             }
             if (resetButton->isPressed())
                 setState(NORMAL);

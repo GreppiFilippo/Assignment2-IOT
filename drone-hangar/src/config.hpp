@@ -60,7 +60,7 @@
 // https://arduinojson.org/v6/assistant
 
 #define JSON_OUT_SIZE 96  // Size of the JSON document for output messages
-#define JSON_IN_SIZE 64   // Size of the JSON document for input messages
+#define JSON_IN_SIZE 8    // Size of the JSON document for input messages
 /* ===== Drone state definitions serial ===== */
 #define DRONE_STATE_KEY "drone"  // Key for drone state in messages
 // Drone state values

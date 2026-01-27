@@ -28,16 +28,10 @@ void DroneTask::tick()
 
             pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE : LCD_REST_STATE);
 
-            if (pContext->consumeCommand(CommandType::OPEN))
+            if (pContext->consumeCommand(CommandType::OPEN) &&
+                !(pContext->isPreAlarmActive() || pContext->isAlarmActive()))
             {
-                if (!(pContext->isPreAlarmActive() || pContext->isAlarmActive()))
-                {
-                    setState(TAKING_OFF);
-                }
-                else
-                {
-                    Logger.log(F("CMD REJECTED: ALARM"));
-                }
+                setState(TAKING_OFF);
             }
             break;
 
@@ -74,17 +68,11 @@ void DroneTask::tick()
             pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE
                                                               : LCD_OPERATING_STATE);
 
-            if (pContext->consumeCommand(CommandType::OPEN))
+            if (pContext->consumeCommand(CommandType::OPEN) &&
+                !(pContext->isPreAlarmActive() || pContext->isAlarmActive()) &&
+                presenceSensor->isDetected())
             {
-                if (!(pContext->isPreAlarmActive() || pContext->isAlarmActive()) &&
-                    presenceSensor->isDetected())
-                {
-                    setState(LANDING);
-                }
-                else
-                {
-                    Logger.log(F("CMD REJECTED: COND"));
-                }
+                setState(LANDING);
             }
             break;
 
