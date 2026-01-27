@@ -8,7 +8,7 @@
 /**
  * @brief Tabella dei comandi (mappa i nomi alle enum)
  */
-const CommandEntry Context::commandTable[] = {{"OPEN", CommandType::OPEN}};
+const CommandEntry Context::commandTable[] = {{OPEN_CMD, CommandType::OPEN}};
 
 const int Context::COMMAND_TABLE_SIZE = sizeof(Context::commandTable) / sizeof(commandTable[0]);
 

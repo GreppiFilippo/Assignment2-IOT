@@ -32,11 +32,18 @@ void MsgTask::tick()
                 if (this->jsonIn.containsKey(COMMAND))
                 {
                     const char* cmd = this->jsonIn[COMMAND];
+                    Logger.log(F("Received command: "));
+                    Logger.log(cmd);
                     if (this->pContext->tryEnqueueMsg(cmd))
                     {
                         Logger.log(F("Command enqueued"));
                     }
                 }
+            }
+            else
+            {
+                Logger.log(F("JSON Err: "));
+                Logger.log(error.c_str());
             }
             // NOTA: Nessun 'delete msg' qui.
         }
