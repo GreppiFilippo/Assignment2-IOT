@@ -2,13 +2,15 @@
 #define __HANGAR_TASK__
 
 #include <Arduino.h>
+
 #include "devices/Button.hpp"
 #include "devices/Light.hpp"
 #include "devices/TempSensor.hpp"
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
 
-class HangarTask : public Task {
+class HangarTask : public Task
+{
    private:
     TempSensor* tempSensor;
     Button* resetButton;
@@ -20,7 +22,8 @@ class HangarTask : public Task {
     float temperature;
     uint32_t startTime;
 
-    enum State {
+    enum State
+    {
         NORMAL,
         TRACKING_PRE_ALARM,
         PREALARM,

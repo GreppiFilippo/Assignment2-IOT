@@ -1,5 +1,7 @@
 #include "task/MSGTask.hpp"
+
 #include <ArduinoJson.h>
+
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
@@ -12,46 +14,61 @@ MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 
 void MsgTask::tick()
 {
-    // Pulisce i comandi scaduti nella coda del Context
-    pContext->cleanupExpired(millis());
+    // 1. Cleanup expired commands from Context
+    this->pContext->cleanupExpired(millis());
 
-    // === INPUT: Ricezione messaggi (Comandi da PC/Dashboard) ===
-    if (pMsgService->isMsgAvailable())
+    // 2. Process Incoming Messages
+    if (this->pMsgService->isMsgAvailable())
     {
-        Msg* msg = pMsgService->receiveMsg();
+        Msg* msg = this->pMsgService->receiveMsg();
         if (msg)
         {
-            const char* content = msg->getContent();
-            
-            // Usiamo un documento locale temporaneo per il parsing
-            StaticJsonDocument<128> doc;
-            DeserializationError err = deserializeJson(doc, content);
+            this->jsonIn.clear();
+            // Parse JSON from message content
+            DeserializationError error = deserializeJson(this->jsonIn, msg->getContent());
 
-            if (!err)
+            if (!error)
             {
-                // Se il JSON ha una chiave "command", proviamo a metterlo in coda
-                const char* cmd = doc["command"] | "";
-                if (*cmd)
+                // Ensure the COMMAND key exists and is a valid string
+                if (this->jsonIn.containsKey(COMMAND) && this->jsonIn[COMMAND].is<const char*>())
                 {
-                    if (pContext->tryEnqueueMsg(cmd)) {
-                        Logger.log(("Cmd OK: "), cmd);
-                    } else {
-                        Logger.log(("Cmd Unknown: "), cmd);
+                    const char* cmd = this->jsonIn[COMMAND];
+                    if (this->pContext->tryEnqueueMsg(cmd))
+                    {
+                        Logger.log(F("Command enqueued"));
+                    }
+                    else
+                    {
+                        Logger.log(F("Unknown command"));
                     }
                 }
             }
-            delete msg;
+            else
+            {
+                Logger.log(F("JSON Deserialization failed"));
+            }
+            delete msg;  // Prevent memory leaks
         }
     }
 
-    // === OUTPUT: Invio stato del sistema (Telemetria) ===
+    // 3. Periodic Status Update (Heartbeat)
     if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
-        // NON SERVONO PIÙ: clearJsonFields() e setJsonField()
-        // buildJSON() ora crea il JSON al volo usando i dati freschi nel Context
-        
-        pContext->buildJSON(Serial);
-        Serial.println(); // Terminatore di riga per il ricevente
-        lastJsonSent = millis();
-}
+        this->jsonOut.clear();
+        // Populate JSON with Context data
+        this->pContext->serializeData(this->jsonOut);
+        this->jsonOut[ALIVE] = true;
+
+        // Serialize output to shared buffer
+        size_t len = serializeJson(this->jsonOut, this->jsonBuf, sizeof(this->jsonBuf));
+        if (len < sizeof(this->jsonBuf))
+        {
+            this->pMsgService->sendMsg(this->jsonBuf);
+        }
+        else
+        {
+            Logger.log(F("Output buffer overflow"));
+        }
+        this->lastJsonSent = millis();
+    }
 }

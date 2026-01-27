@@ -1,14 +1,14 @@
 #include "model/Context.hpp"
+
 #include <ArduinoJson.h>
-#include <string.h>
+
+#include "Context.hpp"
 #include "config.hpp"
 
 /**
  * @brief Tabella dei comandi (mappa i nomi alle enum)
  */
-const CommandEntry Context::commandTable[] = {
-    {"OPEN", CommandType::OPEN}
-};
+const CommandEntry Context::commandTable[] = {{"OPEN", CommandType::OPEN}};
 
 const int Context::COMMAND_TABLE_SIZE = sizeof(Context::commandTable) / sizeof(commandTable[0]);
 
@@ -42,7 +42,8 @@ bool Context::openDoorReq() const { return openDoorRequested; }
 bool Context::closeDoorReq() const { return closeDoorRequested; }
 bool Context::isDoorOpen() const { return doorOpen; }
 void Context::setDoorOpened() { doorOpen = true; }
-void Context::setDoorClosed() {
+void Context::setDoorClosed()
+{
     closeDoorRequested = false;
     openDoorRequested = false;
     doorOpen = false;
@@ -62,8 +63,10 @@ void Context::stopBlink() { ledBlinking = false; }
 bool Context::isBlinking() const { return ledBlinking; }
 
 // === LCD ===
-void Context::setLCDMessage(const char* msg) {
-    if (!msg) {
+void Context::setLCDMessage(const char* msg)
+{
+    if (!msg)
+    {
         lcdMessage[0] = '\0';
         return;
     }
@@ -93,19 +96,25 @@ void Context::setHangarState(int s) { hangarState = (int8_t)s; }
 int Context::getHangarState() const { return (int)hangarState; }
 
 // === COMMAND QUEUE ===
-bool Context::enqueueCommand(CommandType cmd, uint16_t now) {
-    if (commandCount >= MSG_QUEUE_SIZE) return false;
+bool Context::enqueueCommand(CommandType cmd, uint16_t now)
+{
+    if (commandCount >= MSG_QUEUE_SIZE)
+        return false;
     commandQueue[commandTail] = {cmd, now};
     commandTail = (commandTail + 1) % MSG_QUEUE_SIZE;
     commandCount++;
     return true;
 }
 
-bool Context::consumeCommand(CommandType cmd) {
-    for (int i = 0; i < commandCount; i++) {
+bool Context::consumeCommand(CommandType cmd)
+{
+    for (int i = 0; i < commandCount; i++)
+    {
         int index = (commandHead + i) % MSG_QUEUE_SIZE;
-        if (commandQueue[index].cmd == cmd) {
-            if (i != 0) {
+        if (commandQueue[index].cmd == cmd)
+        {
+            if (i != 0)
+            {
                 QueuedCommand temp = commandQueue[index];
                 commandQueue[index] = commandQueue[commandHead];
                 commandQueue[commandHead] = temp;
@@ -118,13 +127,18 @@ bool Context::consumeCommand(CommandType cmd) {
     return false;
 }
 
-void Context::cleanupExpired(uint32_t now) {
+void Context::cleanupExpired(uint32_t now)
+{
     int removed = 0;
-    for (int i = 0; i < commandCount; i++) {
+    for (int i = 0; i < commandCount; i++)
+    {
         int index = (commandHead + i) % MSG_QUEUE_SIZE;
-        if ((uint16_t)(now - commandQueue[index].timestamp) >= CONFIG_CMD_TTL_MS) {
+        if ((uint16_t)(now - commandQueue[index].timestamp) >= CONFIG_CMD_TTL_MS)
+        {
             removed++;
-        } else if (removed > 0) {
+        }
+        else if (removed > 0)
+        {
             commandQueue[(commandHead + i - removed) % MSG_QUEUE_SIZE] = commandQueue[index];
         }
     }
@@ -132,11 +146,15 @@ void Context::cleanupExpired(uint32_t now) {
     commandCount -= removed;
 }
 
-bool Context::tryEnqueueMsg(const char* msg) {
-    if (!msg) return false;
+bool Context::tryEnqueueMsg(const char* msg)
+{
+    if (!msg)
+        return false;
     while (*msg == ' ' || *msg == '\t') msg++;
-    for (int i = 0; i < COMMAND_TABLE_SIZE; i++) {
-        if (strcasecmp(msg, commandTable[i].name) == 0) {
+    for (int i = 0; i < COMMAND_TABLE_SIZE; i++)
+    {
+        if (strcasecmp(msg, commandTable[i].name) == 0)
+        {
             enqueueCommand(commandTable[i].type, (uint16_t)millis());
             return true;
         }
@@ -144,22 +162,18 @@ bool Context::tryEnqueueMsg(const char* msg) {
     return false;
 }
 
-// === JSON: GENERAZIONE ON-THE-FLY ===
-size_t Context::buildJSON(Print& target) const {
-    StaticJsonDocument<128> doc;
+void Context::serializeData(JsonDocument& doc) const
+{
+    const char* droneLabels[] = {DRONE_REST_STATE, DRONE_TAKING_OFF_STATE, DRONE_OPERATING_STATE,
+                                 DRONE_LANDING_STATE};
+    const char* hangarLabels[] = {HANGAR_NORMAL_STATE, HANGAR_ALARM_STATE};
 
-    doc[F("door")] = doorOpen;
-    doc[F("temp")] = currentTemperature;
-    doc[F("dist")] = currentDistance;
-    doc[F("alarm")] = alarmActive;
-    doc[F("drone")] = droneIn;
-    
-    // Convertiamo gli stati numerici in testo leggibile
-    const char* droneLabels[] = {"REST", "TAKEOFF", "OPERATING", "LANDING"};
-    doc[F("dr_st")] = droneLabels[droneState];
+    doc[HANGAR_STATE_KEY] = hangarLabels[this->hangarState];
 
-    const char* hangarLabels[] = {"NORMAL", "ALARM"};
-    doc[F("hg_st")] = hangarLabels[hangarState];
+    doc[DRONE_STATE_KEY] = droneLabels[this->droneState];
 
-    return serializeJson(doc, target);
+    if (this->currentDistance >= 0)  // distance is set to -1 when not available
+    {
+        doc[DISTANCE_KEY] = this->currentDistance;
+    }
 }

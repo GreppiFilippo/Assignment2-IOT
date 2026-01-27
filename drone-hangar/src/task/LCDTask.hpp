@@ -15,7 +15,7 @@ class LCDTask : public Task
    private:
     Context* pContext;
     LCD* lcd;
-    const char* lastMsg;
+    char lastMsg[LCD_BUFFER_SIZE];
 
    public:
     /**

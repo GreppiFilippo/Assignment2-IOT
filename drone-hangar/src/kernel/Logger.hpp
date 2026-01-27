@@ -6,11 +6,10 @@
 /**
  * @brief Service for logging messages.
  */
-class LoggerService {
-public:
-    void log(const char* msg);                   // Per stringhe in RAM e buffer
-    void log(const __FlashStringHelper* msg);    // Per stringhe con F()
-    void log(const char* prefix, const char* msg);
+class LoggerService
+{
+   public:
+    void log(const String& msg);
 };
 extern LoggerService Logger;
 

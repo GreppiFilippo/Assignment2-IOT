@@ -21,7 +21,7 @@ void DoorControlTask::tick()
             if (this->checkAndSetJustEntered())
             {
                 this->pContext->setDoorClosed();
-                this->log("CLOSED");
+                Logger.log(F("[DOOR] CLOSED"));
             }
 
             if (this->pContext->openDoorReq())
@@ -35,7 +35,7 @@ void DoorControlTask::tick()
         {
             if (this->checkAndSetJustEntered())
             {
-                this->log("OPENING");
+                Logger.log(F("[DOOR] OPENING"));
             }
 
             long dt = this->elapsedTimeInState();
@@ -61,7 +61,7 @@ void DoorControlTask::tick()
             if (this->checkAndSetJustEntered())
             {
                 this->pContext->setDoorOpened();
-                this->log("OPEN");
+                Logger.log(F("[DOOR] OPEN"));
             }
 
             if (this->pContext->closeDoorReq())
@@ -75,7 +75,7 @@ void DoorControlTask::tick()
         {
             if (this->checkAndSetJustEntered())
             {
-                this->log("CLOSING");
+                Logger.log(F("[DOOR] CLOSING"));
             }
 
             long dt = this->elapsedTimeInState();
@@ -114,8 +114,4 @@ bool DoorControlTask::checkAndSetJustEntered()
         this->justEntered = false;
     }
     return bak;
-}
-
-void DoorControlTask::log(const char* msg) { 
-    Logger.log("[DOOR] ", msg); // Passiamo due pezzi separati
 }

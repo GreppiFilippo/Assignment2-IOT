@@ -55,17 +55,35 @@
 #define LCD_LANDING_STATE "LANDING"      // Drone is landing
 #define LCD_ALARM_STATE "ALARM"          // Hangar in normal state
 
+// ---------------- API FOR SERIAL ---------------- //
+// JSON document sizes, to calculate memory to allocate follow assitant on
+// https://arduinojson.org/v6/assistant
+
+#define JSON_OUT_SIZE 96  // Size of the JSON document for output messages
+#define JSON_IN_SIZE 8    // Size of the JSON document for input messages
 /* ===== Drone state definitions serial ===== */
+#define DRONE_STATE_KEY "drone"  // Key for drone state in messages
+// Drone state values
 #define DRONE_REST_STATE "rest"              // Drone is inside hangar and at rest
 #define DRONE_TAKING_OFF_STATE "taking_off"  // Drone is taking off
 #define DRONE_OPERATING_STATE "operating"    // Drone is operating outside
 #define DRONE_LANDING_STATE "landing"        // Drone is landing
 
 /* ===== Hangar state definitions ===== */
+#define HANGAR_STATE_KEY "hangar"  // Key for hangar state in messages
+// Hangar state values
 #define HANGAR_NORMAL_STATE "normal"  // Hangar in normal state
 #define HANGAR_ALARM_STATE "alarm"    // Hangar in alarm state
 
 /* ===== Command definitions ===== */
-#define OPEN_CMD "OPEN DOOR"  // Command to open the hangar door
+#define COMMAND "cmd"  // Command key in messages
+// Command values
+#define OPEN_CMD "open"  // Command value to open the hangar door
+
+/* ===== Distance definitions ===== */
+#define DISTANCE_KEY "distance"  // Key for distance value in messages
+
+/* ===== Other definitions ===== */
+#define ALIVE "alive"  // Key indicating system is alive
 
 #endif

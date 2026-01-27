@@ -1,4 +1,5 @@
 #include "task/DroneTask.hpp"
+
 #include "config.hpp"
 #include "devices/Led.hpp"
 #include "kernel/Logger.hpp"
@@ -11,8 +12,6 @@ DroneTask::DroneTask(Context* pContext, Light* L1, PresenceSensor* presenceSenso
     this->setState(REST);
 }
 
-// Rimosso sendState(String) per evitare frammentazione RAM
-// Ora aggiorniamo solo una variabile numerica nel Context
 void DroneTask::tick()
 {
     switch (this->state)
@@ -20,7 +19,7 @@ void DroneTask::tick()
         case REST:
             if (checkAndSetJustEntered())
             {
-                pContext->setDroneState(0); // 0 = REST
+                pContext->setDroneState(REST);
                 pContext->closeDoor();
                 L1->switchOn();
                 pContext->stopBlink();
@@ -39,7 +38,7 @@ void DroneTask::tick()
         case TAKING_OFF:
             if (checkAndSetJustEntered())
             {
-                pContext->setDroneState(1); // 1 = TAKING_OFF
+                pContext->setDroneState(TAKING_OFF);
                 pContext->openDoor();
                 pContext->setLCDMessage(LCD_TAKING_OFF_STATE);
                 pContext->blink();
@@ -59,7 +58,7 @@ void DroneTask::tick()
         case OPERATING:
             if (checkAndSetJustEntered())
             {
-                pContext->setDroneState(2); // 2 = OPERATING
+                pContext->setDroneState(OPERATING);
                 pContext->closeDoor();
                 L1->switchOff();
                 pContext->stopBlink();
@@ -80,7 +79,7 @@ void DroneTask::tick()
         case LANDING:
             if (checkAndSetJustEntered())
             {
-                pContext->setDroneState(3); // 3 = LANDING
+                pContext->setDroneState(LANDING);
                 pContext->openDoor();
                 pContext->setLCDMessage(LCD_LANDING_STATE);
                 pContext->blink();

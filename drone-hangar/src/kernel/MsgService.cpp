@@ -1,74 +1,72 @@
 #include "MsgService.hpp"
-#include <Arduino.h>
 
-// Buffer interno per l'input seriale
-#define MAX_MSG_SIZE 128
-char msgBuffer[MAX_MSG_SIZE];
-int msgIdx = 0;
+// Static buffer for raw serial input to prevent fragmentation
+static char serialBuffer[128];
+static size_t serialBufferIndex = 0;
 
 MsgServiceClass MsgService;
 
-// === PUBLIC API ===
-
-bool MsgServiceClass::isMsgAvailable() { 
-    return msgAvailable; 
+void MsgServiceClass::init(unsigned long baudRate)
+{
+    Serial.begin(baudRate);
+    qHead = 0;
+    qTail = 0;
+    qCount = 0;
+    serialBufferIndex = 0;
+    serialBuffer[0] = '\0';
 }
+
+bool MsgServiceClass::isMsgAvailable() { return qCount > 0; }
 
 Msg* MsgServiceClass::receiveMsg()
 {
-    if (!msgAvailable)
+    if (qCount == 0)
         return nullptr;
 
-    Msg* msg = currentMsg;
-    currentMsg = nullptr;
-    msgAvailable = false;
+    Msg* msg = &queue[qHead];
+    qHead = (qHead + 1) % MSG_SERVICE_QUEUE_SIZE;
+    qCount--;
     return msg;
 }
 
-void MsgServiceClass::init()
+void MsgServiceClass::sendMsg(const String& msg) { Serial.println(msg); }
+
+void MsgServiceClass::sendMsg(const __FlashStringHelper* msg) { Serial.println(msg); }
+
+bool MsgServiceClass::enqueueMsg(const char* content)
 {
-    Serial.begin(115200);
-    
-    // Reset dello stato
-    msgIdx = 0;
-    memset(msgBuffer, 0, MAX_MSG_SIZE); // Pulisce il buffer hardware
-    
-    currentMsg = nullptr;
-    msgAvailable = false;
+    if (qCount >= MSG_SERVICE_QUEUE_SIZE)
+        return false;
+
+    // The assignment operator of String inside Msg handles the copy
+    queue[qTail] = Msg(content);
+    qTail = (qTail + 1) % MSG_SERVICE_QUEUE_SIZE;
+    qCount++;
+    return true;
 }
 
-// Nota: se passi un JSON minificato, Serial.println lo invia correttamente
-void MsgServiceClass::sendMsg(const char* msg) { 
-    Serial.println(msg); 
-}
-
-// Gestione evento seriale (Hardware interrupt-like)
-void serialEvent() 
+/**
+ * @brief Standard Arduino serial event handler.
+ * Reads characters and builds messages until a newline is found.
+ */
+void serialEvent()
 {
-    while (Serial.available()) 
+    while (Serial.available())
     {
         char ch = (char)Serial.read();
 
-        if (ch == '\n') // Fine del messaggio
+        if (ch == '\n')
         {
-            if (msgIdx > 0 && !MsgService.isMsgAvailable()) 
+            if (serialBufferIndex > 0)
             {
-                msgBuffer[msgIdx] = '\0'; // Chiusura stringa C
-                
-                // Crea il messaggio. 
-                // Assicurati che il costruttore di Msg faccia una COPIA di msgBuffer
-                MsgService.currentMsg = new Msg(msgBuffer); 
-                
-                MsgService.msgAvailable = true;
+                serialBuffer[serialBufferIndex] = '\0';
+                MsgService.enqueueMsg(serialBuffer);
             }
-            msgIdx = 0; 
-        } 
-        else if (ch != '\r') // Ignora carriage return, salva il resto
+            serialBufferIndex = 0;
+        }
+        else if (ch != '\r' && serialBufferIndex < sizeof(serialBuffer) - 1)
         {
-            if (msgIdx < MAX_MSG_SIZE - 1) 
-            {
-                msgBuffer[msgIdx++] = ch;
-            }
+            serialBuffer[serialBufferIndex++] = ch;
         }
     }
 }

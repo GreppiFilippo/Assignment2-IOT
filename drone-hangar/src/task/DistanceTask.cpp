@@ -1,12 +1,15 @@
 #include "DistanceTask.hpp"
+
 #include <Arduino.h>
+
 #include "config.hpp"
+#include "kernel/Logger.hpp"
 
 DistanceTask::DistanceTask(ProximitySensor* sonarSensor, Context* pContext)
 {
     this->sonarSensor = sonarSensor;
     this->pContext = pContext;
-    this->state = IDLE; // Assicurati che lo stato iniziale sia settato
+    this->setState(IDLE);
 }
 
 void DistanceTask::tick()
@@ -14,6 +17,11 @@ void DistanceTask::tick()
     switch (state)
     {
         case IDLE:
+            if (checkAndSetJustEntered())
+            {
+                Logger.log(F("[DISTANCE] IDLE"));
+                this->pContext->setDistance(-1);  // Indicate no reading
+            }
             if (this->pContext->landingCheckRequested())
             {
                 setState(LANDING_MONITORING);
@@ -25,10 +33,13 @@ void DistanceTask::tick()
             break;
 
         case LANDING_MONITORING:
+            if (checkAndSetJustEntered())
+            {
+                Logger.log(F("[DISTANCE] LANDING MONITORING"));
+            }
             distance = sonarSensor->getDistance();
-            // CORREZIONE: Uso il setter dedicato, niente più JSON qui
-            this->pContext->setDistance(distance); 
-            
+            this->pContext->setDistance(distance);
+
             if (distance <= D2)
             {
                 setState(LANDING_WAITING);
@@ -36,6 +47,10 @@ void DistanceTask::tick()
             break;
 
         case LANDING_WAITING:
+            if (checkAndSetJustEntered())
+            {
+                Logger.log(F("[DISTANCE] LANDING WAITING"));
+            }
             distance = sonarSensor->getDistance();
             this->pContext->setDistance(distance);
 
@@ -52,6 +67,10 @@ void DistanceTask::tick()
             break;
 
         case TAKEOFF_MONITORING:
+            if (checkAndSetJustEntered())
+            {
+                Logger.log(F("[DISTANCE] TAKEOFF MONITORING"));
+            }
             distance = sonarSensor->getDistance();
             this->pContext->setDistance(distance);
 
@@ -62,6 +81,10 @@ void DistanceTask::tick()
             break;
 
         case TAKEOFF_WAITING:
+            if (checkAndSetJustEntered())
+            {
+                Logger.log(F("[DISTANCE] TAKEOFF WAITING"));
+            }
             distance = sonarSensor->getDistance();
             this->pContext->setDistance(distance);
 

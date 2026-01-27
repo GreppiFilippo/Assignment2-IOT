@@ -10,7 +10,6 @@ BlinkingTask::BlinkingTask(Light* pLed, Context* pContext)
     setState(IDLE);
 }
 
-
 void BlinkingTask::tick()
 {
     switch (state)
@@ -19,6 +18,7 @@ void BlinkingTask::tick()
         {
             if (this->checkAndSetJustEntered())
             {
+                Logger.log(F("[BLINK] IDLE"));
                 pLed->switchOff();
             }
             if (pContext->isBlinking())
@@ -31,6 +31,7 @@ void BlinkingTask::tick()
         {
             if (this->checkAndSetJustEntered())
             {
+                Logger.log(F("[BLINK] OFF"));
                 pLed->switchOff();
             }
             if (!pContext->isBlinking())
@@ -47,6 +48,7 @@ void BlinkingTask::tick()
         {
             if (this->checkAndSetJustEntered())
             {
+                Logger.log(F("[BLINK] ON"));
                 pLed->switchOn();
             }
             if (!pContext->isBlinking())

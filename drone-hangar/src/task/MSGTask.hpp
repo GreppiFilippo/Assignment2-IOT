@@ -2,6 +2,7 @@
 #define __MSG_TASK__
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
 #include "kernel/MsgService.hpp"
 #include "kernel/Task.hpp"
@@ -19,8 +20,16 @@ class MsgTask : public Task
     MsgServiceClass* pMsgService;
     unsigned long lastJsonSent;
     Msg* msg;
+    StaticJsonDocument<JSON_OUT_SIZE> jsonOut;
+    StaticJsonDocument<JSON_IN_SIZE> jsonIn;
+    char jsonBuf[max(JSON_OUT_SIZE, JSON_IN_SIZE)];
 
    public:
+    /**
+     * @brief Constructor for MsgTask.
+     * @param pContext Pointer to the shared system context.
+     * @param pMsgService Pointer to the messaging service.
+     */
     MsgTask(Context* pContext, MsgServiceClass* pMsgService);
 
     /**
@@ -29,6 +38,7 @@ class MsgTask : public Task
      * Processes incoming messages and sends periodic JSON updates.
      *
      */
+
     void tick() override;
 };
 
