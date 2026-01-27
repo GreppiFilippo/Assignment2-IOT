@@ -3,85 +3,102 @@ package it.unibo.dronehangar.remote.api;
 import java.util.List;
 
 /**
- * Communication channel interface.
+ * Communication channel abstraction.
+ * 
+ * <p>
+ * Implementations provide asynchronous message sending and
+ * blocking or timed message reception.
+ * </p>
  */
 public interface CommChannel {
 
     /**
-     * Send a message represented by a string (without new line).
-     * 
+     * Sends a message represented as a string (without newline).
+     *
      * <p>
-     * Asynchronous model.
+     * The message is sent asynchronously.
      * </p>
-     * 
-     * @param msg the message to send
+     *
+     * @param msg the message to send (not null)
+     * @throws IllegalStateException if the communication channel is not open
      */
     void sendMsg(String msg);
 
     /**
-     * Receive a message.
-     * 
+     * Receives a message from the channel.
+     *
      * <p>
-     * Blocking behaviour.
+     * This method blocks until a message is available or the thread
+     * is interrupted.
      * </p>
-     * 
-     * @return the received message
+     *
+     * @return the received message, or {@code null} if the thread is interrupted
      */
     String receiveMsg();
 
     /**
-     * Poll for a message with timeout.
+     * Polls for a message with a timeout.
      *
      * @param timeoutMillis timeout in milliseconds
-     * @return the received message or null if timeout
+     * @return the received message, or {@code null} if the timeout expires
+     *         or the thread is interrupted
      */
     String pollMsg(long timeoutMillis);
 
     /**
-     * Check if a message is available to be received.
-     * 
-     * @return true if a message is available, false otherwise
+     * Checks whether a message is available.
+     *
+     * @return {@code true} if a message is available, {@code false} otherwise
      */
     boolean isMsgAvailable();
 
     /**
-     * Set the communication port.
+     * Sets the communication port.
      *
-     * @param commPort the communication port to set
-     * @throws NullPointerException if commPort is null
+     * <p>
+     * If a port is already open, it is closed before opening the new one.
+     * The operation may fail silently; clients should always check
+     * {@link #isPortOpen()} after calling this method.
+     * </p>
+     *
+     * @param commPort the communication port identifier (not null)
      */
     void setCommPort(String commPort);
 
     /**
-     * Get a list of available communication ports.
+     * Returns the list of available communication ports.
      *
      * @return a list of available communication ports
      */
     List<String> getAvailableCommPorts();
 
     /**
-     * Get a list of supported baud rates.
-     * 
+     * Returns the list of supported baud rates.
+     *
      * @return a list of supported baud rates
      */
     List<String> getSupportedBaudRates();
 
     /**
-     * Set the baud rate for the communication.
-     * 
+     * Sets the baud rate for the communication channel.
+     *
+     * <p>
+     * If the port is already open, the new baud rate is applied immediately.
+     * </p>
+     *
      * @param baudRate the baud rate to set
      */
     void setBaudRate(int baudRate);
 
     /**
-     * Check if the serial port is currently open.
-     * 
-     * @return true if the port is open, false otherwise
+     * Checks whether the communication port is currently open.
+     *
+     * @return {@code true} if the port is open, {@code false} otherwise
      */
     boolean isPortOpen();
 
     /**
-     * Close the communication port.
+     * Closes the communication channel and releases all resources.
      */
     void close();
 }

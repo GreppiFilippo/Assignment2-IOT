@@ -23,7 +23,7 @@ void DroneTask::tick()
                 pContext->closeDoor();
                 L1->switchOn();
                 pContext->stopBlink();
-                Logger.log(F("Drone: REST"));
+                Logger.log(F("[Drone] REST"));
             }
 
             pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE : LCD_REST_STATE);
@@ -42,7 +42,7 @@ void DroneTask::tick()
                 pContext->openDoor();
                 pContext->setLCDMessage(LCD_TAKING_OFF_STATE);
                 pContext->blink();
-                Logger.log(F("Drone: TAKING OFF"));
+                Logger.log(F("[Drone] TAKING OFF"));
             }
 
             if (pContext->isAlarmActive() && pContext->isDroneIn())
@@ -62,7 +62,7 @@ void DroneTask::tick()
                 pContext->closeDoor();
                 L1->switchOff();
                 pContext->stopBlink();
-                Logger.log(F("Drone: OPERATING"));
+                Logger.log(F("[Drone] OPERATING"));
             }
 
             pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE
@@ -83,7 +83,7 @@ void DroneTask::tick()
                 pContext->openDoor();
                 pContext->setLCDMessage(LCD_LANDING_STATE);
                 pContext->blink();
-                Logger.log(F("Drone: LANDING"));
+                Logger.log(F("[Drone] LANDING"));
             }
 
             if (pContext->isAlarmActive() && !pContext->isDroneIn())

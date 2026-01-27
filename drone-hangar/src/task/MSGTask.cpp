@@ -5,6 +5,7 @@
 #include "config.hpp"
 #include "kernel/Logger.hpp"
 
+// Costruttore - DEFINITO UNA SOLA VOLTA
 MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 {
     this->pContext = pContext;
@@ -14,61 +15,46 @@ MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 
 void MsgTask::tick()
 {
-    // 1. Cleanup expired commands from Context
+    // 1. Pulizia comandi scaduti nel Context
     this->pContext->cleanupExpired(millis());
 
-    // 2. Process Incoming Messages
+    // 2. Gestione messaggi in arrivo
     if (this->pMsgService->isMsgAvailable())
     {
         Msg* msg = this->pMsgService->receiveMsg();
         if (msg)
         {
             this->jsonIn.clear();
-            // Parse JSON from message content
             DeserializationError error = deserializeJson(this->jsonIn, msg->getContent());
 
             if (!error)
             {
-                // Ensure the COMMAND key exists and is a valid string
-                if (this->jsonIn.containsKey(COMMAND) && this->jsonIn[COMMAND].is<const char*>())
+                if (this->jsonIn.containsKey(COMMAND))
                 {
                     const char* cmd = this->jsonIn[COMMAND];
                     if (this->pContext->tryEnqueueMsg(cmd))
                     {
                         Logger.log(F("Command enqueued"));
                     }
-                    else
-                    {
-                        Logger.log(F("Unknown command"));
-                    }
                 }
             }
-            else
-            {
-                Logger.log(F("JSON Deserialization failed"));
-            }
-            delete msg;  // Prevent memory leaks
+            // NOTA: Nessun 'delete msg' qui.
         }
     }
 
-    // 3. Periodic Status Update (Heartbeat)
+    // 3. Invio periodico dello stato (JSON)
     if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
         this->jsonOut.clear();
-        // Populate JSON with Context data
         this->pContext->serializeData(this->jsonOut);
         this->jsonOut[ALIVE] = true;
 
-        // Serialize output to shared buffer
-        size_t len = serializeJson(this->jsonOut, this->jsonBuf, sizeof(this->jsonBuf));
-        if (len < sizeof(this->jsonBuf))
-        {
-            this->pMsgService->sendMsg(this->jsonBuf);
-        }
-        else
-        {
-            Logger.log(F("Output buffer overflow"));
-        }
+        // Serializzazione nel buffer jsonBuf definito nell'header del Task
+        serializeJson(this->jsonOut, this->jsonBuf, sizeof(this->jsonBuf));
+
+        // Invio tramite il servizio
+        this->pMsgService->sendMsgRaw(this->jsonBuf, true);
+
         this->lastJsonSent = millis();
     }
 }

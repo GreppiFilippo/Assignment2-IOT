@@ -166,9 +166,11 @@ void Context::serializeData(JsonDocument& doc) const
 {
     const char* droneLabels[] = {DRONE_REST_STATE, DRONE_TAKING_OFF_STATE, DRONE_OPERATING_STATE,
                                  DRONE_LANDING_STATE};
-    const char* hangarLabels[] = {HANGAR_NORMAL_STATE, HANGAR_ALARM_STATE};
 
-    doc[HANGAR_STATE_KEY] = hangarLabels[this->hangarState];
+    // Il valore della stringa per lo stato dell'hangar viene derivato dal flag alarmActive per
+    // maggiore robustezza. Questo evita l'accesso fuori dai limiti dell'array che causava la
+    // corruzione dei dati.
+    doc[HANGAR_STATE_KEY] = this->isAlarmActive() ? HANGAR_ALARM_STATE : HANGAR_NORMAL_STATE;
 
     doc[DRONE_STATE_KEY] = droneLabels[this->droneState];
 

@@ -2,13 +2,16 @@
 
 #include "MsgService.hpp"
 
-/**
- * @brief Logs a message by prepending the "lo:" tag.
- * @param msg The message content.
- */
 void LoggerService::log(const String& msg)
 {
-    String logMsg = "lo:";
-    logMsg += msg;
-    MsgService.sendMsg(logMsg);
+    // Invece di creare una nuova String "lo:" + msg,
+    // usiamo una funzione dedicata che non alloca memoria extra
+    MsgService.sendMsgRaw("lo:", false);       // Stampa senza newline
+    MsgService.sendMsgRaw(msg.c_str(), true);  // Stampa il contenuto e va a capo
+}
+
+void LoggerService::log(const __FlashStringHelper* msg)
+{
+    MsgService.sendMsgRaw("lo:", false);
+    MsgService.sendMsgRaw(msg, true);
 }

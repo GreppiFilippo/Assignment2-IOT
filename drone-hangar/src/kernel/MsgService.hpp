@@ -3,14 +3,8 @@
 
 #include <Arduino.h>
 
-/** * @brief Max number of messages stored in the internal queue.
- */
 #define MSG_SERVICE_QUEUE_SIZE 4
 
-/**
- * @class Msg
- * @brief Represents a single message container.
- */
 class Msg
 {
    private:
@@ -18,7 +12,8 @@ class Msg
 
    public:
     Msg() : content("") {}
-    Msg(const char* c) : content(c) {}
+    // Usiamo il passaggio per referenza per evitare copie inutili
+    void setContent(const char* c) { content = c; }
     const String& getContent() const { return content; }
 };
 
@@ -29,18 +24,20 @@ class MsgServiceClass
     int8_t qHead, qTail, qCount;
 
    public:
-    /** @brief Initializes the message service with the specified baud rate. */
     void init(unsigned long baudRate);
     bool isMsgAvailable();
+
+    // Restituiamo il puntatore, ma chi lo riceve NON deve deallocarlo
     Msg* receiveMsg();
 
-    /** @brief Sends a string message. */
+    // Invio messaggi standard (aggiungono \n)
     void sendMsg(const String& msg);
-
-    /** @brief Sends a message using Flash memory (F()) to save RAM. */
     void sendMsg(const __FlashStringHelper* msg);
 
-    /** @brief Internal use only: adds a message to the queue. */
+    // Invio Raw (per il Logger o invii parziali)
+    void sendMsgRaw(const char* msg, bool newline);
+    void sendMsgRaw(const __FlashStringHelper* msg, bool newline);
+
     bool enqueueMsg(const char* content);
 };
 

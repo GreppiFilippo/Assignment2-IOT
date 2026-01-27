@@ -1,6 +1,6 @@
 #include "MsgService.hpp"
 
-// Static buffer for raw serial input to prevent fragmentation
+// Buffer statico per la ricezione seriale
 static char serialBuffer[128];
 static size_t serialBufferIndex = 0;
 
@@ -13,7 +13,6 @@ void MsgServiceClass::init(unsigned long baudRate)
     qTail = 0;
     qCount = 0;
     serialBufferIndex = 0;
-    serialBuffer[0] = '\0';
 }
 
 bool MsgServiceClass::isMsgAvailable() { return qCount > 0; }
@@ -22,7 +21,6 @@ Msg* MsgServiceClass::receiveMsg()
 {
     if (qCount == 0)
         return nullptr;
-
     Msg* msg = &queue[qHead];
     qHead = (qHead + 1) % MSG_SERVICE_QUEUE_SIZE;
     qCount--;
@@ -33,28 +31,39 @@ void MsgServiceClass::sendMsg(const String& msg) { Serial.println(msg); }
 
 void MsgServiceClass::sendMsg(const __FlashStringHelper* msg) { Serial.println(msg); }
 
+void MsgServiceClass::sendMsgRaw(const char* msg, bool newline)
+{
+    if (newline)
+        Serial.println(msg);
+    else
+        Serial.print(msg);
+}
+
+void MsgServiceClass::sendMsgRaw(const __FlashStringHelper* msg, bool newline)
+{
+    if (newline)
+        Serial.println(msg);
+    else
+        Serial.print(msg);
+}
+
 bool MsgServiceClass::enqueueMsg(const char* content)
 {
     if (qCount >= MSG_SERVICE_QUEUE_SIZE)
         return false;
 
-    // The assignment operator of String inside Msg handles the copy
-    queue[qTail] = Msg(content);
+    // CORREZIONE: Usa setContent sull'oggetto già esistente nell'array
+    queue[qTail].setContent(content);
     qTail = (qTail + 1) % MSG_SERVICE_QUEUE_SIZE;
     qCount++;
     return true;
 }
 
-/**
- * @brief Standard Arduino serial event handler.
- * Reads characters and builds messages until a newline is found.
- */
 void serialEvent()
 {
     while (Serial.available())
     {
         char ch = (char)Serial.read();
-
         if (ch == '\n')
         {
             if (serialBufferIndex > 0)

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -13,57 +14,86 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.unibo.dronehangar.remote.api.CommChannel;
 import it.unibo.dronehangar.remote.api.ConnectionState;
 import it.unibo.dronehangar.remote.api.DroneRemoteUnitViewUpdater;
 import it.unibo.dronehangar.remote.comm.JSSCCommChannel;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javafx.application.Platform;
 
 /**
- * Service that manages the connection to the drone via serial communication.
+ * Service responsible for managing the serial connection to the drone.
  * 
  * <p>
- * It handles connecting, sending commands, and receiving status updates.
+ * This class handles:
+ * <ul>
+ * <li>Opening and closing the serial connection</li>
+ * <li>Sending commands to the drone</li>
+ * <li>Receiving and parsing JSON messages</li>
+ * <li>Updating the JavaFX UI in a thread-safe way</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * All I/O operations are executed on background threads.
+ * UI updates are always dispatched on the JavaFX Application Thread.
  * </p>
  */
 public final class DroneConnectionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DroneConnectionService.class);
 
+    /** Maximum time to wait for the initial "alive" message (ms). */
     private static final long ALIVE_TIMEOUT_MS = 1500;
+
+    /** Polling timeout for serial messages (ms). */
     private static final long POLL_TIMEOUT_MS = 200;
 
     private final CommChannel channel;
-    @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Stores updater reference for UI updates")
+
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "ViewUpdater reference is intentionally stored for UI updates")
     private final DroneRemoteUnitViewUpdater viewModel;
-    private final ExecutorService executor;
+
+    /** Executor for connection and command operations. */
+    private final ExecutorService connectionExecutor;
+
+    /** Executor dedicated to the listener loop. */
+    private final ExecutorService listenerExecutor;
+
     private final Gson gson = new Gson();
 
-    private volatile boolean running;
+    /** Indicates whether the listener loop is running. */
+    private final AtomicBoolean running = new AtomicBoolean(false);
 
-    // Callback per errori da mostrare nella UI
+    /** Optional callback for propagating errors to the UI. */
     private Consumer<String> errorCallback;
 
     /**
-     * Constructor.
-     * 
-     * @param viewModel the ViewModel to update with connection status
+     * Creates a new {@code DroneConnectionService}.
+     *
+     * @param viewModel the ViewModel used to update the UI
      */
     public DroneConnectionService(final DroneRemoteUnitViewUpdater viewModel) {
         this.viewModel = viewModel;
         this.channel = new JSSCCommChannel();
-        this.executor = Executors.newSingleThreadExecutor(r -> {
+
+        this.connectionExecutor = Executors.newSingleThreadExecutor(r -> {
             final Thread t = new Thread(r, "Drone-Connection-Thread");
+            t.setDaemon(true);
+            return t;
+        });
+
+        this.listenerExecutor = Executors.newSingleThreadExecutor(r -> {
+            final Thread t = new Thread(r, "Drone-Listener-Thread");
             t.setDaemon(true);
             return t;
         });
     }
 
     /**
-     * Sets the error callback.
-     * 
-     * @param callback the callback to invoke on errors
+     * Sets a callback to be invoked when an error occurs.
+     *
+     * @param callback a consumer receiving a human-readable error message
      */
     public void setErrorCallback(final Consumer<String> callback) {
         this.errorCallback = callback;
@@ -74,18 +104,18 @@ public final class DroneConnectionService {
     /* ===================================================================== */
 
     /**
-     * Gets the list of available communication ports.
-     * 
-     * @return list of available ports
+     * Returns the list of available serial communication ports.
+     *
+     * @return a list of port identifiers
      */
     public List<String> getAvailableCommPorts() {
         return channel.getAvailableCommPorts();
     }
 
     /**
-     * Gets the supported baud rates.
-     * 
-     * @return list of supported baud rates
+     * Returns the list of supported baud rates.
+     *
+     * @return a list of baud rates as strings
      */
     public List<String> getSupportedBaudRates() {
         return channel.getSupportedBaudRates();
@@ -93,26 +123,30 @@ public final class DroneConnectionService {
 
     /**
      * Sets the baud rate for the communication channel.
-     * 
-     * @param baudRate the baud rate to set
+     *
+     * @param baudRate the baud rate to use
      */
     public void setBaudRate(final int baudRate) {
         channel.setBaudRate(baudRate);
     }
 
     /**
-     * Connects to the drone on the specified port.
+     * Initiates a connection to the drone on the given serial port.
      * 
-     * @param port the communication port to connect to
+     * <p>
+     * The connection process is asynchronous.
+     * </p>
+     *
+     * @param port the serial port identifier
      */
     public void connect(final String port) {
-        executor.execute(() -> doConnect(port));
+        connectionExecutor.execute(() -> doConnect(port));
     }
 
     /**
      * Sends a command to the drone.
-     * 
-     * @param command the command to send
+     *
+     * @param command the command string
      */
     public void sendCommand(final String command) {
         if (!channel.isPortOpen()) {
@@ -120,27 +154,30 @@ public final class DroneConnectionService {
             return;
         }
 
-        final JsonObject json = new JsonObject();
-        json.addProperty("command", command.toUpperCase(Locale.ROOT));
-        channel.sendMsg(gson.toJson(json));
+        connectionExecutor.execute(() -> {
+            final JsonObject json = new JsonObject();
+            json.addProperty("cmd", command.toLowerCase(Locale.ROOT));
+            channel.sendMsg(gson.toJson(json));
+        });
     }
 
     /**
-     * Checks if the communication channel is connected.
-     * 
-     * @return true if connected, false otherwise
+     * Checks whether the service is currently connected.
+     *
+     * @return {@code true} if the serial port is open
      */
     public boolean isConnected() {
         return channel.isPortOpen();
     }
 
     /**
-     * Shuts down the connection service, stopping all threads and closing the
-     * channel.
+     * Shuts down the service, stopping all background threads
+     * and closing the serial channel.
      */
     public void shutdown() {
-        running = false;
-        executor.shutdownNow();
+        running.set(false);
+        listenerExecutor.shutdownNow();
+        connectionExecutor.shutdownNow();
         channel.close();
     }
 
@@ -150,22 +187,28 @@ public final class DroneConnectionService {
 
     private void doConnect(final String port) {
         if (port == null || port.isBlank()) {
-            LOGGER.error("Connection failed: invalid port '{}'", port);
+            LOGGER.error("Invalid serial port: '{}'", port);
             updateConnectionState(ConnectionState.ERROR);
-            notifyError("Connection failed: invalid port");
+            notifyError("Invalid serial port");
             return;
         }
 
         updateConnectionState(ConnectionState.CONNECTING);
 
-        channel.setCommPort(port); // qui può fallire (implementation may log instead of throwing)
+        channel.setCommPort(port);
+
+        if (!channel.isPortOpen()) {
+            LOGGER.error("Failed to open serial port {}", port);
+            updateConnectionState(ConnectionState.ERROR);
+            notifyError("Failed to open serial port " + port);
+            return;
+        }
+
         LOGGER.info("Serial port opened: {}", port);
 
         if (!waitForAlive()) {
-            LOGGER.error("Connection failed: no alive from drone");
             updateConnectionState(ConnectionState.ERROR);
             channel.close();
-            notifyError("Connection failed: no alive received from drone");
             return;
         }
 
@@ -185,11 +228,11 @@ public final class DroneConnectionService {
             try {
                 final JsonObject json = gson.fromJson(msg, JsonObject.class);
                 if (json.has("alive") && json.get("alive").getAsBoolean()) {
-                    LOGGER.info("Alive received");
+                    LOGGER.info("Alive message received");
                     return true;
                 }
-            } catch (final JsonSyntaxException ignored) {
-                LOGGER.warn("Invalid JSON received while waiting for alive: {}", msg);
+            } catch (final JsonSyntaxException e) {
+                LOGGER.warn("Invalid JSON while waiting for alive: {}", msg);
             }
         }
 
@@ -202,26 +245,28 @@ public final class DroneConnectionService {
     /* ===================================================================== */
 
     private void startListenerLoop() {
-        running = true;
+        running.set(true);
 
-        executor.execute(() -> {
-            LOGGER.info("Message listener started");
+        listenerExecutor.execute(() -> {
+            LOGGER.info("Listener thread started");
 
-            while (running && channel.isPortOpen()) {
-                try {
+            try {
+                while (running.get() && channel.isPortOpen()) {
                     final String msg = channel.pollMsg(POLL_TIMEOUT_MS);
                     if (msg != null) {
                         handleMessage(msg);
                     }
-                } catch (IllegalStateException | IllegalArgumentException e) {
-                    LOGGER.error("Listener error", e);
-                    break;
                 }
+            } catch (IllegalStateException | IllegalArgumentException e) {
+                LOGGER.error("Listener error", e);
+            } finally {
+                running.set(false);
+                channel.close();
+                updateConnectionState(ConnectionState.DISCONNECTED);
+                LOGGER.info("Listener thread stopped");
             }
-
-            LOGGER.info("Message listener stopped");
-            updateConnectionState(ConnectionState.DISCONNECTED);
         });
+
     }
 
     /* ===================================================================== */
@@ -233,29 +278,35 @@ public final class DroneConnectionService {
             final JsonObject json = gson.fromJson(msg, JsonObject.class);
 
             Platform.runLater(() -> {
-                if (json.has("drone_state")) {
-                    viewModel.setDroneState(json.get("drone_state").getAsString().toUpperCase(Locale.ROOT));
+                if (json.has("drone")) {
+                    viewModel.setDroneState(
+                            json.get("drone").getAsString().toUpperCase(Locale.ROOT));
+                } else if (json.has("drone_state")) {
+                    viewModel.setDroneState(
+                            json.get("drone_state").getAsString().toUpperCase(Locale.ROOT));
                 }
 
                 if (json.has("distance")) {
-                    viewModel.setDistance(String.valueOf(json.get("distance").getAsFloat()));
+                    viewModel.setDistance(
+                            String.valueOf(json.get("distance").getAsFloat()));
                 }
 
-                if (json.has("hangar_state")) {
-                    final boolean state = json.get("hangar_state").getAsBoolean();
-                    viewModel.setHangarState(state ? "ALARM" : "NORMAL");
+                if (json.has("hangar")) {
+                    viewModel.setHangarState(
+                            json.get("hangar").getAsString().toUpperCase(Locale.ROOT));
+                } else if (json.has("hangar_state")) {
+                    final boolean alarm = json.get("hangar_state").getAsBoolean();
+                    viewModel.setHangarState(alarm ? "ALARM" : "NORMAL");
                 }
             });
 
         } catch (final JsonSyntaxException e) {
             LOGGER.warn("Invalid JSON received: {}", msg);
-        } catch (final IllegalStateException | IllegalArgumentException e) {
-            LOGGER.error("Error processing message: {}", msg, e);
         }
     }
 
     /* ===================================================================== */
-    /* UTILS */
+    /* UTILITY METHODS */
     /* ===================================================================== */
 
     private void updateConnectionState(final ConnectionState state) {

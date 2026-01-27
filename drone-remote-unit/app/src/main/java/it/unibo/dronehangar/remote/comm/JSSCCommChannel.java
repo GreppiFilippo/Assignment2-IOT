@@ -19,9 +19,16 @@ import jssc.SerialPortException;
 import jssc.SerialPortList;
 
 /**
- * Serial communication channel based on JSSC.
- * Line-based protocol: each message MUST end with '\n'.
- * RX buffer is limited to avoid memory leaks.
+ * Serial communication channel implementation based on JSSC.
+ *
+ * <p>
+ * The communication protocol is line-based: each message must end with '\n'.
+ * Incoming data is buffered and split into complete lines.
+ * </p>
+ *
+ * <p>
+ * This class is thread-safe.
+ * </p>
  */
 public final class JSSCCommChannel implements CommChannel, SerialPortEventListener {
 
@@ -30,37 +37,32 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
     private static final int QUEUE_SIZE = 100;
     private static final int MAX_RX_BUFFER_SIZE = 2048;
 
+    private static final List<String> SUPPORTED_BAUD_RATES = List.of(
+            "9600", "19200", "38400", "57600", "115200");
     private volatile SerialPort serialPort;
-    private volatile int baudRate;
 
+    private volatile int baudRate;
     private final BlockingQueue<String> queue;
     private final Object portLock = new Object();
+
     private final Object rxLock = new Object();
     private final char[] rxBuffer = new char[MAX_RX_BUFFER_SIZE];
+
     private int rxLen;
-    private final List<String> baudRates = List.of(
-            "9600",
-            "19200",
-            "38400",
-            "57600",
-            "115200");
 
     /**
-     * Constructor.
-     * 
-     * <p>
-     * Initializes the communication channel.
-     * </p>
+     * Creates a new {@code JSSCCommChannel} with default baud rate.
      */
     public JSSCCommChannel() {
         this.queue = new LinkedBlockingQueue<>(QUEUE_SIZE);
-        this.baudRate = Integer.parseInt(baudRates.get(0));
+        this.baudRate = Integer.parseInt(SUPPORTED_BAUD_RATES.get(0));
         LOGGER.info("JSSCCommChannel initialized (baudRate={})", baudRate);
     }
 
-    // -------------------------------------------------------------------------
-    // SEND
-    // -------------------------------------------------------------------------
+    /* ===================================================================== */
+    /* SEND */
+    /* ===================================================================== */
+
     @Override
     public void sendMsg(final String msg) {
         Objects.requireNonNull(msg, "Message cannot be null");
@@ -71,6 +73,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
         }
 
         final byte[] bytes = (msg + "\n").getBytes(StandardCharsets.UTF_8);
+
         try {
             synchronized (portLock) {
                 port.writeBytes(bytes);
@@ -78,13 +81,14 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
             LOGGER.debug("Sent: {}", msg);
         } catch (final SerialPortException e) {
             LOGGER.error("Failed to send message", e);
-            throw new IllegalStateException(e.getMessage(), e);
+            throw new IllegalStateException("Serial write failed", e);
         }
     }
 
-    // -------------------------------------------------------------------------
-    // RECEIVE API
-    // -------------------------------------------------------------------------
+    /* ===================================================================== */
+    /* RECEIVE API */
+    /* ===================================================================== */
+
     @Override
     public String receiveMsg() {
         try {
@@ -110,15 +114,17 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
         return !queue.isEmpty();
     }
 
-    // -------------------------------------------------------------------------
-    // PORT MANAGEMENT
-    // -------------------------------------------------------------------------
+    /* ===================================================================== */
+    /* PORT MANAGEMENT */
+    /* ===================================================================== */
+
     @Override
     public void setCommPort(final String commPort) {
-        Objects.requireNonNull(commPort);
+        Objects.requireNonNull(commPort, "Communication port cannot be null");
 
         synchronized (portLock) {
             closeInternal();
+
             try {
                 serialPort = new SerialPort(commPort);
                 serialPort.openPort();
@@ -129,11 +135,15 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
                         SerialPort.PARITY_NONE);
                 serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
                 serialPort.addEventListener(this);
-                LOGGER.info("Serial port {} opened (baudRate={})", commPort, baudRate);
+
+                LOGGER.info("Serial port '{}' opened (baudRate={})", commPort, baudRate);
+
             } catch (final SerialPortException e) {
                 serialPort = null;
-                // Non lanciamo eccezione diretta: l'app o il service può decidere come gestirlo
-                LOGGER.warn("Failed to open serial port '{}': {}", commPort, mapSerialError(e));
+                LOGGER.warn(
+                        "Failed to open serial port '{}': {}",
+                        commPort,
+                        mapSerialError(e));
             }
         }
     }
@@ -145,7 +155,7 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
 
     @Override
     public List<String> getSupportedBaudRates() {
-        return baudRates;
+        return SUPPORTED_BAUD_RATES;
     }
 
     @Override
@@ -171,29 +181,29 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
 
     @Override
     public boolean isPortOpen() {
-        final SerialPort port = serialPort;
+        final SerialPort port = this.serialPort;
         return port != null && port.isOpened();
     }
 
-    // -------------------------------------------------------------------------
-    // SERIAL EVENTS
-    // -------------------------------------------------------------------------
+    /* ===================================================================== */
+    /* SERIAL EVENTS */
+    /* ===================================================================== */
+
     @Override
     public void serialEvent(final SerialPortEvent event) {
         if (!event.isRXCHAR()) {
             return;
         }
 
-        final SerialPort port = serialPort;
+        final SerialPort port = this.serialPort;
         if (port == null) {
-            LOGGER.warn("Received data on closed port");
+            LOGGER.warn("Received data while port is closed");
             return;
         }
 
         try {
-            String data = port.readString(event.getEventValue());
-            if (data != null) {
-                data = data.replace("\r", "");
+            final String data = port.readString(event.getEventValue());
+            if (data != null && !data.isEmpty()) {
                 processIncomingData(data);
             }
         } catch (final SerialPortException e) {
@@ -201,62 +211,14 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
         }
     }
 
-    // -------------------------------------------------------------------------
-    // CLOSE
-    // -------------------------------------------------------------------------
+    /* ===================================================================== */
+    /* CLOSE */
+    /* ===================================================================== */
+
     @Override
     public void close() {
         synchronized (portLock) {
             closeInternal();
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // RX BUFFER + LINE PARSING
-    // -------------------------------------------------------------------------
-    private void processIncomingData(final String data) {
-        final String clean = data.replace("\r", "");
-        synchronized (rxLock) {
-            final int dataLen = clean.length();
-
-            if (dataLen == 0) {
-                return;
-            }
-
-            if (rxLen + dataLen > MAX_RX_BUFFER_SIZE) {
-                LOGGER.warn("RX buffer overflow, removing oldest data");
-                final int remove = Math.max(1, rxLen / 2);
-                System.arraycopy(rxBuffer, remove, rxBuffer, 0, rxLen - remove);
-                rxLen -= remove;
-            }
-
-            // copy new data
-            clean.getChars(0, dataLen, rxBuffer, rxLen);
-            rxLen += dataLen;
-
-            // extract lines
-            for (int i = 0; i < rxLen; i++) {
-                if (rxBuffer[i] == '\n') {
-                    final int newlineIndex = i;
-                    final String msg = new String(rxBuffer, 0, newlineIndex);
-
-                    // shift remainder
-                    final int remaining = rxLen - (newlineIndex + 1);
-                    if (remaining > 0) {
-                        System.arraycopy(rxBuffer, newlineIndex + 1, rxBuffer, 0, remaining);
-                    }
-                    rxLen = remaining;
-
-                    if (!queue.offer(msg)) {
-                        LOGGER.warn("Queue full, dropping message: {}", msg);
-                    } else {
-                        LOGGER.debug("Received: {}", msg);
-                    }
-
-                    // restart scan from beginning
-                    i = -1;
-                }
-            }
         }
     }
 
@@ -265,32 +227,79 @@ public final class JSSCCommChannel implements CommChannel, SerialPortEventListen
             try {
                 serialPort.removeEventListener();
             } catch (final SerialPortException ignored) {
-                // Ignored
+                // ignored
             }
             try {
                 if (serialPort.isOpened()) {
                     serialPort.closePort();
                 }
             } catch (final SerialPortException e) {
-                LOGGER.warn("Error closing port", e);
-            }
-            serialPort = null;
-            queue.clear();
-            synchronized (rxLock) {
-                rxLen = 0;
+                LOGGER.warn("Error closing serial port", e);
+            } finally {
+                serialPort = null;
+                queue.clear();
+                synchronized (rxLock) {
+                    rxLen = 0;
+                }
             }
         }
     }
 
-    // -------------------------------------------------------------------------
-    // ERROR MAPPING
-    // -------------------------------------------------------------------------
+    /* ===================================================================== */
+    /* RX BUFFER + LINE PARSING */
+    /* ===================================================================== */
+
+    private void processIncomingData(final String data) {
+        final String clean = data.replace("\r", "");
+
+        synchronized (rxLock) {
+            final int dataLen = clean.length();
+            if (dataLen == 0) {
+                return;
+            }
+
+            if (rxLen + dataLen > MAX_RX_BUFFER_SIZE) {
+                LOGGER.warn("RX buffer overflow, discarding oldest data");
+                final int remove = Math.max(1, rxLen / 2);
+                System.arraycopy(rxBuffer, remove, rxBuffer, 0, rxLen - remove);
+                rxLen -= remove;
+            }
+
+            clean.getChars(0, dataLen, rxBuffer, rxLen);
+            rxLen += dataLen;
+
+            for (int i = 0; i < rxLen; i++) {
+                if (rxBuffer[i] == '\n') {
+                    final String msg = new String(rxBuffer, 0, i);
+
+                    final int remaining = rxLen - (i + 1);
+                    if (remaining > 0) {
+                        System.arraycopy(rxBuffer, i + 1, rxBuffer, 0, remaining);
+                    }
+                    rxLen = remaining;
+
+                    if (!queue.offer(msg)) {
+                        LOGGER.warn("Message queue full, dropping message: {}", msg);
+                    } else {
+                        LOGGER.debug("Received: {}", msg);
+                    }
+
+                    i = -1; // restart scan
+                }
+            }
+        }
+    }
+
+    /* ===================================================================== */
+    /* ERROR MAPPING */
+    /* ===================================================================== */
+
     private String mapSerialError(final SerialPortException e) {
         final String msg = e.getMessage();
         return switch (msg) {
             case "busy" -> "Serial port busy";
             case "not found" -> "Serial port not found";
-            case "Permission" -> "Permission denied on serial port";
+            case "Permission" -> "Permission denied";
             default -> msg;
         };
     }

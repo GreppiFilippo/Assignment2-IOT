@@ -10,6 +10,7 @@ class LoggerService
 {
    public:
     void log(const String& msg);
+    void log(const __FlashStringHelper* msg);
 };
 extern LoggerService Logger;
 

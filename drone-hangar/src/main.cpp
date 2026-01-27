@@ -146,6 +146,7 @@ void setup()
 #ifdef _MEMEORY_DEBUG_
     DEBUG_MEM("Setup Completato");
 #endif
+
     Logger.log(F(":::::: Drone Hangar Ready ::::::"));
 #endif
 
