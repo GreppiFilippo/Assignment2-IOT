@@ -20,9 +20,6 @@ class MsgTask : public Task
     MsgServiceClass* pMsgService;
     unsigned long lastJsonSent;
     Msg* msg;
-    StaticJsonDocument<JSON_OUT_SIZE> jsonOut;
-    StaticJsonDocument<JSON_IN_SIZE> jsonIn;
-    char jsonBuf[max(JSON_OUT_SIZE, JSON_IN_SIZE)];
 
    public:
     /**

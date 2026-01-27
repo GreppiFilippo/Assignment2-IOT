@@ -1,11 +1,12 @@
 #include "task/MSGTask.hpp"
 
-#include <ArduinoJson.h>
+#include <Arduino.h>
+#include <string.h>
 
 #include "config.hpp"
-#include "kernel/Logger.hpp"
+#include "kernel/MsgService.hpp"
+#include "model/Context.hpp"
 
-// Costruttore - DEFINITO UNA SOLA VOLTA
 MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 {
     this->pContext = pContext;
@@ -15,46 +16,45 @@ MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 
 void MsgTask::tick()
 {
-    // 1. Pulizia comandi scaduti nel Context
-    this->pContext->cleanupExpired(millis());
+    const unsigned long now = millis();
 
-    // 2. Gestione messaggi in arrivo
-    if (this->pMsgService->isMsgAvailable())
+    pContext->cleanupExpired(now);
+
+    if (pMsgService->isMsgAvailable())
     {
-        Msg* msg = this->pMsgService->receiveMsg();
+        Msg* msg = pMsgService->receiveMsg();
         if (msg)
         {
-            this->jsonIn.clear();
-            DeserializationError error = deserializeJson(this->jsonIn, msg->getContent());
+            const String& content = msg->getContent();
 
-            if (!error)
+            const int jsonPos = content.indexOf('{');
+            if (jsonPos >= 0)
             {
-                if (this->jsonIn.containsKey(COMMAND))
+                StaticJsonDocument<JSON_IN_SIZE> jsonIn;
+
+                if (deserializeJson(jsonIn, content.c_str() + jsonPos) == DeserializationError::Ok)
                 {
-                    const char* cmd = this->jsonIn[COMMAND];
-                    if (this->pContext->tryEnqueueMsg(cmd))
+                    const char* cmd = jsonIn[COMMAND] | nullptr;
+                    if (cmd)
                     {
-                        Logger.log(F("Command enqueued"));
+                        pContext->tryEnqueueMsg(cmd);
                     }
                 }
             }
-            // NOTA: Nessun 'delete msg' qui.
         }
     }
 
-    // 3. Invio periodico dello stato (JSON)
-    if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
+    if (now - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
-        this->jsonOut.clear();
-        this->pContext->serializeData(this->jsonOut);
-        this->jsonOut[ALIVE] = true;
+        StaticJsonDocument<JSON_OUT_SIZE> jsonOut;
+        pContext->serializeData(jsonOut);
+        jsonOut[ALIVE] = true;
 
-        // Serializzazione nel buffer jsonBuf definito nell'header del Task
-        serializeJson(this->jsonOut, this->jsonBuf, sizeof(this->jsonBuf));
+        char jsonBuf[128];
+        memset(jsonBuf, 0, sizeof(jsonBuf));
+        serializeJson(jsonOut, jsonBuf, sizeof(jsonBuf));
 
-        // Invio tramite il servizio
-        this->pMsgService->sendMsgRaw(this->jsonBuf, true);
-
-        this->lastJsonSent = millis();
+        pMsgService->sendMsgRaw(jsonBuf, true);
+        lastJsonSent = now;
     }
 }
