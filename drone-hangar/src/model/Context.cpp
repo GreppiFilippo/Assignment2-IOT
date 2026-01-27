@@ -148,18 +148,17 @@ bool Context::tryEnqueueMsg(const char* msg) {
 size_t Context::buildJSON(Print& target) const {
     StaticJsonDocument<128> doc;
 
-    doc[F("door")] = doorOpen;
-    doc[F("temp")] = currentTemperature;
-    doc[F("dist")] = currentDistance;
+    if (currentDistance){
+        doc[F("dist")] = currentDistance;
+    }
     doc[F("alarm")] = alarmActive;
-    doc[F("drone")] = droneIn;
-    
+    doc[F("alive")] = true;
     // Convertiamo gli stati numerici in testo leggibile
     const char* droneLabels[] = {"REST", "TAKEOFF", "OPERATING", "LANDING"};
-    doc[F("dr_st")] = droneLabels[droneState];
+    doc[F("droneStatus")] = droneLabels[droneState];
 
     const char* hangarLabels[] = {"NORMAL", "ALARM"};
-    doc[F("hg_st")] = hangarLabels[hangarState];
+    doc[F("hangarStatus")] = hangarLabels[hangarState];
 
     return serializeJson(doc, target);
 }

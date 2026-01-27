@@ -16,16 +16,16 @@ struct CommandEntry {
 class Context {
    private:
     // --- FLAG (Bit-fields) ---
-    uint16_t openDoorRequested : 1;
-    uint16_t closeDoorRequested : 1;
-    uint16_t doorOpen : 1;
-    uint16_t alarmActive : 1;
-    uint16_t preAlarmActive : 1;
-    uint16_t ledBlinking : 1;
-    uint16_t landingCheck : 1;
-    uint16_t takeoffCheck : 1;
-    uint16_t droneIn : 1;
-    uint16_t pirActive : 1; // Spostato nei bit-field per risparmiare 1 byte
+    bool openDoorRequested;
+    bool closeDoorRequested;
+    bool doorOpen;
+    bool alarmActive;
+    bool preAlarmActive;
+    bool ledBlinking;
+    bool landingCheck;
+    bool takeoffCheck;
+    bool droneIn ;
+    bool pirActive; // Spostato nei bit-field per risparmiare 1 byte
 
     // --- SENSORI ---
     float currentDistance;
