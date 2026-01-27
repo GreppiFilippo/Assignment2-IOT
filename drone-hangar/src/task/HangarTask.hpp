@@ -1,29 +1,26 @@
-#ifndef __TEMP_ALARM_TASK__
-#define __TEMP_ALARM_TASK__
+#ifndef __HANGAR_TASK__
+#define __HANGAR_TASK__
 
 #include <Arduino.h>
-
 #include "devices/Button.hpp"
 #include "devices/Light.hpp"
 #include "devices/TempSensor.hpp"
 #include "kernel/Task.hpp"
 #include "model/Context.hpp"
 
-class HangarTask : public Task
-{
+class HangarTask : public Task {
    private:
     TempSensor* tempSensor;
     Button* resetButton;
     Light* L3;
     Context* pContext;
 
-    long stateTimestamp;
+    uint32_t stateTimestamp;
     bool justEntered;
     float temperature;
-    unsigned long startTime;
+    uint32_t startTime;
 
-    enum State
-    {
+    enum State {
         NORMAL,
         TRACKING_PRE_ALARM,
         PREALARM,
@@ -33,13 +30,11 @@ class HangarTask : public Task
 
     void setState(State state);
     long elapsedTimeInState();
-    void log(const String& msg);
     bool checkAndSetJustEntered();
-    void setHangarState(const String& state);
 
    public:
     HangarTask(TempSensor* tempSensor, Button* resetButton, Light* L3, Context* pContext);
-    void tick();
+    void tick() override;
 };
 
-#endif /* __TEMP_ALARM_TASK__ */
+#endif

@@ -5,19 +5,13 @@
 
 /**
  * @brief Service for logging messages.
- *
  */
-class LoggerService
-{
-   public:
-    /**
-     * @brief Logs a message to the logging service.
-     *
-     * @param msg The message to log.
-     */
-    void log(const String& msg);
+class LoggerService {
+public:
+    void log(const char* msg);                   // Per stringhe in RAM e buffer
+    void log(const __FlashStringHelper* msg);    // Per stringhe con F()
+    void log(const char* prefix, const char* msg);
 };
-
 extern LoggerService Logger;
 
 #endif

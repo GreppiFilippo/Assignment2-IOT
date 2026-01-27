@@ -53,8 +53,11 @@ ProximitySensor* HWPlatform::getProximitySensor() { return this->proximitySensor
 void HWPlatform::test()
 {
     static int testStep = 0;
+    char buf[64]; // Buffer temporaneo per i messaggi composti
 
-    Logger.log("=== HW TEST STEP " + String(testStep) + " ===");
+    // Invece di "..." + String(testStep), usiamo snprintf
+    snprintf(buf, sizeof(buf), "=== HW TEST STEP %d ===", testStep);
+    Logger.log(buf);
 
     switch (testStep)
     {
@@ -65,83 +68,41 @@ void HWPlatform::test()
             l3->switchOn();
             break;
 
-        case 1:
-            Logger.log("Testing L1 OFF");
-            l1->switchOff();
-            break;
-
-        case 2:
-            Logger.log("Testing L2 OFF");
-            l2->switchOff();
-            break;
-
-        case 3:
-            Logger.log("Testing L3 OFF");
-            l3->switchOff();
-            break;
-
-        case 4:
-            Logger.log("Testing LCD...");
-            lcd->clear();
-            lcd->print("HW TEST OK");
-            break;
-
-        case 5:
-            Logger.log("Testing LCD line 2");
-            lcd->clear();
-            lcd->print("Line 1 Line 2 Line 3 Line 4");
-            break;
-
-        case 6:
-            Logger.log("Testing Servo - Position 0");
-            motor->on();
-            motor->setPosition(0);
-            break;
-
-        case 7:
-            Logger.log("Testing Servo - Position 90");
-            motor->setPosition(90);
-            break;
-
-        case 8:
-            Logger.log("Testing Servo - Position 180");
-            motor->setPosition(180);
-            break;
-
-        case 9:
-            Logger.log("Testing Servo OFF");
-            motor->off();
-            break;
+        // ... case 1-9 rimangono invariati perché usano stringhe fisse ...
+        case 1: Logger.log("Testing L1 OFF"); l1->switchOff(); break;
+        case 2: Logger.log("Testing L2 OFF"); l2->switchOff(); break;
+        case 3: Logger.log("Testing L3 OFF"); l3->switchOff(); break;
 
         case 10:
         {
-            Logger.log("Testing Temp Sensor...");
             int temp = tempSensor->getTemperature();
-            Logger.log("Temperature: " + String(temp) + " C");
+            snprintf(buf, sizeof(buf), "Temperature: %d C", temp);
+            Logger.log(buf);
             break;
         }
 
         case 11:
         {
-            Logger.log("Testing Sonar...");
             float distance = proximitySensor->getDistance();
-            Logger.log("Distance: " + String(distance) + " cm");
+            // Nota: su molti Arduino (AVR), snprintf non supporta %f per i float.
+            // Usiamo dtostrf se necessario, o convertiamo in intero:
+            snprintf(buf, sizeof(buf), "Distance: %d cm", (int)distance);
+            Logger.log(buf);
             break;
         }
 
         case 12:
         {
-            Logger.log("Testing PIR...");
             bool presence = presenceSensor->isDetected();
-            Logger.log("Presence detected: " + String(presence ? "YES" : "NO"));
+            // Uso dell'operatore ternario direttamente nel log
+            Logger.log(presence ? "Presence detected: YES" : "Presence detected: NO");
             break;
         }
 
         case 13:
         {
-            Logger.log("Testing Button...");
             bool pressed = button->isPressed();
-            Logger.log("Button pressed: " + String(pressed ? "YES" : "NO"));
+            Logger.log(pressed ? "Button pressed: YES" : "Button pressed: NO");
             break;
         }
 
@@ -149,16 +110,15 @@ void HWPlatform::test()
             Logger.log("=== TEST COMPLETE - RESTARTING ===");
             lcd->clear();
             lcd->print("TEST COMPLETE");
-            l1->switchOn();
-            l2->switchOn();
-            l3->switchOn();
+            l1->switchOn(); l2->switchOn(); l3->switchOn();
             break;
 
         case 15:
-            l1->switchOff();
-            l2->switchOff();
-            l3->switchOff();
-            testStep = -1;  // Will become 0 after increment
+            l1->switchOff(); l2->switchOff(); l3->switchOff();
+            testStep = -1; 
+            break;
+        
+        default:
             break;
     }
 

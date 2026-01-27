@@ -116,4 +116,6 @@ bool DoorControlTask::checkAndSetJustEntered()
     return bak;
 }
 
-void DoorControlTask::log(const String& msg) { Logger.log("[DOOR] " + msg); }
+void DoorControlTask::log(const char* msg) { 
+    Logger.log("[DOOR] ", msg); // Passiamo due pezzi separati
+}

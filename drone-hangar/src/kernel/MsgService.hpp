@@ -10,7 +10,7 @@
 class Msg
 {
    private:
-    String content;
+    const char* content;
 
    public:
     /**
@@ -18,14 +18,14 @@ class Msg
      *
      * @param content the message content
      */
-    Msg(const String& content) : content(content) {}
+    Msg(const char* content) : content(content) {}
 
     /**
      * @brief Get the message content.
      *
      * @return const String& reference to the message content
      */
-    const String& getContent() const { return content; }
+    const char* getContent() const { return content; }
 };
 
 /**
@@ -97,7 +97,7 @@ class MsgServiceClass
      *
      * @param msg the message text to send
      */
-    void sendMsg(const String& msg);
+    void sendMsg(const char* msg);
 };
 
 extern MsgServiceClass MsgService;

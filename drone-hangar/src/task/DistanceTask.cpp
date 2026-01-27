@@ -1,13 +1,12 @@
 #include "DistanceTask.hpp"
-
 #include <Arduino.h>
-
 #include "config.hpp"
 
 DistanceTask::DistanceTask(ProximitySensor* sonarSensor, Context* pContext)
 {
     this->sonarSensor = sonarSensor;
     this->pContext = pContext;
+    this->state = IDLE; // Assicurati che lo stato iniziale sia settato
 }
 
 void DistanceTask::tick()
@@ -24,17 +23,22 @@ void DistanceTask::tick()
                 setState(TAKEOFF_MONITORING);
             }
             break;
+
         case LANDING_MONITORING:
             distance = sonarSensor->getDistance();
-            this->pContext->setJsonField("distance", distance);
+            // CORREZIONE: Uso il setter dedicato, niente più JSON qui
+            this->pContext->setDistance(distance); 
+            
             if (distance <= D2)
             {
                 setState(LANDING_WAITING);
             }
             break;
+
         case LANDING_WAITING:
             distance = sonarSensor->getDistance();
-            this->pContext->setJsonField("distance", distance);
+            this->pContext->setDistance(distance);
+
             if (distance > D2)
             {
                 setState(LANDING_MONITORING);
@@ -46,17 +50,21 @@ void DistanceTask::tick()
                 setState(IDLE);
             }
             break;
+
         case TAKEOFF_MONITORING:
             distance = sonarSensor->getDistance();
-            this->pContext->setJsonField("distance", distance);
+            this->pContext->setDistance(distance);
+
             if (distance >= D1)
             {
                 setState(TAKEOFF_WAITING);
             }
             break;
+
         case TAKEOFF_WAITING:
             distance = sonarSensor->getDistance();
-            this->pContext->setJsonField("distance", distance);
+            this->pContext->setDistance(distance);
+
             if (distance < D2)
             {
                 setState(TAKEOFF_MONITORING);

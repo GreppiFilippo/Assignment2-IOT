@@ -44,7 +44,7 @@ class DoorControlTask : public Task
 
     void setState(State state);
     long elapsedTimeInState();
-    void log(const String& msg);
+    void log(const char* msg);
     bool checkAndSetJustEntered();
 
     bool isDoorOpen();

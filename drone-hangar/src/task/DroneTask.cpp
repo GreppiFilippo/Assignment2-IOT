@@ -1,5 +1,4 @@
 #include "task/DroneTask.hpp"
-
 #include "config.hpp"
 #include "devices/Led.hpp"
 #include "kernel/Logger.hpp"
@@ -7,28 +6,25 @@
 DroneTask::DroneTask(Context* pContext, Light* L1, PresenceSensor* presenceSensor)
 {
     this->pContext = pContext;
-    this->setState(REST);
     this->L1 = L1;
     this->presenceSensor = presenceSensor;
+    this->setState(REST);
 }
 
-void DroneTask::sendState(const String& state)
-{
-    this->pContext->setJsonField("drone_state", state);
-}
-
+// Rimosso sendState(String) per evitare frammentazione RAM
+// Ora aggiorniamo solo una variabile numerica nel Context
 void DroneTask::tick()
 {
     switch (this->state)
     {
         case REST:
-            sendState(DRONE_REST_STATE);
-
             if (checkAndSetJustEntered())
             {
+                pContext->setDroneState(0); // 0 = REST
                 pContext->closeDoor();
                 L1->switchOn();
                 pContext->stopBlink();
+                Logger.log(F("Drone: REST"));
             }
 
             pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE : LCD_REST_STATE);
@@ -41,14 +37,13 @@ void DroneTask::tick()
             break;
 
         case TAKING_OFF:
-            Logger.log(F(DRONE_TAKING_OFF_STATE));
-            sendState(DRONE_TAKING_OFF_STATE);
-
             if (checkAndSetJustEntered())
             {
+                pContext->setDroneState(1); // 1 = TAKING_OFF
                 pContext->openDoor();
                 pContext->setLCDMessage(LCD_TAKING_OFF_STATE);
                 pContext->blink();
+                Logger.log(F("Drone: TAKING OFF"));
             }
 
             if (pContext->isAlarmActive() && pContext->isDroneIn())
@@ -62,14 +57,13 @@ void DroneTask::tick()
             break;
 
         case OPERATING:
-            Logger.log(F(DRONE_OPERATING_STATE));
-            sendState(DRONE_OPERATING_STATE);
-
             if (checkAndSetJustEntered())
             {
+                pContext->setDroneState(2); // 2 = OPERATING
                 pContext->closeDoor();
                 L1->switchOff();
                 pContext->stopBlink();
+                Logger.log(F("Drone: OPERATING"));
             }
 
             pContext->setLCDMessage(pContext->isAlarmActive() ? LCD_ALARM_STATE
@@ -84,14 +78,13 @@ void DroneTask::tick()
             break;
 
         case LANDING:
-            Logger.log(F(DRONE_LANDING_STATE));
-            sendState(DRONE_LANDING_STATE);
-
             if (checkAndSetJustEntered())
             {
+                pContext->setDroneState(3); // 3 = LANDING
                 pContext->openDoor();
                 pContext->setLCDMessage(LCD_LANDING_STATE);
                 pContext->blink();
+                Logger.log(F("Drone: LANDING"));
             }
 
             if (pContext->isAlarmActive() && !pContext->isDroneIn())

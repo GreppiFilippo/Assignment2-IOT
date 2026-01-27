@@ -1,20 +1,18 @@
 #include "model/Context.hpp"
-
+#include <ArduinoJson.h>
 #include <string.h>
-
-#include "Context.hpp"
 #include "config.hpp"
 
-#define JSON_DOC_SIZE 256
-
 /**
- * @brief Command table mapping command names to CommandType enums.
- *
+ * @brief Tabella dei comandi (mappa i nomi alle enum)
  */
-const CommandEntry Context::commandTable[] = {{"OPEN", CommandType::OPEN}};
-const int Context::COMMAND_TABLE_SIZE =
-    sizeof(Context::commandTable) / sizeof(Context::commandTable[0]);
+const CommandEntry Context::commandTable[] = {
+    {"OPEN", CommandType::OPEN}
+};
 
+const int Context::COMMAND_TABLE_SIZE = sizeof(Context::commandTable) / sizeof(commandTable[0]);
+
+// Costruttore: l'ordine segue esattamente la dichiarazione nel .hpp per evitare warning
 Context::Context()
     : openDoorRequested(false),
       closeDoorRequested(false),
@@ -25,114 +23,108 @@ Context::Context()
       landingCheck(false),
       takeoffCheck(false),
       droneIn(true),
-      currentDistance(0),
-      currentTemperature(0),
       pirActive(false),
+      currentDistance(0.0f),
+      currentTemperature(0.0f),
       commandHead(0),
       commandTail(0),
-      commandCount(0)
+      commandCount(0),
+      droneState(0),
+      hangarState(0)
 {
     lcdMessage[0] = '\0';
 }
 
-// DOOR
+// === DOOR CONTROL ===
 void Context::closeDoor() { closeDoorRequested = true; }
 void Context::openDoor() { openDoorRequested = true; }
-bool Context::closeDoorReq() const { return closeDoorRequested; }
 bool Context::openDoorReq() const { return openDoorRequested; }
+bool Context::closeDoorReq() const { return closeDoorRequested; }
 bool Context::isDoorOpen() const { return doorOpen; }
 void Context::setDoorOpened() { doorOpen = true; }
-void Context::setDoorClosed()
-{
+void Context::setDoorClosed() {
     closeDoorRequested = false;
     openDoorRequested = false;
     doorOpen = false;
 }
 
-// ALARM
+// === ALARM & PIR ===
 void Context::setAlarm(bool active) { alarmActive = active; }
 bool Context::isAlarmActive() const { return alarmActive; }
 void Context::setPreAlarm(bool active) { preAlarmActive = active; }
 bool Context::isPreAlarmActive() const { return preAlarmActive; }
+void Context::setPir(bool active) { pirActive = active; }
+bool Context::isPirActive() const { return pirActive; }
 
-// LED
+// === LED ===
 void Context::blink() { ledBlinking = true; }
 void Context::stopBlink() { ledBlinking = false; }
 bool Context::isBlinking() const { return ledBlinking; }
 
-// LCD
-void Context::setLCDMessage(const char* msg)
-{
-    if (!msg)
-    {
+// === LCD ===
+void Context::setLCDMessage(const char* msg) {
+    if (!msg) {
         lcdMessage[0] = '\0';
         return;
     }
-    strncpy(lcdMessage, msg, sizeof(lcdMessage) - 1);
-    lcdMessage[sizeof(lcdMessage) - 1] = '\0';
+    strncpy(lcdMessage, msg, LCD_BUFFER_SIZE - 1);
+    lcdMessage[LCD_BUFFER_SIZE - 1] = '\0';
 }
 const char* Context::getLCDMessage() const { return lcdMessage; }
 
-// DRONE
+// === DRONE & SENSORS ===
+void Context::setDistance(float d) { currentDistance = d; }
+float Context::getDistance() const { return currentDistance; }
+void Context::setTemperature(float t) { currentTemperature = t; }
+float Context::getTemperature() const { return currentTemperature; }
+
 void Context::setDroneIn(bool state) { droneIn = state; }
 bool Context::isDroneIn() const { return droneIn; }
-
 void Context::requestLandingCheck() { landingCheck = true; }
 void Context::closeLandingCheck() { landingCheck = false; }
 bool Context::landingCheckRequested() const { return landingCheck; }
-
 void Context::requestTakeoffCheck() { takeoffCheck = true; }
 void Context::closeTakeoffCheck() { takeoffCheck = false; }
 bool Context::takeoffCheckRequested() const { return takeoffCheck; }
 
-// COMMAND QUEUE
-bool Context::enqueueCommand(CommandType cmd, uint32_t now)
-{
-    if (commandCount >= MSG_QUEUE_SIZE)
-        return false;
+void Context::setDroneState(int s) { droneState = (int8_t)s; }
+int Context::getDroneState() const { return (int)droneState; }
+void Context::setHangarState(int s) { hangarState = (int8_t)s; }
+int Context::getHangarState() const { return (int)hangarState; }
 
+// === COMMAND QUEUE ===
+bool Context::enqueueCommand(CommandType cmd, uint16_t now) {
+    if (commandCount >= MSG_QUEUE_SIZE) return false;
     commandQueue[commandTail] = {cmd, now};
     commandTail = (commandTail + 1) % MSG_QUEUE_SIZE;
     commandCount++;
     return true;
 }
 
-bool Context::consumeCommand(CommandType cmd)
-{
-    int scanned = 0;
-    while (scanned < commandCount)
-    {
-        int index = (commandHead + scanned) % MSG_QUEUE_SIZE;
-        if (commandQueue[index].cmd == cmd)
-        {
-            if (scanned != 0)
-            {
+bool Context::consumeCommand(CommandType cmd) {
+    for (int i = 0; i < commandCount; i++) {
+        int index = (commandHead + i) % MSG_QUEUE_SIZE;
+        if (commandQueue[index].cmd == cmd) {
+            if (i != 0) {
                 QueuedCommand temp = commandQueue[index];
                 commandQueue[index] = commandQueue[commandHead];
                 commandQueue[commandHead] = temp;
             }
-
             commandHead = (commandHead + 1) % MSG_QUEUE_SIZE;
             commandCount--;
             return true;
         }
-        scanned++;
     }
     return false;
 }
 
-void Context::cleanupExpired(uint32_t now)
-{
+void Context::cleanupExpired(uint32_t now) {
     int removed = 0;
-    for (int i = 0; i < commandCount; i++)
-    {
+    for (int i = 0; i < commandCount; i++) {
         int index = (commandHead + i) % MSG_QUEUE_SIZE;
-        if ((now - commandQueue[index].timestamp) >= CONFIG_CMD_TTL_MS)
-        {
+        if ((uint16_t)(now - commandQueue[index].timestamp) >= CONFIG_CMD_TTL_MS) {
             removed++;
-        }
-        else if (removed > 0)
-        {
+        } else if (removed > 0) {
             commandQueue[(commandHead + i - removed) % MSG_QUEUE_SIZE] = commandQueue[index];
         }
     }
@@ -140,39 +132,34 @@ void Context::cleanupExpired(uint32_t now)
     commandCount -= removed;
 }
 
-bool Context::tryEnqueueMsg(const char* msg)
-{
-    if (!msg)
-    {
-        return false;
-    }
-
-    while (*msg == ' ' || *msg == '\t')
-    {
-        msg++;
-    }
-
-    for (int i = 0; i < COMMAND_TABLE_SIZE; i++)
-    {
-        if (strcasecmp(msg, commandTable[i].name) == 0)
-        {
-            enqueueCommand(commandTable[i].type, millis());
+bool Context::tryEnqueueMsg(const char* msg) {
+    if (!msg) return false;
+    while (*msg == ' ' || *msg == '\t') msg++;
+    for (int i = 0; i < COMMAND_TABLE_SIZE; i++) {
+        if (strcasecmp(msg, commandTable[i].name) == 0) {
+            enqueueCommand(commandTable[i].type, (uint16_t)millis());
             return true;
         }
     }
     return false;
 }
 
-void Context::setJsonField(const char* key, const char* value) { jsonDoc[key] = value; }
-void Context::setJsonField(const char* key, float value) { jsonDoc[key] = value; }
-void Context::setJsonField(const char* key, int value) { jsonDoc[key] = value; }
-void Context::setJsonField(const char* key, bool value) { jsonDoc[key] = value; }
-void Context::removeJsonField(const char* key) { jsonDoc.remove(key); }
+// === JSON: GENERAZIONE ON-THE-FLY ===
+size_t Context::buildJSON(Print& target) const {
+    StaticJsonDocument<128> doc;
 
-String Context::buildJSON() const
-{
-    String out;
-    serializeJson(jsonDoc, out);
-    return out;
+    doc[F("door")] = doorOpen;
+    doc[F("temp")] = currentTemperature;
+    doc[F("dist")] = currentDistance;
+    doc[F("alarm")] = alarmActive;
+    doc[F("drone")] = droneIn;
+    
+    // Convertiamo gli stati numerici in testo leggibile
+    const char* droneLabels[] = {"REST", "TAKEOFF", "OPERATING", "LANDING"};
+    doc[F("dr_st")] = droneLabels[droneState];
+
+    const char* hangarLabels[] = {"NORMAL", "ALARM"};
+    doc[F("hg_st")] = hangarLabels[hangarState];
+
+    return serializeJson(doc, target);
 }
-void Context::clearJsonFields() { jsonDoc.clear(); }

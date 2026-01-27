@@ -2,69 +2,55 @@
 #define __CONTEXT__
 
 #include <Arduino.h>
-#include <ArduinoJson.h>
-
 #include "config.hpp"
 #include "kernel/CommandType.hpp"
-#include "kernel/MsgService.hpp"
 
-#define MSG_QUEUE_SIZE 10
-#define LCD_BUFFER_SIZE LCD_ROW* LCD_COL + 1
+#define MSG_QUEUE_SIZE 3
+#define LCD_BUFFER_SIZE (LCD_ROW * LCD_COL + 1)
 
-struct CommandEntry
-{
+struct CommandEntry {
     const char* name;
     CommandType type;
 };
 
-class Context
-{
+class Context {
    private:
-    // DOOR FLAGS
-    uint8_t openDoorRequested : 1;
-    uint8_t closeDoorRequested : 1;
-    uint8_t doorOpen : 1;
+    // --- FLAG (Bit-fields) ---
+    uint16_t openDoorRequested : 1;
+    uint16_t closeDoorRequested : 1;
+    uint16_t doorOpen : 1;
+    uint16_t alarmActive : 1;
+    uint16_t preAlarmActive : 1;
+    uint16_t ledBlinking : 1;
+    uint16_t landingCheck : 1;
+    uint16_t takeoffCheck : 1;
+    uint16_t droneIn : 1;
+    uint16_t pirActive : 1; // Spostato nei bit-field per risparmiare 1 byte
 
-    // SYSTEM FLAGS
-    uint8_t alarmActive : 1;
-    uint8_t preAlarmActive : 1;
-
-    // LED FLAG
-    uint8_t ledBlinking : 1;
-
-    // DRONE FLAGS
-    uint8_t landingCheck : 1;
-    uint8_t takeoffCheck : 1;
-    uint8_t droneIn : 1;
-
-    // SENSORS
+    // --- SENSORI ---
     float currentDistance;
     float currentTemperature;
-    bool pirActive;
 
-    // LCD
+    // --- LCD BUFFER ---
     char lcdMessage[LCD_BUFFER_SIZE];
 
-    // COMMAND QUEUE
-    struct QueuedCommand
-    {
+    // --- CODA COMANDI ---
+    struct QueuedCommand {
         CommandType cmd;
-        uint32_t timestamp;
+        uint16_t timestamp;
     };
     QueuedCommand commandQueue[MSG_QUEUE_SIZE];
-    int commandHead;
-    int commandTail;
-    int commandCount;
+    int8_t commandHead;
+    int8_t commandTail;
+    int8_t commandCount;
+    int8_t droneState;
+    int8_t hangarState;
 
-    // JSON
-    JsonDocument jsonDoc;
-
-    // COMMAND TABLE
+    // --- TABELLA COMANDI ---
     static const CommandEntry commandTable[];
     static const int COMMAND_TABLE_SIZE;
 
-    // enqueue privata
-    bool enqueueCommand(CommandType cmd, uint32_t now);
+    bool enqueueCommand(CommandType cmd, uint16_t now);
 
    public:
     Context();
@@ -78,11 +64,15 @@ class Context
     void setDoorClosed();
     void setDoorOpened();
 
-    // ALARM
+    // ALARM & SYSTEM
     void setAlarm(bool active);
     bool isAlarmActive() const;
     void setPreAlarm(bool active);
     bool isPreAlarmActive() const;
+    void setPir(bool active);
+    bool isPirActive() const;
+    void setHangarState(int s);
+    int getHangarState() const;
 
     // LED
     void blink();
@@ -93,29 +83,31 @@ class Context
     const char* getLCDMessage() const;
     void setLCDMessage(const char* msg);
 
-    // DRONE
+    // DRONE & SENSORS
+    void setDistance(float d);
+    float getDistance() const;
+    void setTemperature(float t);
+    float getTemperature() const;
+    
+    void setDroneIn(bool state);
+    bool isDroneIn() const;
     void requestLandingCheck();
     void closeLandingCheck();
     bool landingCheckRequested() const;
     void requestTakeoffCheck();
     void closeTakeoffCheck();
     bool takeoffCheckRequested() const;
-    void setDroneIn(bool state);
-    bool isDroneIn() const;
+    
+    void setDroneState(int s);
+    int getDroneState() const;
 
-    // COMMAND
+    // COMMAND MANAGEMENT
     bool tryEnqueueMsg(const char* msg);
     bool consumeCommand(CommandType cmd);
     void cleanupExpired(uint32_t now);
 
-    // JSON
-    void setJsonField(const char* key, const char* value);
-    void setJsonField(const char* key, float value);
-    void setJsonField(const char* key, int value);
-    void setJsonField(const char* key, bool value);
-    void removeJsonField(const char* key);
-    String buildJSON() const;
-    void clearJsonFields();
+    // JSON Generation
+    size_t buildJSON(Print& target) const;
 };
 
 #endif

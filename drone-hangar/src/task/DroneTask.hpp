@@ -1,5 +1,5 @@
-#ifndef __HANGAR_TASK__
-#define __HANGAR_TASK__
+#ifndef __DRONE_TASK__
+#define __DRONE_TASK__
 
 #include <Arduino.h>
 

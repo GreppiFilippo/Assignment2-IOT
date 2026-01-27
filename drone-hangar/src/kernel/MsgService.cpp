@@ -1,15 +1,18 @@
 #include "MsgService.hpp"
-
 #include <Arduino.h>
 
-// Internal buffer for serial input
-static String content;
+// Buffer interno per l'input seriale
+#define MAX_MSG_SIZE 128
+char msgBuffer[MAX_MSG_SIZE];
+int msgIdx = 0;
 
 MsgServiceClass MsgService;
 
 // === PUBLIC API ===
 
-bool MsgServiceClass::isMsgAvailable() { return msgAvailable; }
+bool MsgServiceClass::isMsgAvailable() { 
+    return msgAvailable; 
+}
 
 Msg* MsgServiceClass::receiveMsg()
 {
@@ -25,37 +28,47 @@ Msg* MsgServiceClass::receiveMsg()
 void MsgServiceClass::init()
 {
     Serial.begin(115200);
-
-    content.reserve(256);
-    content = "";
-
+    
+    // Reset dello stato
+    msgIdx = 0;
+    memset(msgBuffer, 0, MAX_MSG_SIZE); // Pulisce il buffer hardware
+    
     currentMsg = nullptr;
     msgAvailable = false;
 }
 
-void MsgServiceClass::sendMsg(const String& msg) { Serial.println(msg); }
+// Nota: se passi un JSON minificato, Serial.println lo invia correttamente
+void MsgServiceClass::sendMsg(const char* msg) { 
+    Serial.println(msg); 
+}
 
-// === SERIAL EVENT HANDLER ===
-// Called automatically by Arduino core between loop() iterations
-void serialEvent()
+// Gestione evento seriale (Hardware interrupt-like)
+void serialEvent() 
 {
-    while (Serial.available())
+    while (Serial.available()) 
     {
         char ch = (char)Serial.read();
 
-        if (ch == '\n')
+        if (ch == '\n') // Fine del messaggio
         {
-            // Ignore empty lines
-            if (content.length() > 0 && !MsgService.msgAvailable)
+            if (msgIdx > 0 && !MsgService.isMsgAvailable()) 
             {
-                MsgService.currentMsg = new Msg(content);
+                msgBuffer[msgIdx] = '\0'; // Chiusura stringa C
+                
+                // Crea il messaggio. 
+                // Assicurati che il costruttore di Msg faccia una COPIA di msgBuffer
+                MsgService.currentMsg = new Msg(msgBuffer); 
+                
                 MsgService.msgAvailable = true;
             }
-            content = "";  // 🔥 RESET BUFFER
-        }
-        else if (ch != '\r')
+            msgIdx = 0; 
+        } 
+        else if (ch != '\r') // Ignora carriage return, salva il resto
         {
-            content += ch;
+            if (msgIdx < MAX_MSG_SIZE - 1) 
+            {
+                msgBuffer[msgIdx++] = ch;
+            }
         }
     }
 }
