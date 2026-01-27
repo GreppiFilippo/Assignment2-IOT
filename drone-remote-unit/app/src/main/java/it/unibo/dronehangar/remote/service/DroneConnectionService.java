@@ -274,6 +274,8 @@ public final class DroneConnectionService {
     /* ===================================================================== */
 
     private void handleMessage(final String msg) {
+        // TODO: remove
+        LOGGER.info("ARDUINO MSG: {}", msg);
         try {
             final JsonObject json = gson.fromJson(msg, JsonObject.class);
 
