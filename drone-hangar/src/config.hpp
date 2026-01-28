@@ -23,12 +23,12 @@
 #define MOVING_TIME 500
 
 /* ===== Distance thresholds (cm) ===== */
-#define D1 100  // Distance threshold for drone exit detection
-#define D2 10   // Distance threshold for drone landing detection
+#define D1 2    // Distance threshold for drone exit detection
+#define D2 0.6  // Distance threshold for drone landing detection
 
 /* ===== Time thresholds (milliseconds) ===== */
-#define TIME1 3000  // Time to confirm drone has exited (3 seconds)
-#define TIME2 3000  // Time to confirm drone has landed (3 seconds)
+#define TIME1 5000  // Time to confirm drone has exited (5 seconds)
+#define TIME2 5000  // Time to confirm drone has landed (5 seconds)
 #define TIME3 5000  // Time to enter pre-alarm state (5 seconds)
 #define TIME4 5000  // Time to enter alarm state (5 seconds)
 

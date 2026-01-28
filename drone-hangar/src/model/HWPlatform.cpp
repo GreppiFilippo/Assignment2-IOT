@@ -25,12 +25,10 @@ HWPlatform::HWPlatform()
     lcd = new LCD(LCD_ADR, LCD_COL, LCD_ROW);
     motor = new ServoMotorImpl(HD_PIN);
     tempSensor = new TempSensorTMP36(TEMP_PIN);
-    proximitySensor = new Sonar(DDD_PIN_E, DDD_PIN_T, 100);
+    proximitySensor = new Sonar(DDD_PIN_E, DDD_PIN_T, 30000);
 }
 
-void HWPlatform::init() {
-    motor->on();
-}
+void HWPlatform::init() { motor->on(); }
 
 Button* HWPlatform::getButton() { return this->button; }
 
@@ -52,75 +50,142 @@ ProximitySensor* HWPlatform::getProximitySensor() { return this->proximitySensor
 
 void HWPlatform::test()
 {
-    static int testStep = 0;
-    char buf[64]; // Buffer temporaneo per i messaggi composti
+    static int step = 0;
+    static int subStep = 0;
+    static unsigned long lastStepTime = 0;
+    unsigned long now = millis();
 
-    // Invece di "..." + String(testStep), usiamo snprintf
-    snprintf(buf, sizeof(buf), "=== HW TEST STEP %d ===", testStep);
-    Logger.log(buf);
+    // Inizializzazione timer al primo avvio
+    if (lastStepTime == 0)
+        lastStepTime = now;
 
-    switch (testStep)
+    switch (step)
     {
-        case 0:
-            Logger.log("Testing LEDs...");
-            l1->switchOn();
-            l2->switchOn();
-            l3->switchOn();
-            break;
-
-        // ... case 1-9 rimangono invariati perché usano stringhe fisse ...
-        case 1: Logger.log("Testing L1 OFF"); l1->switchOff(); break;
-        case 2: Logger.log("Testing L2 OFF"); l2->switchOff(); break;
-        case 3: Logger.log("Testing L3 OFF"); l3->switchOff(); break;
-
-        case 10:
-        {
-            int temp = tempSensor->getTemperature();
-            snprintf(buf, sizeof(buf), "Temperature: %d C", temp);
-            Logger.log(buf);
-            break;
-        }
-
-        case 11:
-        {
-            float distance = proximitySensor->getDistance();
-            // Nota: su molti Arduino (AVR), snprintf non supporta %f per i float.
-            // Usiamo dtostrf se necessario, o convertiamo in intero:
-            snprintf(buf, sizeof(buf), "Distance: %d cm", (int)distance);
-            Logger.log(buf);
-            break;
-        }
-
-        case 12:
-        {
-            bool presence = presenceSensor->isDetected();
-            // Uso dell'operatore ternario direttamente nel log
-            Logger.log(presence ? "Presence detected: YES" : "Presence detected: NO");
-            break;
-        }
-
-        case 13:
-        {
-            bool pressed = button->isPressed();
-            Logger.log(pressed ? "Button pressed: YES" : "Button pressed: NO");
-            break;
-        }
-
-        case 14:
-            Logger.log("=== TEST COMPLETE - RESTARTING ===");
+        case 0:  // === INIT ===
+            Logger.log(F("=== HW TEST START ==="));
             lcd->clear();
-            lcd->print("TEST COMPLETE");
-            l1->switchOn(); l2->switchOn(); l3->switchOn();
+            lcd->print("HW TEST START");
+
+            // Reset attuatori
+            l1->switchOff();
+            l2->switchOff();
+            l3->switchOff();
+            motor->off();
+
+            step++;
+            lastStepTime = now;
             break;
 
-        case 15:
-            l1->switchOff(); l2->switchOff(); l3->switchOff();
-            testStep = -1; 
+        case 1:  // === LED SEQUENCE (Knight Rider style) ===
+            // Eseguiamo uno step ogni 300ms
+            if (now - lastStepTime > 300)
+            {
+                subStep++;
+                if (subStep == 1)
+                {
+                    l1->switchOn();
+                    Logger.log(F("[TEST] L1 ON"));
+                }
+                else if (subStep == 2)
+                {
+                    l1->switchOff();
+                    l2->switchOn();
+                    Logger.log(F("[TEST] L2 ON"));
+                }
+                else if (subStep == 3)
+                {
+                    l2->switchOff();
+                    l3->switchOn();
+                    Logger.log(F("[TEST] L3 ON"));
+                }
+                else if (subStep == 4)
+                {
+                    l3->switchOff();
+                    Logger.log(F("[TEST] LEDs OFF"));
+                    step++;
+                    subStep = 0;
+                }
+                lastStepTime = now;
+            }
             break;
-        
-        default:
+
+        case 2:  // === SERVO SWEEP ===
+            if (subStep == 0)
+            {
+                Logger.log(F("[TEST] Servo -> OPEN (180)"));
+                motor->on();
+                motor->setPosition(180);
+                subStep++;
+                lastStepTime = now;
+            }
+            else if (subStep == 1 && (now - lastStepTime > 1500))
+            {
+                Logger.log(F("[TEST] Servo -> CLOSE (0)"));
+                motor->setPosition(0);
+                subStep++;
+                lastStepTime = now;
+            }
+            else if (subStep == 2 && (now - lastStepTime > 1500))
+            {
+                motor->off();  // Risparmio energetico
+                step++;
+                subStep = 0;
+                lastStepTime = now;
+            }
+            break;
+
+        case 3:  // === SENSORS MONITORING (10 seconds) ===
+        {
+            // Init fase sensori
+            if (subStep == 0)
+            {
+                Logger.log(F("=== SENSOR MONITOR (10s) ==="));
+                lcd->clear();
+                lcd->print("SENSORS TEST...");
+                subStep = 1;
+                lastStepTime = now;  // Reset timer per durata totale
+            }
+
+            // Uscita dopo 10 secondi
+            if (now - lastStepTime > 10000)
+            {
+                step++;
+                subStep = 0;
+                break;
+            }
+
+            // Lettura Sensori
+            float temp = tempSensor->getTemperature();
+            float dist = proximitySensor->getDistance();
+            bool pir = presenceSensor->isDetected();
+            bool btn = button->isPressed();
+
+            // Log Serial (Formattato per leggibilità)
+            String logMsg = "SENS | T:" + String(temp, 1) + "C | D:" + String(dist, 0) + "cm";
+            logMsg += " | PIR:" + String(pir ? "YES" : "NO");
+            logMsg += " | BTN:" + String(btn ? "ON" : "OFF");
+            Logger.log(logMsg);
+
+            // Update LCD (Ogni ~1s per evitare flickering eccessivo)
+            static unsigned long lastLcdUpdate = 0;
+            if (now - lastLcdUpdate > 1000)
+            {
+                // Formattiamo stringa compatta per LCD 20x4: "T:25 D:150 P:1 B:0"
+                String lcdMsg = "T:" + String((int)temp) + " D:" + String((int)dist) +
+                                " P:" + String(pir) + " B:" + String(btn);
+                lcd->print(lcdMsg.c_str());
+                lastLcdUpdate = now;
+            }
+            break;
+        }
+
+        case 4:  // === RESTART ===
+            Logger.log(F("=== TEST COMPLETE ==="));
+            lcd->clear();
+            lcd->print("TEST DONE");
+            step = 0;
+            subStep = 0;
+            lastStepTime = now;
             break;
     }
-
-    testStep++;
 }

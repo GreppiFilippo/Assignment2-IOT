@@ -13,7 +13,7 @@
 
 /** * @brief Size of the LCD buffer including the null terminator.
  */
-#define LCD_BUFFER_SIZE (LCD_ROW * LCD_COL + 1)
+#define LCD_BUFFER_SIZE 32
 
 /**
  * @struct CommandEntry

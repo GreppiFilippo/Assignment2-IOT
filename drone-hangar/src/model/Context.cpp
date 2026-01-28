@@ -36,8 +36,16 @@ Context::Context()
 }
 
 // === DOOR CONTROL ===
-void Context::closeDoor() { closeDoorRequested = true; }
-void Context::openDoor() { openDoorRequested = true; }
+void Context::closeDoor()
+{
+    closeDoorRequested = true;
+    openDoorRequested = false;
+}
+void Context::openDoor()
+{
+    openDoorRequested = true;
+    closeDoorRequested = false;
+}
 bool Context::openDoorReq() const { return openDoorRequested; }
 bool Context::closeDoorReq() const { return closeDoorRequested; }
 bool Context::isDoorOpen() const { return doorOpen; }
@@ -76,7 +84,18 @@ void Context::setLCDMessage(const char* msg)
 const char* Context::getLCDMessage() const { return lcdMessage; }
 
 // === DRONE & SENSORS ===
-void Context::setDistance(float d) { currentDistance = d; }
+void Context::setDistance(float d)
+{
+    currentDistance = d;
+    // Ignora valori negativi (errore sensore o IDLE) per la logica di stato
+    if (currentDistance < 0)
+        return;
+
+    if (currentDistance > D1)
+        setDroneIn(false);
+    else if (currentDistance < D2)
+        setDroneIn(true);
+}
 float Context::getDistance() const { return currentDistance; }
 void Context::setTemperature(float t) { currentTemperature = t; }
 float Context::getTemperature() const { return currentTemperature; }
@@ -174,8 +193,5 @@ void Context::serializeData(JsonDocument& doc) const
 
     doc[DRONE_STATE_KEY] = droneLabels[this->droneState];
 
-    if (this->currentDistance >= 0)  // distance is set to -1 when not available
-    {
-        doc[DISTANCE_KEY] = this->currentDistance;
-    }
+    doc[DISTANCE_KEY] = this->currentDistance;
 }

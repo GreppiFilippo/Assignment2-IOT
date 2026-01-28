@@ -153,7 +153,7 @@ void setup()
 
 #ifdef __TESTING_HW__
     Task* pTestHWTask = new TestHWTask(pHWPlatform);
-    pTestHWTask->init(2000);
+    pTestHWTask->init(200);  // Velocizzato a 200ms per un test fluido dei sensori
     sched.addTask(pTestHWTask);
     Logger.log(F(":::::: Hardware Testing Mode ::::::"));
 #endif

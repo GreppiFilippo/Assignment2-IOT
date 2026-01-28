@@ -40,10 +40,15 @@ void DroneTask::tick()
             {
                 pContext->setDroneState(TAKING_OFF);
                 pContext->openDoor();
+                pContext->requestTakeoffCheck();
                 pContext->setLCDMessage(LCD_TAKING_OFF_STATE);
                 pContext->blink();
                 Logger.log(F("[Drone] TAKING OFF"));
             }
+
+            // Assicura che la porta resti aperta durante il decollo
+            if (!pContext->openDoorReq() && !pContext->isDoorOpen())
+                pContext->openDoor();
 
             if (pContext->isAlarmActive() && pContext->isDroneIn())
             {
@@ -81,6 +86,7 @@ void DroneTask::tick()
             {
                 pContext->setDroneState(LANDING);
                 pContext->openDoor();
+                pContext->requestLandingCheck();
                 pContext->setLCDMessage(LCD_LANDING_STATE);
                 pContext->blink();
                 Logger.log(F("[Drone] LANDING"));

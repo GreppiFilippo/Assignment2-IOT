@@ -16,6 +16,11 @@ MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 
 void MsgTask::tick()
 {
+    // USIAMO BUFFER STATICI PER EVITARE STACK OVERFLOW
+    // Allocati in memoria globale (BSS) invece che sullo stack
+    static char commonBuf[128];
+    static StaticJsonDocument<128> jsonDoc;
+
     this->pContext->cleanupExpired(millis());
 
     if (this->pMsgService->isMsgAvailable())
@@ -26,27 +31,27 @@ void MsgTask::tick()
             const String& content = msg->getContent();
             if (content.length() > 0)
             {
-                char buffer[64];
-                if (content.length() < sizeof(buffer))
+                // Usiamo commonBuf per la copia dell'input
+                if (content.length() < sizeof(commonBuf))
                 {
-                    strcpy(buffer, content.c_str());
-                    char* jsonStart = strchr(buffer, '{');
+                    strcpy(commonBuf, content.c_str());
+                    char* jsonStart = strchr(commonBuf, '{');
                     if (jsonStart)
                     {
-                        StaticJsonDocument<JSON_IN_SIZE> jsonIn;
-                        DeserializationError err = deserializeJson(jsonIn, jsonStart);
+                        jsonDoc.clear();  // Importante pulire il documento statico
+                        DeserializationError err = deserializeJson(jsonDoc, jsonStart);
                         if (err == DeserializationError::Ok)
                         {
-                            if (jsonIn.overflowed())
+                            if (jsonDoc.overflowed())
                             {
                                 Logger.log(F("JSON_OVR"));
                             }
-                            const char* cmd = jsonIn[COMMAND];
+                            const char* cmd = jsonDoc[COMMAND];
 
                             // Fallback: se il lookup diretto fallisce, cerchiamo manualmente
                             if (!cmd)
                             {
-                                for (JsonPair kv : jsonIn.as<JsonObject>())
+                                for (JsonPair kv : jsonDoc.as<JsonObject>())
                                 {
                                     if (strcmp(kv.key().c_str(), COMMAND) == 0)
                                     {
@@ -83,15 +88,14 @@ void MsgTask::tick()
 
     if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
-        StaticJsonDocument<JSON_OUT_SIZE> jsonOut;
-        this->pContext->serializeData(jsonOut);
-        jsonOut[ALIVE] = true;
+        jsonDoc.clear();
+        this->pContext->serializeData(jsonDoc);
+        jsonDoc[ALIVE] = true;
 
-        char jsonBuf[128];
-        memset(jsonBuf, 0, sizeof(jsonBuf));
-        serializeJson(jsonOut, jsonBuf, sizeof(jsonBuf));
+        // Riutilizziamo commonBuf per l'output
+        serializeJson(jsonDoc, commonBuf, sizeof(commonBuf));
 
-        this->pMsgService->sendMsgRaw(jsonBuf, true);
+        this->pMsgService->sendMsgRaw(commonBuf, true);
         lastJsonSent = millis();
     }
 }
