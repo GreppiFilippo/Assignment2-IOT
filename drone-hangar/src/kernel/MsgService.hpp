@@ -27,17 +27,53 @@ class MsgServiceClass
     void init(unsigned long baudRate);
     bool isMsgAvailable();
 
-    // Restituiamo il puntatore, ma chi lo riceve NON deve deallocarlo
+    /**
+     * @brief Receive a message from the queue.
+     *
+     * Don't delete or free the returned pointer, it's managed by the MsgService.
+     * @return nullptr if no message is available.
+     *
+     * @return Msg* Pointer to the message.
+     */
     Msg* receiveMsg();
 
-    // Invio messaggi standard (aggiungono \n)
+    /**
+     * @brief Send a message.
+     *
+     * @param msg Message to send.
+     */
     void sendMsg(const String& msg);
+
+    /**
+     * @brief Send a message from flash memory.
+     *
+     * @param msg Message to send.
+     */
     void sendMsg(const __FlashStringHelper* msg);
 
-    // Invio Raw (per il Logger o invii parziali)
+    /**
+     * @brief Send a raw message.
+     *
+     * @param msg Message to send.
+     * @param newline Whether to append a newline at the end.
+     */
     void sendMsgRaw(const char* msg, bool newline);
+
+    /**
+     * @brief Send a raw message from flash memory.
+     *
+     * @param msg Message to send.
+     * @param newline Whether to append a newline at the end.
+     */
     void sendMsgRaw(const __FlashStringHelper* msg, bool newline);
 
+    /**
+     * @brief Enqueue a message.
+     *
+     * @param content Content of the message.
+     * @return true if the message was successfully enqueued.
+     * @return false if the queue is full.
+     */
     bool enqueueMsg(const char* content);
 };
 

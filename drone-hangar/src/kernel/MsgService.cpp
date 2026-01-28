@@ -1,6 +1,5 @@
 #include "MsgService.hpp"
 
-// Buffer statico per la ricezione seriale
 static char serialBuffer[128];
 static size_t serialBufferIndex = 0;
 
@@ -52,7 +51,6 @@ bool MsgServiceClass::enqueueMsg(const char* content)
     if (qCount >= MSG_SERVICE_QUEUE_SIZE)
         return false;
 
-    // CORREZIONE: Usa setContent sull'oggetto già esistente nell'array
     queue[qTail].setContent(content);
     qTail = (qTail + 1) % MSG_SERVICE_QUEUE_SIZE;
     qCount++;
