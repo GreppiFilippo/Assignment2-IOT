@@ -13,19 +13,21 @@
 #include "kernel/Logger.hpp"
 #include "kernel/MsgService.hpp"
 
+#define MAX_TIME 30000
+
 void wakeUp() {}
 
 HWPlatform::HWPlatform()
 {
-    button = new ButtonImpl(RESET_PIN);
-    l1 = new Led(L1_PIN);
-    l2 = new Led(L2_PIN);
-    l3 = new Led(L3_PIN);
-    presenceSensor = new Pir(DPD_PIN);
-    lcd = new LCD(LCD_ADR, LCD_COL, LCD_ROW);
-    motor = new ServoMotorImpl(HD_PIN);
-    tempSensor = new TempSensorTMP36(TEMP_PIN);
-    proximitySensor = new Sonar(DDD_PIN_E, DDD_PIN_T, 30000);
+    this->button = new ButtonImpl(RESET_PIN);
+    this->l1 = new Led(L1_PIN);
+    this->l2 = new Led(L2_PIN);
+    this->l3 = new Led(L3_PIN);
+    this->presenceSensor = new Pir(DPD_PIN);
+    this->lcd = new LCD(LCD_ADR, LCD_COL, LCD_ROW);
+    this->motor = new ServoMotorImpl(HD_PIN);
+    this->tempSensor = new TempSensorTMP36(TEMP_PIN);
+    this->proximitySensor = new Sonar(DDD_PIN_E, DDD_PIN_T, MAX_TIME);
 }
 
 void HWPlatform::init() { motor->on(); }
@@ -55,18 +57,16 @@ void HWPlatform::test()
     static unsigned long lastStepTime = 0;
     unsigned long now = millis();
 
-    // Inizializzazione timer al primo avvio
     if (lastStepTime == 0)
         lastStepTime = now;
 
     switch (step)
     {
-        case 0:  // === INIT ===
+        case 0:
             Logger.log(F("=== HW TEST START ==="));
             lcd->clear();
             lcd->print("HW TEST START");
 
-            // Reset attuatori
             l1->switchOff();
             l2->switchOff();
             l3->switchOff();
@@ -76,8 +76,7 @@ void HWPlatform::test()
             lastStepTime = now;
             break;
 
-        case 1:  // === LED SEQUENCE (Knight Rider style) ===
-            // Eseguiamo uno step ogni 300ms
+        case 1:
             if (now - lastStepTime > 300)
             {
                 subStep++;
@@ -109,7 +108,7 @@ void HWPlatform::test()
             }
             break;
 
-        case 2:  // === SERVO SWEEP ===
+        case 2:
             if (subStep == 0)
             {
                 Logger.log(F("[TEST] Servo -> OPEN (180)"));
@@ -127,26 +126,24 @@ void HWPlatform::test()
             }
             else if (subStep == 2 && (now - lastStepTime > 1500))
             {
-                motor->off();  // Risparmio energetico
+                motor->off();
                 step++;
                 subStep = 0;
                 lastStepTime = now;
             }
             break;
 
-        case 3:  // === SENSORS MONITORING (10 seconds) ===
+        case 3:
         {
-            // Init fase sensori
             if (subStep == 0)
             {
                 Logger.log(F("=== SENSOR MONITOR (10s) ==="));
                 lcd->clear();
                 lcd->print("SENSORS TEST...");
                 subStep = 1;
-                lastStepTime = now;  // Reset timer per durata totale
+                lastStepTime = now;
             }
 
-            // Uscita dopo 10 secondi
             if (now - lastStepTime > 10000)
             {
                 step++;
@@ -154,23 +151,19 @@ void HWPlatform::test()
                 break;
             }
 
-            // Lettura Sensori
             float temp = tempSensor->getTemperature();
             float dist = proximitySensor->getDistance();
             bool pir = presenceSensor->isDetected();
             bool btn = button->isPressed();
 
-            // Log Serial (Formattato per leggibilità)
             String logMsg = "SENS | T:" + String(temp, 1) + "C | D:" + String(dist, 0) + "cm";
             logMsg += " | PIR:" + String(pir ? "YES" : "NO");
             logMsg += " | BTN:" + String(btn ? "ON" : "OFF");
             Logger.log(logMsg);
 
-            // Update LCD (Ogni ~1s per evitare flickering eccessivo)
             static unsigned long lastLcdUpdate = 0;
             if (now - lastLcdUpdate > 1000)
             {
-                // Formattiamo stringa compatta per LCD 20x4: "T:25 D:150 P:1 B:0"
                 String lcdMsg = "T:" + String((int)temp) + " D:" + String((int)dist) +
                                 " P:" + String(pir) + " B:" + String(btn);
                 lcd->print(lcdMsg.c_str());
@@ -179,7 +172,7 @@ void HWPlatform::test()
             break;
         }
 
-        case 4:  // === RESTART ===
+        case 4:
             Logger.log(F("=== TEST COMPLETE ==="));
             lcd->clear();
             lcd->print("TEST DONE");
