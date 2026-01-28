@@ -1,9 +1,9 @@
 #include "task/MSGTask.hpp"
 
 #include <Arduino.h>
-#include <string.h>
 
 #include "config.hpp"
+#include "kernel/Logger.hpp"
 #include "kernel/MsgService.hpp"
 #include "model/Context.hpp"
 
@@ -16,45 +16,82 @@ MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 
 void MsgTask::tick()
 {
-    const unsigned long now = millis();
+    this->pContext->cleanupExpired(millis());
 
-    pContext->cleanupExpired(now);
-
-    if (pMsgService->isMsgAvailable())
+    if (this->pMsgService->isMsgAvailable())
     {
-        Msg* msg = pMsgService->receiveMsg();
+        Msg* msg = this->pMsgService->receiveMsg();
         if (msg)
         {
             const String& content = msg->getContent();
-
-            const int jsonPos = content.indexOf('{');
-            if (jsonPos >= 0)
+            if (content.length() > 0)
             {
-                StaticJsonDocument<JSON_IN_SIZE> jsonIn;
-
-                if (deserializeJson(jsonIn, content.c_str() + jsonPos) == DeserializationError::Ok)
+                char buffer[64];
+                if (content.length() < sizeof(buffer))
                 {
-                    const char* cmd = jsonIn[COMMAND] | nullptr;
-                    if (cmd)
+                    strcpy(buffer, content.c_str());
+                    char* jsonStart = strchr(buffer, '{');
+                    if (jsonStart)
                     {
-                        pContext->tryEnqueueMsg(cmd);
+                        StaticJsonDocument<JSON_IN_SIZE> jsonIn;
+                        DeserializationError err = deserializeJson(jsonIn, jsonStart);
+                        if (err == DeserializationError::Ok)
+                        {
+                            if (jsonIn.overflowed())
+                            {
+                                Logger.log(F("JSON_OVR"));
+                            }
+                            const char* cmd = jsonIn[COMMAND];
+
+                            // Fallback: se il lookup diretto fallisce, cerchiamo manualmente
+                            if (!cmd)
+                            {
+                                for (JsonPair kv : jsonIn.as<JsonObject>())
+                                {
+                                    if (strcmp(kv.key().c_str(), COMMAND) == 0)
+                                    {
+                                        if (kv.value().is<const char*>())
+                                            cmd = kv.value().as<const char*>();
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (cmd)
+                            {
+                                bool result = this->pContext->tryEnqueueMsg(cmd);
+                                Logger.log(result ? F("CMD_OK") : F("CMD_ERR"));
+                            }
+                            else
+                            {
+                                Logger.log(F("CMD_NULL"));
+                            }
+                        }
+                        else
+                        {
+                            Logger.log(F("JSON_ERR"));
+                        }
                     }
+                }
+                else
+                {
+                    Logger.log(F("MSG_OVR"));
                 }
             }
         }
     }
 
-    if (now - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
+    if (millis() - lastJsonSent >= JSON_UPDATE_PERIOD_MS)
     {
         StaticJsonDocument<JSON_OUT_SIZE> jsonOut;
-        pContext->serializeData(jsonOut);
+        this->pContext->serializeData(jsonOut);
         jsonOut[ALIVE] = true;
 
         char jsonBuf[128];
         memset(jsonBuf, 0, sizeof(jsonBuf));
         serializeJson(jsonOut, jsonBuf, sizeof(jsonBuf));
 
-        pMsgService->sendMsgRaw(jsonBuf, true);
-        lastJsonSent = now;
+        this->pMsgService->sendMsgRaw(jsonBuf, true);
+        lastJsonSent = millis();
     }
 }

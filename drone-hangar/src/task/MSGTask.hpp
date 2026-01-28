@@ -19,7 +19,6 @@ class MsgTask : public Task
     Context* pContext;
     MsgServiceClass* pMsgService;
     unsigned long lastJsonSent;
-    Msg* msg;
 
    public:
     /**

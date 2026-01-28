@@ -25,6 +25,7 @@
 #define DISTANCE_TASK_PERIOD 50
 #define LCD_TASK_PERIOD 50
 #define MSG_TASK_PERIOD 50
+// #define _MEMEORY_DEBUG_
 
 #ifdef _MEMEORY_DEBUG_
 /* ======== MACRO DI DEBUG ======== */
