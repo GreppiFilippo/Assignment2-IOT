@@ -14,7 +14,11 @@ void Pir::sync()
     updateSyncTime(millis());
 }
 
-bool Pir::isDetected() { return detected; }
+bool Pir::isDetected()
+{
+    this->sync();
+    return detected;
+}
 
 void Pir::calibrate() { delay(10000); }
 

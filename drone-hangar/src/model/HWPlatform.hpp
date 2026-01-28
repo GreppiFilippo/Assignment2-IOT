@@ -5,6 +5,7 @@
 #include "devices/Button.hpp"
 #include "devices/LCD.hpp"
 #include "devices/Led.hpp"
+#include "devices/Pir.hpp"
 #include "devices/PresenceSensor.hpp"
 #include "devices/ProximitySensor.hpp"
 #include "devices/ServoMotor.hpp"
@@ -26,6 +27,7 @@ class HWPlatform
     TempSensor* tempSensor;
     LCD* lcd;
     ProximitySensor* proximitySensor;
+    Pir pir;
 
    public:
     /**

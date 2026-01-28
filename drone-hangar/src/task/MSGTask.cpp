@@ -16,8 +16,6 @@ MsgTask::MsgTask(Context* pContext, MsgServiceClass* pMsgService)
 
 void MsgTask::tick()
 {
-    // USIAMO BUFFER STATICI PER EVITARE STACK OVERFLOW
-    // Allocati in memoria globale (BSS) invece che sullo stack
     static char commonBuf[128];
     static StaticJsonDocument<128> jsonDoc;
 
@@ -31,14 +29,13 @@ void MsgTask::tick()
             const String& content = msg->getContent();
             if (content.length() > 0)
             {
-                // Usiamo commonBuf per la copia dell'input
                 if (content.length() < sizeof(commonBuf))
                 {
                     strcpy(commonBuf, content.c_str());
                     char* jsonStart = strchr(commonBuf, '{');
                     if (jsonStart)
                     {
-                        jsonDoc.clear();  // Importante pulire il documento statico
+                        jsonDoc.clear();
                         DeserializationError err = deserializeJson(jsonDoc, jsonStart);
                         if (err == DeserializationError::Ok)
                         {
@@ -48,7 +45,6 @@ void MsgTask::tick()
                             }
                             const char* cmd = jsonDoc[COMMAND];
 
-                            // Fallback: se il lookup diretto fallisce, cerchiamo manualmente
                             if (!cmd)
                             {
                                 for (JsonPair kv : jsonDoc.as<JsonObject>())
@@ -91,8 +87,6 @@ void MsgTask::tick()
         jsonDoc.clear();
         this->pContext->serializeData(jsonDoc);
         jsonDoc[ALIVE] = true;
-
-        // Riutilizziamo commonBuf per l'output
         serializeJson(jsonDoc, commonBuf, sizeof(commonBuf));
 
         this->pMsgService->sendMsgRaw(commonBuf, true);

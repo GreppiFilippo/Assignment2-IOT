@@ -3,12 +3,12 @@
 
 /* ===== Pin definitions ===== */
 #define TEMP_PIN A0  // Temperature sensor pin TMP36 - analog input
-#define L1_PIN 2     // L1 green led pin - indicate on
-#define L2_PIN 4     // L2 green led pin - indicate in action
-#define L3_PIN 6     // L3 red led pin - indicate alarm
+#define L1_PIN 3     // L1 green led pin - indicate on
+#define L2_PIN 5     // L2 green led pin - indicate in action
+#define L3_PIN 7     // L3 red led pin - indicate alarm
 
 #define RESET_PIN 8   // RESET button pin - tactile button
-#define DPD_PIN 9     // Drone presence detector pin - PIR sensor
+#define DPD_PIN 2     // Drone presence detector pin - PIR sensor
 #define HD_PIN 11     // Drone Hangar door pin - servo motor
 #define DDD_PIN_E 12  // Drone Distance Detector echo pin - ultrasonic sensor
 #define DDD_PIN_T 13  // Drone Distance Detector trigger pin - ultrasonic sensor
@@ -23,8 +23,8 @@
 #define MOVING_TIME 500
 
 /* ===== Distance thresholds (cm) ===== */
-#define D1 2    // Distance threshold for drone exit detection
-#define D2 0.6  // Distance threshold for drone landing detection
+#define D1 1.2  // Distance threshold for drone exit detection
+#define D2 0.2  // Distance threshold for drone landing detection
 
 /* ===== Time thresholds (milliseconds) ===== */
 #define TIME1 5000  // Time to confirm drone has exited (5 seconds)

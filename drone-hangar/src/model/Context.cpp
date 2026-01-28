@@ -6,13 +6,12 @@
 #include "config.hpp"
 
 /**
- * @brief Tabella dei comandi (mappa i nomi alle enum)
+ * @brief Command name for opening the hangar door
  */
 const CommandEntry Context::commandTable[] = {{OPEN_CMD, CommandType::OPEN}};
 
 const int Context::COMMAND_TABLE_SIZE = sizeof(Context::commandTable) / sizeof(commandTable[0]);
 
-// Costruttore: l'ordine segue esattamente la dichiarazione nel .hpp per evitare warning
 Context::Context()
     : openDoorRequested(false),
       closeDoorRequested(false),
@@ -84,18 +83,7 @@ void Context::setLCDMessage(const char* msg)
 const char* Context::getLCDMessage() const { return lcdMessage; }
 
 // === DRONE & SENSORS ===
-void Context::setDistance(float d)
-{
-    currentDistance = d;
-    // Ignora valori negativi (errore sensore o IDLE) per la logica di stato
-    if (currentDistance < 0)
-        return;
-
-    if (currentDistance > D1)
-        setDroneIn(false);
-    else if (currentDistance < D2)
-        setDroneIn(true);
-}
+void Context::setDistance(float d) { currentDistance = d; }
 float Context::getDistance() const { return currentDistance; }
 void Context::setTemperature(float t) { currentTemperature = t; }
 float Context::getTemperature() const { return currentTemperature; }
@@ -186,12 +174,12 @@ void Context::serializeData(JsonDocument& doc) const
     const char* droneLabels[] = {DRONE_REST_STATE, DRONE_TAKING_OFF_STATE, DRONE_OPERATING_STATE,
                                  DRONE_LANDING_STATE};
 
-    // Il valore della stringa per lo stato dell'hangar viene derivato dal flag alarmActive per
-    // maggiore robustezza. Questo evita l'accesso fuori dai limiti dell'array che causava la
-    // corruzione dei dati.
     doc[HANGAR_STATE_KEY] = this->isAlarmActive() ? HANGAR_ALARM_STATE : HANGAR_NORMAL_STATE;
 
     doc[DRONE_STATE_KEY] = droneLabels[this->droneState];
 
-    doc[DISTANCE_KEY] = this->currentDistance;
+    if (this->getDistance() > 0.0f)
+    {
+        doc[DISTANCE_KEY] = this->currentDistance;
+    }
 }

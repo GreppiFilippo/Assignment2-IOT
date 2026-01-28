@@ -10,6 +10,7 @@ DroneTask::DroneTask(Context* pContext, Light* L1, PresenceSensor* presenceSenso
     this->L1 = L1;
     this->presenceSensor = presenceSensor;
     this->setState(REST);
+    L1->switchOn();
 }
 
 void DroneTask::tick()
@@ -21,7 +22,7 @@ void DroneTask::tick()
             {
                 pContext->setDroneState(REST);
                 pContext->closeDoor();
-                L1->switchOn();
+
                 pContext->stopBlink();
                 Logger.log(F("[Drone] REST"));
             }
@@ -46,7 +47,6 @@ void DroneTask::tick()
                 Logger.log(F("[Drone] TAKING OFF"));
             }
 
-            // Assicura che la porta resti aperta durante il decollo
             if (!pContext->openDoorReq() && !pContext->isDoorOpen())
                 pContext->openDoor();
 
@@ -65,7 +65,6 @@ void DroneTask::tick()
             {
                 pContext->setDroneState(OPERATING);
                 pContext->closeDoor();
-                L1->switchOff();
                 pContext->stopBlink();
                 Logger.log(F("[Drone] OPERATING"));
             }

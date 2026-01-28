@@ -17,20 +17,25 @@
 
 void wakeUp() {}
 
-HWPlatform::HWPlatform()
+HWPlatform::HWPlatform() : pir(DPD_PIN)
 {
     this->button = new ButtonImpl(RESET_PIN);
     this->l1 = new Led(L1_PIN);
     this->l2 = new Led(L2_PIN);
     this->l3 = new Led(L3_PIN);
-    this->presenceSensor = new Pir(DPD_PIN);
     this->lcd = new LCD(LCD_ADR, LCD_COL, LCD_ROW);
     this->motor = new ServoMotorImpl(HD_PIN);
     this->tempSensor = new TempSensorTMP36(TEMP_PIN);
     this->proximitySensor = new Sonar(DDD_PIN_E, DDD_PIN_T, MAX_TIME);
+    this->presenceSensor = &pir;
 }
 
-void HWPlatform::init() { motor->on(); }
+void HWPlatform::init()
+{
+    motor->on();
+    Logger.log(F("Calibrating PIR..."));
+    pir.calibrate();
+}
 
 Button* HWPlatform::getButton() { return this->button; }
 
@@ -156,7 +161,7 @@ void HWPlatform::test()
             bool pir = presenceSensor->isDetected();
             bool btn = button->isPressed();
 
-            String logMsg = "SENS | T:" + String(temp, 1) + "C | D:" + String(dist, 0) + "cm";
+            String logMsg = "SENS | T:" + String(temp, 1) + "C | D:" + String(dist, 3) + "m";
             logMsg += " | PIR:" + String(pir ? "YES" : "NO");
             logMsg += " | BTN:" + String(btn ? "ON" : "OFF");
             Logger.log(logMsg);
@@ -164,7 +169,7 @@ void HWPlatform::test()
             static unsigned long lastLcdUpdate = 0;
             if (now - lastLcdUpdate > 1000)
             {
-                String lcdMsg = "T:" + String((int)temp) + " D:" + String((int)dist) +
+                String lcdMsg = "T:" + String((int)temp) + " D:" + String(dist, 3) +
                                 " P:" + String(pir) + " B:" + String(btn);
                 lcd->print(lcdMsg.c_str());
                 lastLcdUpdate = now;

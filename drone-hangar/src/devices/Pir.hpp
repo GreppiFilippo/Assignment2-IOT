@@ -23,7 +23,7 @@ class Pir : public PresenceSensor
    private:
     long lastTimeSync;
     int pin;
-    bool detected;
+    bool detected = false;
 };
 
 #endif
