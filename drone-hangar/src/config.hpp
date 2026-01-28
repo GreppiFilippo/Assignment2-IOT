@@ -32,9 +32,15 @@
 #define TIME3 5000  // Time to enter pre-alarm state (5 seconds)
 #define TIME4 5000  // Time to enter alarm state (5 seconds)
 
-/* ===== LED blink periods ===== */
-// LED blink period (milliseconds)
-#define L2_BLINK_PERIOD 500  // L2 blinks with period 0.5 second during take-off/landing
+/* ===== TASK PERIODS ===== */
+#define L2_BLINK_PERIOD 500 
+#define BASE_PERIOD_MS 50
+#define DRONE_TASK_PERIOD 50
+#define DOOR_CONTROL_TASK_PERIOD 50
+#define HANGAR_TASK_PERIOD 200
+#define DISTANCE_TASK_PERIOD 50
+#define LCD_TASK_PERIOD 100
+#define MSG_TASK_PERIOD 50
 
 // Temperature thresholds (Celsius)
 #define TEMP1 27  // Pre-alarm temperature threshold

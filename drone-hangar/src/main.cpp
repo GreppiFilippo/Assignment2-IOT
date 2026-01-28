@@ -18,34 +18,6 @@
 #include "task/LCDTask.hpp"
 #include "task/MSGTask.hpp"
 
-#define BASE_PERIOD_MS 50
-#define DRONE_TASK_PERIOD 50
-#define DOOR_CONTROL_TASK_PERIOD 50
-#define HANGAR_TASK_PERIOD 200
-#define DISTANCE_TASK_PERIOD 50
-#define LCD_TASK_PERIOD 50
-#define MSG_TASK_PERIOD 50
-// #define _MEMEORY_DEBUG_
-
-#ifdef _MEMEORY_DEBUG_
-/* ======== MACRO DI DEBUG ======== */
-#define DEBUG_MEM(label)        \
-    Serial.print(F("[MEM] "));  \
-    Serial.print(F(label));     \
-    Serial.print(F(": "));      \
-    Serial.print(freeMemory()); \
-    Serial.println(F(" bytes free"))
-
-#define CHECK_PTR(ptr, name)                                 \
-    if (ptr == nullptr)                                      \
-    {                                                        \
-        Serial.print(F("!!! CRASH: Memoria esaurita per ")); \
-        Serial.println(F(name));                             \
-        while (1);                                           \
-    }
-
-#endif
-
 /* ======== VARIABILI GLOBALI ======== */
 Scheduler sched;
 HWPlatform* pHWPlatform;
@@ -58,81 +30,42 @@ unsigned long lastMemCheck = 0;
 #include "task/TestHWTask.hpp"
 #endif
 
+
 void setup()
 {
-#ifdef _MEMEORY_DEBUG_
-    Serial.begin(115200);
-    while (!Serial);
-    Serial.println(F("\n--- SYSTEM BOOT ---"));
-    DEBUG_MEM("Inizio Setup");
-#endif
-
     /* ======== Inizializzazioni Kernel ======== */
     MsgService.init(BAUD_RATE);
     sched.init(BASE_PERIOD_MS);
-#ifdef _MEMEORY_DEBUG_
-    DEBUG_MEM("Kernel OK");
-#endif
+
     /* ======== Hardware Platform ======== */
     pHWPlatform = new HWPlatform();
-#ifdef _MEMEORY_DEBUG_
-    CHECK_PTR(pHWPlatform, "HWPlatform");
-#endif
     pHWPlatform->init();
-#ifdef _MEMEORY_DEBUG_
-    DEBUG_MEM("HWPlatform OK");
-#endif
-#ifndef __TESTING_HW__
+    #ifndef __TESTING_HW__
     /* ======== Context (Il cuore dei dati) ======== */
     pContext = new Context();
-#ifdef _MEMEORY_DEBUG_
-    CHECK_PTR(pContext, "Context");
-    DEBUG_MEM("Context OK");
-#endif
     /* ======== Inizializzazione Task ======== */
 
     Task* pDroneTask =
         new DroneTask(pContext, pHWPlatform->getL1(), pHWPlatform->getPresenceSensor());
-#ifdef _MEMEORY_DEBUG_
-    CHECK_PTR(pDroneTask, "DroneTask");
-#endif
     pDroneTask->init(DRONE_TASK_PERIOD);
 
     Task* pLcdTask = new LCDTask(pHWPlatform->getLCD(), pContext);
-#ifdef _MEMEORY_DEBUG_
-    CHECK_PTR(pLcdTask, "LCDTask");
-#endif
     pLcdTask->init(LCD_TASK_PERIOD);
 
     Task* pMSGTask = new MsgTask(pContext, &MsgService);
-#ifdef _MEMEORY_DEBUG_
-    CHECK_PTR(pMSGTask, "MsgTask");
-#endif
     pMSGTask->init(MSG_TASK_PERIOD);
 
     Task* pHangarTask = new HangarTask(pHWPlatform->getTempSensor(), pHWPlatform->getButton(),
                                        pHWPlatform->getL3(), pContext);
-#ifdef _MEMEORY_DEBUG_
-    CHECK_PTR(pHangarTask, "HangarTask");
-#endif
     pHangarTask->init(HANGAR_TASK_PERIOD);
 
     Task* pBlinkingTask = new BlinkingTask(pHWPlatform->getL2(), pContext);
-#ifdef _MEMEORY_DEBUG_
-    CHECK_PTR(pBlinkingTask, "BlinkingTask");
-#endif
     pBlinkingTask->init(L2_BLINK_PERIOD);
 
     Task* pDoorControlTask = new DoorControlTask(pContext, pHWPlatform->getMotor());
-#ifdef _MEMEORY_DEBUG_
-    CHECK_PTR(pDoorControlTask, "DoorTask");
-#endif
     pDoorControlTask->init(DOOR_CONTROL_TASK_PERIOD);
 
     Task* pDistanceTask = new DistanceTask(pHWPlatform->getProximitySensor(), pContext);
-#ifdef _MEMEORY_DEBUG_
-    CHECK_PTR(pDistanceTask, "DistanceTask");
-#endif
     pDistanceTask->init(DISTANCE_TASK_PERIOD);
 
     /* ======== Registrazione Task nello Scheduler ======== */
@@ -143,11 +76,6 @@ void setup()
     sched.addTask(pDroneTask);
     sched.addTask(pLcdTask);
     sched.addTask(pMSGTask);
-
-#ifdef _MEMEORY_DEBUG_
-    DEBUG_MEM("Setup Completato");
-#endif
-
     Logger.log(F(":::::: Drone Hangar Ready ::::::"));
 #endif
 
