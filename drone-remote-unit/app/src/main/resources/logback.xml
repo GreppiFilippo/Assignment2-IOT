@@ -45,12 +45,12 @@
     Set to DEBUG for development, INFO for production
     To disable app logs completely, set to OFF or WARN
     -->
-    <logger name="it.unibo.dronehangar" level="DEBUG" />
+    <logger name="it.unibo.dronehangar" level="WARN" />
     
     <!-- 
     External libraries (reduce noise)
     Uncomment to suppress verbose library logs
     -->
-    <!-- <logger name="jssc" level="WARN" /> -->
-    <!-- <logger name="javafx" level="WARN" /> -->
+    <logger name="jssc" level="WARN" />
+    <logger name="javafx" level="WARN" />
 </configuration>

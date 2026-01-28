@@ -174,7 +174,18 @@ void Context::serializeData(JsonDocument& doc) const
     const char* droneLabels[] = {DRONE_REST_STATE, DRONE_TAKING_OFF_STATE, DRONE_OPERATING_STATE,
                                  DRONE_LANDING_STATE};
 
-    doc[HANGAR_STATE_KEY] = this->isAlarmActive() ? HANGAR_ALARM_STATE : HANGAR_NORMAL_STATE;
+    if (this->isAlarmActive())
+    {
+        doc[HANGAR_STATE_KEY] = HANGAR_ALARM_STATE;
+    }
+    else if (this->isPreAlarmActive())
+    {
+        doc[HANGAR_STATE_KEY] = HANGAR_PRE_ALARM_STATE;
+    }
+    else
+    {
+        doc[HANGAR_STATE_KEY] = HANGAR_NORMAL_STATE;
+    }
 
     doc[DRONE_STATE_KEY] = droneLabels[this->droneState];
 

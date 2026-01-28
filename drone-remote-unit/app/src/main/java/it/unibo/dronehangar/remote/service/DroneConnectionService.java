@@ -49,6 +49,27 @@ public final class DroneConnectionService {
     /** Polling timeout for serial messages (ms). */
     private static final long POLL_TIMEOUT_MS = 200;
 
+    /**
+     * Timeout for data freshness (ms). If no data is received within this period,
+     * fields are cleared.
+     */
+    private static final long DATA_FRESHNESS_TIMEOUT_MS = 3000;
+
+    /** JSON key for drone data. */
+    private static final String DRONE_KEY = "drone";
+
+    /** JSON key for drone state. */
+    private static final String DRONE_STATE_KEY = "drone_state";
+
+    /** JSON key for distance. */
+    private static final String DISTANCE_KEY = "distance";
+
+    /** JSON key for hangar data. */
+    private static final String HANGAR_KEY = "hangar";
+
+    /** JSON key for hangar state. */
+    private static final String HANGAR_STATE_KEY = "hangar_state";
+
     private final CommChannel channel;
 
     @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "ViewUpdater reference is intentionally stored for UI updates")
@@ -67,6 +88,11 @@ public final class DroneConnectionService {
 
     /** Optional callback for propagating errors to the UI. */
     private Consumer<String> errorCallback;
+
+    /* Timestamps for checking data freshness. */
+    private volatile long lastDroneStateTimestamp;
+    private volatile long lastHangarStateTimestamp;
+    private volatile long lastDistanceTimestamp;
 
     /**
      * Creates a new {@code DroneConnectionService}.
@@ -246,6 +272,10 @@ public final class DroneConnectionService {
 
     private void startListenerLoop() {
         running.set(true);
+        final long now = System.currentTimeMillis();
+        lastDroneStateTimestamp = now;
+        lastHangarStateTimestamp = now;
+        lastDistanceTimestamp = now;
 
         listenerExecutor.execute(() -> {
             LOGGER.info("Listener thread started");
@@ -256,17 +286,42 @@ public final class DroneConnectionService {
                     if (msg != null) {
                         handleMessage(msg);
                     }
+                    checkDataFreshness();
                 }
             } catch (IllegalStateException | IllegalArgumentException e) {
                 LOGGER.error("Listener error", e);
             } finally {
                 running.set(false);
                 channel.close();
-                updateConnectionState(ConnectionState.DISCONNECTED);
+                Platform.runLater(() -> {
+                    viewModel.setConnectionStatus(ConnectionState.DISCONNECTED.name());
+                    viewModel.setDroneState("--");
+                    viewModel.setHangarState("--");
+                    viewModel.setDistance("--");
+                });
                 LOGGER.info("Listener thread stopped");
             }
         });
 
+    }
+
+    private void checkDataFreshness() {
+        final long now = System.currentTimeMillis();
+
+        if (now - lastDistanceTimestamp > DATA_FRESHNESS_TIMEOUT_MS) {
+            lastDistanceTimestamp = now; // Reset timer to avoid repeated clears
+            Platform.runLater(() -> viewModel.setDistance("--"));
+        }
+
+        if (now - lastDroneStateTimestamp > DATA_FRESHNESS_TIMEOUT_MS) {
+            lastDroneStateTimestamp = now; // Reset timer to avoid repeated clears
+            Platform.runLater(() -> viewModel.setDroneState("--"));
+        }
+
+        if (now - lastHangarStateTimestamp > DATA_FRESHNESS_TIMEOUT_MS) {
+            lastHangarStateTimestamp = now; // Reset timer to avoid repeated clears
+            Platform.runLater(() -> viewModel.setHangarState("--"));
+        }
     }
 
     /* ===================================================================== */
@@ -274,30 +329,39 @@ public final class DroneConnectionService {
     /* ===================================================================== */
 
     private void handleMessage(final String msg) {
-        // TODO: remove
-        LOGGER.info("ARDUINO MSG: {}", msg);
         try {
             final JsonObject json = gson.fromJson(msg, JsonObject.class);
 
+            final long now = System.currentTimeMillis();
+            if (json.has(DRONE_KEY) || json.has(DRONE_STATE_KEY)) {
+                lastDroneStateTimestamp = now;
+            }
+            if (json.has(DISTANCE_KEY)) {
+                lastDistanceTimestamp = now;
+            }
+            if (json.has(HANGAR_KEY) || json.has(HANGAR_STATE_KEY)) {
+                lastHangarStateTimestamp = now;
+            }
+
             Platform.runLater(() -> {
-                if (json.has("drone")) {
+                if (json.has(DRONE_KEY)) {
                     viewModel.setDroneState(
-                            json.get("drone").getAsString().toUpperCase(Locale.ROOT));
-                } else if (json.has("drone_state")) {
+                            json.get(DRONE_KEY).getAsString().toUpperCase(Locale.ROOT));
+                } else if (json.has(DRONE_STATE_KEY)) {
                     viewModel.setDroneState(
-                            json.get("drone_state").getAsString().toUpperCase(Locale.ROOT));
+                            json.get(DRONE_STATE_KEY).getAsString().toUpperCase(Locale.ROOT));
                 }
 
-                if (json.has("distance")) {
+                if (json.has(DISTANCE_KEY)) {
                     viewModel.setDistance(
-                            String.valueOf(json.get("distance").getAsFloat()));
+                            String.valueOf(json.get(DISTANCE_KEY).getAsFloat()));
                 }
 
-                if (json.has("hangar")) {
+                if (json.has(HANGAR_KEY)) {
                     viewModel.setHangarState(
-                            json.get("hangar").getAsString().toUpperCase(Locale.ROOT));
-                } else if (json.has("hangar_state")) {
-                    final boolean alarm = json.get("hangar_state").getAsBoolean();
+                            json.get(HANGAR_KEY).getAsString().toUpperCase(Locale.ROOT));
+                } else if (json.has(HANGAR_STATE_KEY)) {
+                    final boolean alarm = json.get(HANGAR_STATE_KEY).getAsBoolean();
                     viewModel.setHangarState(alarm ? "ALARM" : "NORMAL");
                 }
             });

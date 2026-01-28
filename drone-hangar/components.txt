@@ -1,7 +1,0 @@
-DRONE PRESENCE DETECTOR (DPD) is a PIR, to detect the presence of a drone near (on top) of the hangar.
-DRONE DISTANCE DETECTOR (DDD) is a sonar, to measure the distance of the drone when it is inside the hangar.
-HANGAR DOOR (HD) is a servo-motor, controlling the hangar door.
-OPERATOR LCD is a I2C LCD, used to interact with an operator.
-L1 and L2 are green leds, L3 is a red led.
-RESET is a tactile button.
-TEMP is an analog temperature sensor.

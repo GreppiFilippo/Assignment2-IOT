@@ -93,6 +93,10 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
     @Override
     public void setDroneState(final String state) {
         Objects.requireNonNull(state);
+        if ("--".equals(state)) {
+            this.droneState = Optional.empty();
+            return;
+        }
         if (state.isBlank()) {
             throw new IllegalArgumentException(STATE_BLANK_ERROR);
         }
@@ -112,6 +116,10 @@ public final class DroneRemoteUnitModelImpl implements DroneRemoteUnitModel {
     @Override
     public void setHangarState(final String state) {
         Objects.requireNonNull(state);
+        if ("--".equals(state)) {
+            this.hangarState = Optional.empty();
+            return;
+        }
         if (state.isBlank()) {
             throw new IllegalArgumentException(STATE_BLANK_ERROR);
         }

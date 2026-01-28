@@ -66,7 +66,11 @@ public final class DroneRemoteUnitViewModel implements DroneRemoteUnitViewUpdate
      */
     @Override
     public void setDistance(final String dist) {
-        model.setDistance(Float.parseFloat(dist));
+        try {
+            model.setDistance(Float.parseFloat(dist));
+        } catch (final NumberFormatException e) {
+            model.setDistance(-1);
+        }
         distance.set(dist);
     }
 

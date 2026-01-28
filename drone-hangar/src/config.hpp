@@ -72,8 +72,9 @@
 /* ===== Hangar state definitions ===== */
 #define HANGAR_STATE_KEY "hangar"  // Key for hangar state in messages
 // Hangar state values
-#define HANGAR_NORMAL_STATE "normal"  // Hangar in normal state
-#define HANGAR_ALARM_STATE "alarm"    // Hangar in alarm state
+#define HANGAR_NORMAL_STATE "normal"        // Hangar in normal state
+#define HANGAR_ALARM_STATE "alarm"          // Hangar in alarm state
+#define HANGAR_PRE_ALARM_STATE "pre_alarm"  // Hangar in pre-alarm state
 
 /* ===== Command definitions ===== */
 #define COMMAND "cmd"  // Command key in messages
