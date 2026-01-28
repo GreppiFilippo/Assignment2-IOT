@@ -12,7 +12,6 @@
 #define HD_PIN 11     // Drone Hangar door pin - servo motor
 #define DDD_PIN_E 12  // Drone Distance Detector echo pin - ultrasonic sensor
 #define DDD_PIN_T 13  // Drone Distance Detector trigger pin - ultrasonic sensor
-#define TEMP_PIN A0   // Temperature sensor pin TMP36 - analog input
 
 #define LCD_ADR 0x27
 #define LCD_COL 20
