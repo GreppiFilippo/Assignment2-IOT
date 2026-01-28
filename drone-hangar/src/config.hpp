@@ -45,8 +45,7 @@
 
 /* ===== Command TTL (milliseconds) ===== */
 #define CONFIG_CMD_TTL_MS 5000  // Commands older than this are dropped from queue
-
-#define BAUD_RATE 115200  // Serial communication baud rate
+#define BAUD_RATE 115200        // Serial communication baud rate
 
 /* ===== LCD message definitions ===== */
 #define LCD_REST_STATE "DRONE INSIDE"    // Drone is inside hangar and at rest
@@ -61,6 +60,7 @@
 
 #define JSON_OUT_SIZE 128  // Size of the JSON document for output messages
 #define JSON_IN_SIZE 96    // Size of the JSON document for input messages
+
 /* ===== Drone state definitions serial ===== */
 #define DRONE_STATE_KEY "drone"  // Key for drone state in messages
 // Drone state values
