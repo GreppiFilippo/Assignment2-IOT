@@ -69,11 +69,11 @@ void setup()
     pDistanceTask->init(DISTANCE_TASK_PERIOD);
 
     /* ======== Registrazione Task nello Scheduler ======== */
+    sched.addTask(pDroneTask);
     sched.addTask(pHangarTask);
     sched.addTask(pBlinkingTask);
     sched.addTask(pDoorControlTask);
     sched.addTask(pDistanceTask);
-    sched.addTask(pDroneTask);
     sched.addTask(pLcdTask);
     sched.addTask(pMSGTask);
     Logger.log(F(":::::: Drone Hangar Ready ::::::"));

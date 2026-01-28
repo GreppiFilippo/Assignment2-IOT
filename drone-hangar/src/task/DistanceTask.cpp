@@ -14,9 +14,6 @@ DistanceTask::DistanceTask(ProximitySensor* sonarSensor, Context* pContext)
 
 void DistanceTask::tick()
 {
-    Logger.log("DT checks");
-    Logger.log((String(pContext->takeoffCheckRequested())));
-    Logger.log((String(pContext->landingCheckRequested())));
     switch (state)
     {
         case IDLE:
