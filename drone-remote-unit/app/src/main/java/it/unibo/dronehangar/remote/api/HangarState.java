@@ -8,5 +8,6 @@ public enum HangarState {
     NORMAL,
     /** Hangar in alarm state (attention required). */
     ALARM,
+    /** Hangar in pre-alarm state (warning). */
     PRE_ALARM
 }
