@@ -14,6 +14,9 @@ DistanceTask::DistanceTask(ProximitySensor* sonarSensor, Context* pContext)
 
 void DistanceTask::tick()
 {
+    Logger.log("DT checks");
+    Logger.log((String(pContext->takeoffCheckRequested())));
+    Logger.log((String(pContext->landingCheckRequested())));
     switch (state)
     {
         case IDLE:
@@ -43,6 +46,9 @@ void DistanceTask::tick()
             {
                 setState(LANDING_WAITING);
             }
+            if (!pContext->landingCheckRequested()){
+                setState(IDLE);
+            }
             break;
 
         case LANDING_WAITING:
@@ -56,7 +62,8 @@ void DistanceTask::tick()
             {
                 setState(LANDING_MONITORING);
             }
-            if (this->elapsedTimeInState() > TIME2)
+            
+            if (this->elapsedTimeInState() > TIME2 || !pContext->landingCheckRequested())
             {
                 this->pContext->setDroneIn(true);
                 this->pContext->closeLandingCheck();
@@ -75,6 +82,9 @@ void DistanceTask::tick()
             {
                 setState(TAKEOFF_WAITING);
             }
+            if (!pContext->takeoffCheckRequested()){
+                setState(IDLE);
+            }
             break;
 
         case TAKEOFF_WAITING:
@@ -88,7 +98,7 @@ void DistanceTask::tick()
             {
                 setState(TAKEOFF_MONITORING);
             }
-            if (this->elapsedTimeInState() > TIME1)
+            if (this->elapsedTimeInState() > TIME1 || !pContext->takeoffCheckRequested())
             {
                 this->pContext->setDroneIn(false);
                 this->pContext->closeTakeoffCheck();

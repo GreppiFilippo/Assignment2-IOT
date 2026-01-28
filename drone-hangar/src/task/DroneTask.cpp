@@ -94,7 +94,7 @@ void DroneTask::tick()
 
             if (pContext->isAlarmActive() && !pContext->isDroneIn())
             {
-                pContext->closeTakeoffCheck();
+                pContext->closeLandingCheck();
                 setState(OPERATING);
             }
             else if (pContext->isDroneIn())
