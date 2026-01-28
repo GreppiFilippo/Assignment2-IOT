@@ -47,7 +47,6 @@ class Context
 
     // --- SENSORS ---
     float currentDistance;    /**< Distance detected by sonar sensor */
-    float currentTemperature; /**< Temperature detected by environmental sensor */
 
     // --- LCD BUFFER ---
     char lcdMessage[LCD_BUFFER_SIZE]; /**< Buffer for the text displayed on the LCD */
@@ -67,7 +66,6 @@ class Context
     int8_t commandTail;
     int8_t commandCount;
     int8_t droneState;
-    int8_t hangarState;
 
     // --- COMMAND TABLE ---
     static const CommandEntry commandTable[];
@@ -103,8 +101,6 @@ class Context
     bool isPreAlarmActive() const;
     void setPir(bool active);
     bool isPirActive() const;
-    void setHangarState(int s);
-    int getHangarState() const;
     ///@}
 
     /** @name Visual Feedback */
@@ -119,9 +115,6 @@ class Context
     /** @name Drone & Sensor Management */
     ///@{
     void setDistance(float d);
-    float getDistance() const;
-    void setTemperature(float t);
-    float getTemperature() const;
     void setDroneIn(bool state);
     bool isDroneIn() const;
     void requestLandingCheck();

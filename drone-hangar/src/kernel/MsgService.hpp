@@ -12,7 +12,6 @@ class Msg
 
    public:
     Msg() : content("") {}
-    // Usiamo il passaggio per referenza per evitare copie inutili
     void setContent(const char* c) { content = c; }
     const String& getContent() const { return content; }
 };

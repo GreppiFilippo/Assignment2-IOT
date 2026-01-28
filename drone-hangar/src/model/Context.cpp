@@ -24,12 +24,10 @@ Context::Context()
       droneIn(true),
       pirActive(false),
       currentDistance(0.0f),
-      currentTemperature(0.0f),
       commandHead(0),
       commandTail(0),
       commandCount(0),
-      droneState(0),
-      hangarState(0)
+      droneState(0)
 {
     lcdMessage[0] = '\0';
 }
@@ -84,10 +82,6 @@ const char* Context::getLCDMessage() const { return lcdMessage; }
 
 // === DRONE & SENSORS ===
 void Context::setDistance(float d) { currentDistance = d; }
-float Context::getDistance() const { return currentDistance; }
-void Context::setTemperature(float t) { currentTemperature = t; }
-float Context::getTemperature() const { return currentTemperature; }
-
 void Context::setDroneIn(bool state) { droneIn = state; }
 bool Context::isDroneIn() const { return droneIn; }
 void Context::requestLandingCheck() { landingCheck = true; }
@@ -99,8 +93,6 @@ bool Context::takeoffCheckRequested() const { return takeoffCheck; }
 
 void Context::setDroneState(int s) { droneState = (int8_t)s; }
 int Context::getDroneState() const { return (int)droneState; }
-void Context::setHangarState(int s) { hangarState = (int8_t)s; }
-int Context::getHangarState() const { return (int)hangarState; }
 
 // === COMMAND QUEUE ===
 bool Context::enqueueCommand(CommandType cmd, uint16_t now)
@@ -189,7 +181,7 @@ void Context::serializeData(JsonDocument& doc) const
 
     doc[DRONE_STATE_KEY] = droneLabels[this->droneState];
 
-    if (this->getDistance() > 0.0f)
+    if (this->currentDistance > 0.0f)
     {
         doc[DISTANCE_KEY] = this->currentDistance;
     }

@@ -20,7 +20,6 @@ class HangarTask : public Task
     uint32_t stateTimestamp;
     bool justEntered;
     float temperature;
-    uint32_t startTime;
 
     enum State
     {

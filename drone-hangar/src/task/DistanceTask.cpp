@@ -39,7 +39,6 @@ void DistanceTask::tick()
             }
             distance = sonarSensor->getDistance();
             this->pContext->setDistance(distance);
-
             if (distance <= D2)
             {
                 setState(LANDING_WAITING);
@@ -53,7 +52,6 @@ void DistanceTask::tick()
             }
             distance = sonarSensor->getDistance();
             this->pContext->setDistance(distance);
-
             if (distance > D2)
             {
                 setState(LANDING_MONITORING);
@@ -73,7 +71,6 @@ void DistanceTask::tick()
             }
             distance = sonarSensor->getDistance();
             this->pContext->setDistance(distance);
-
             if (distance >= D1)
             {
                 setState(TAKEOFF_WAITING);
@@ -87,8 +84,7 @@ void DistanceTask::tick()
             }
             distance = sonarSensor->getDistance();
             this->pContext->setDistance(distance);
-
-            if (distance < D2)
+            if (distance < D1)
             {
                 setState(TAKEOFF_MONITORING);
             }

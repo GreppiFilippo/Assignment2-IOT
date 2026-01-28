@@ -10,21 +10,17 @@ HangarTask::HangarTask(TempSensor* tempSensor, Button* resetButton, Light* L3, C
 
 void HangarTask::tick()
 {
-    this->temperature = tempSensor->getTemperature();
-    this->pContext->setTemperature(this->temperature);
-
     switch (state)
     {
         case NORMAL:
             if (checkAndSetJustEntered())
             {
-                pContext->setHangarState(NORMAL);  // TODO: whatch out for NORMAL value not in
-                                                   // normal
                 pContext->setPreAlarm(false);
                 pContext->setAlarm(false);
                 L3->switchOff();
                 Logger.log(F("[HT] NORMAL"));
             }
+            this->temperature = tempSensor->getTemperature();
             if (temperature >= TEMP1)
                 setState(TRACKING_PRE_ALARM);
             break;
@@ -32,23 +28,22 @@ void HangarTask::tick()
         case TRACKING_PRE_ALARM:
             if (checkAndSetJustEntered())
             {
-                pContext->setHangarState(NORMAL);
-                startTime = millis();
                 Logger.log(F("[HT] TRACKING PRE-ALARM"));
             }
+            this->temperature = tempSensor->getTemperature();
             if (temperature < TEMP1)
                 setState(NORMAL);
-            else if (millis() - startTime >= TIME3)
+            else if (elapsedTimeInState() >= TIME3)
                 setState(PREALARM);
             break;
 
         case PREALARM:
             if (checkAndSetJustEntered())
             {
-                pContext->setHangarState(NORMAL);
                 pContext->setPreAlarm(true);
                 Logger.log(F("[HT] PREALARM ACTIVE"));
             }
+            this->temperature = tempSensor->getTemperature();
             if (temperature < TEMP1)
                 setState(NORMAL);
             else if (temperature >= TEMP2)
@@ -58,23 +53,22 @@ void HangarTask::tick()
         case TRACKING_ALARM:
             if (checkAndSetJustEntered())
             {
-                pContext->setHangarState(NORMAL);
-                startTime = millis();
                 Logger.log(F("[HT] TRACKING ALARM"));
             }
+            this->temperature = tempSensor->getTemperature();
             if (temperature < TEMP2)
                 setState(PREALARM);
-            else if (millis() - startTime >= TIME4)
+            else if (elapsedTimeInState() >= TIME4)
                 setState(ALARM);
             break;
 
         case ALARM:
             if (checkAndSetJustEntered())
             {
-                pContext->setHangarState(ALARM);
                 pContext->setPreAlarm(false);
                 pContext->setAlarm(true);
                 L3->switchOn();
+                pContext->setLCDMessage(LCD_ALARM_STATE);
                 Logger.log(F("[HT] ALARM"));
             }
             if (resetButton->isPressed())
