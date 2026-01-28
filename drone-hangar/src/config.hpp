@@ -37,8 +37,8 @@
 #define L2_BLINK_PERIOD 500  // L2 blinks with period 0.5 second during take-off/landing
 
 // Temperature thresholds (Celsius)
-#define TEMP1 30  // Pre-alarm temperature threshold
-#define TEMP2 40  // Alarm temperature threshold
+#define TEMP1 27  // Pre-alarm temperature threshold
+#define TEMP2 30  // Alarm temperature threshold
 
 /* ===== Message update period ===== */
 #define JSON_UPDATE_PERIOD_MS 500  // Send JSON state update every 500ms
