@@ -32,7 +32,7 @@
 #define TIME4 5000  // Time to enter alarm state (5 seconds)
 
 /* ===== TASK PERIODS ===== */
-#define L2_BLINK_PERIOD 500 
+#define L2_BLINK_PERIOD 500
 #define BASE_PERIOD_MS 50
 #define DRONE_TASK_PERIOD 50
 #define DOOR_CONTROL_TASK_PERIOD 50

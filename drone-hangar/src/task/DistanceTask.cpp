@@ -43,7 +43,8 @@ void DistanceTask::tick()
             {
                 setState(LANDING_WAITING);
             }
-            if (!pContext->landingCheckRequested()){
+            if (!pContext->landingCheckRequested())
+            {
                 setState(IDLE);
             }
             break;
@@ -59,7 +60,7 @@ void DistanceTask::tick()
             {
                 setState(LANDING_MONITORING);
             }
-            
+
             if (this->elapsedTimeInState() > TIME2 || !pContext->landingCheckRequested())
             {
                 this->pContext->setDroneIn(true);
@@ -79,7 +80,8 @@ void DistanceTask::tick()
             {
                 setState(TAKEOFF_WAITING);
             }
-            if (!pContext->takeoffCheckRequested()){
+            if (!pContext->takeoffCheckRequested())
+            {
                 setState(IDLE);
             }
             break;

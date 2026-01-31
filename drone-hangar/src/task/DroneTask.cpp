@@ -26,11 +26,11 @@ void DroneTask::tick()
                 Logger.log(F("[Drone] REST"));
             }
 
-            if(!pContext->isAlarmActive())
+            if (!pContext->isAlarmActive())
             {
                 pContext->setLCDMessage(LCD_REST_STATE);
             }
-            
+
             if (pContext->consumeCommand(CommandType::OPEN) &&
                 !(pContext->isPreAlarmActive() || pContext->isAlarmActive()))
             {
@@ -69,7 +69,8 @@ void DroneTask::tick()
                 Logger.log(F("[Drone] OPERATING"));
             }
 
-            if(!pContext->isAlarmActive()) {
+            if (!pContext->isAlarmActive())
+            {
                 pContext->setLCDMessage(LCD_OPERATING_STATE);
             }
 

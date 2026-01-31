@@ -46,7 +46,7 @@ class Context
     uint16_t pirActive : 1;          /**< PIR sensor detection state */
 
     // --- SENSORS ---
-    float currentDistance;    /**< Distance detected by sonar sensor */
+    float currentDistance; /**< Distance detected by sonar sensor */
 
     // --- LCD BUFFER ---
     char lcdMessage[LCD_BUFFER_SIZE]; /**< Buffer for the text displayed on the LCD */
