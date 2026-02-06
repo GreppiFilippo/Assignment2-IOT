@@ -93,11 +93,14 @@ void setup() {
 void loop() {
   sched.schedule();
 #ifdef _MEMORY_DEBUG_
-  // Memory heartbeat every 5 seconds
-  if (millis() - lastMemCheck > 5000) {
-    lastMemCheck = millis();
-    Serial.print(F("[DEBUG] RAM libera: "));
-    Serial.print(freeMemory());
-    Serial.println(F(" bytes"));
+  {
+    // Memory heartbeat every 5 seconds
+    if (millis() - lastMemCheck > 5000) {
+      lastMemCheck = millis();
+      Serial.print(F("[DEBUG] RAM libera: "));
+      Serial.print(freeMemory());
+      Serial.println(F(" bytes"));
+    }
   }
-#endif }
+#endif
+}
