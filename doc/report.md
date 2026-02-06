@@ -2,7 +2,7 @@
 This document describes the design and implementation of the Smart Drone Hangar system developed for Assignment #02 of the Internet of Things course at the University of Bologna.
 
 ## System schema
-![layout](assignment-02-sketch.png)
+![layout](assignment-02-schema.png)
 
 
 ## Video demo
