@@ -1,1 +1,0 @@
-[servo library](https://docs.arduino.cc/libraries/servo/)

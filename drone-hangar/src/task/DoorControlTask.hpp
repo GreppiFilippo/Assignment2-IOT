@@ -9,16 +9,6 @@
 
 /**
  * Task responsible for controlling the hangar door using a servo motor.
- *
- * State machine:
- * - CLOSED: Door is fully closed, waiting for open request
- * - OPENING: Door is gradually opening over DOOR_OPERATION_TIME ms
- * - OPEN: Door is fully open, waiting for close request or alarm
- * - CLOSING: Door is gradually closing over DOOR_OPERATION_TIME ms
- *
- * The door opens when Context::isOpenDoorRequested() is true
- * The door closes when Context::isCloseDoorRequested() is true or on alarm
- * Updates Context door state (OPEN/CLOSED) when fully opened/closed
  */
 class DoorControlTask : public Task
 {

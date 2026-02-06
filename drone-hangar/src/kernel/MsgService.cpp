@@ -1,6 +1,8 @@
 #include "MsgService.hpp"
 
-static char serialBuffer[128];
+#include "config.hpp"
+
+static char serialBuffer[max(JSON_OUT_SIZE, JSON_IN_SIZE)];
 static size_t serialBufferIndex = 0;
 
 MsgServiceClass MsgService;
