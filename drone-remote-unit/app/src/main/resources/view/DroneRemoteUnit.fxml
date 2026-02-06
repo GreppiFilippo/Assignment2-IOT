@@ -136,7 +136,7 @@
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Label>
-                              <Label accessibleHelp="Shows the current distance of the drone from the ground." accessibleText="Distance to ground: -- centimeters" focusTraversable="true" prefHeight="18.0" prefWidth="23.0" styleClass="label-value, label-info" text="cm">
+                              <Label accessibleHelp="Shows the current distance of the drone from the ground." accessibleText="Distance to ground: -- centimeters" focusTraversable="true" prefHeight="18.0" prefWidth="23.0" styleClass="label-value, label-info" text="m">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>

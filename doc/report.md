@@ -1,5 +1,5 @@
 # Report Assignment #02 – *Smart Drone Hangar*
-This document describes the design and implementation of the Smart Drone Hangar system developed for Assignment #02 of the Internet of Things course at the University of Bologna.
+This document describes the design and implementation of the Smart Drone Hangar system developed for Assignment #02 of the Embedded Systems and Internet of Things course at the University of Bologna.
 
 ## System schema
 ![layout](assignment-02-schema.png)
@@ -70,7 +70,7 @@ The system follows a **distributed architecture** with two communicating subsyst
 
 The two subsystems communicate via **serial line** using JSON messages:
 
-- **Commands**: PC → Arduino (e.g., `{"cmd": "OPEN"}`)
+- **Commands**: PC → Arduino (e.g., `{"cmd": "open"}`)
 - **State Updates**: Arduino → PC (periodic, every 500ms)
   - Drone state (rest, taking_off, operating, landing)
   - Hangar state (normal, pre_alarm, alarm)
@@ -96,13 +96,6 @@ The two subsystems communicate via **serial line** using JSON messages:
 | **TEMP** | TMP36 | A0 | Temperature sensor (analog) |
 | **LCD** | I2C Display | I2C (0x27) | 20x4 character display |
 
-### 3.2 Hardware Specifications
-
-- **LCD**: 20 columns × 4 rows, I2C address 0x27
-- **Servo Motor**: 0°-180° range, door fully open at 180°
-- **Temperature Sensor**: TMP36 analog sensor
-- **Sonar**: HC-SR04 ultrasonic sensor (range: 2cm - 400cm)
-- **PIR Sensor**: Passive infrared motion detector
 
 ---
 
@@ -177,10 +170,7 @@ They interact by using the Context, which holds all the shared variables
 ### 5.2 Scheduler Details
 
 - **Base Period**: 50ms
-- **Scheduling Policy**: Cooperative (non-preemptive)
 - **Task Execution**: Each task's `tick()` method called at its period
-- **Memory Management**: Static allocation for predictability
-- **WCET Analysis**: Built-in worst-case execution time monitoring
 
 ---
 
@@ -221,7 +211,7 @@ All messages use **JSON format** for clarity and extensibility.
 **Open Door Command**:
 ```json
 {
-  "cmd": "OPEN"
+  "cmd": "open"
 }
 ```
 
@@ -232,7 +222,7 @@ All messages use **JSON format** for clarity and extensibility.
 {
   "drone": "rest",           // "rest" | "taking_off" | "operating" | "landing"
   "hangar": "normal",        // "normal" | "pre_alarm" | "alarm"
-  "distance": 15.4,          // Current distance in cm
+  "distance": 0.154,          // Current distance in m
   "temperature": 25.3,       // Current temperature in °C
   "alive": true              // Heartbeat indicator
 }
@@ -246,31 +236,5 @@ All messages use **JSON format** for clarity and extensibility.
 - **Validation**: Commands ignored during alarm state
 
 ---
-
-## 8. Testing
-
-### 8.1 Hardware Testing Mode
-
-The system includes a dedicated `TestHWTask` for component validation:
-
-- **Activation**: Define `__TESTING_HW__` in `main.cpp`
-- **Tests**:
-  - LED functionality (L1, L2, L3)
-  - Button input (RESET)
-  - LCD display
-  - Servo motor range
-  - PIR sensor detection
-  - Sonar distance measurement
-  - Temperature sensor readings
-
-
-
-### 8.2 Memory Monitoring
-
-Debug mode tracks free RAM:
-
-- **Activation**: Define `_MEMORY_DEBUG_`
-- **Reporting**: Every 5 seconds
-- **Purpose**: Detect memory leaks
 
 **End of Report**
