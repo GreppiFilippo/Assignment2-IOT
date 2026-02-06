@@ -1,5 +1,5 @@
 # Report Assignment #02 – *Smart Drone Hangar*
-This document describes the design and implementation of the Smart Drone Hangar system developed for Assignment #02 of the Embedded Systems and Internet of Things course at the University of Bologna.
+This document describes the design and implementation of the *Smart Drone Hangar system developed for Assignment #02* of the Embedded Systems and Internet of Things course at the University of Bologna.
 
 ## System schema
 ![layout](assignment-02-schema.png)
@@ -125,27 +125,51 @@ The Arduino subsystem is built using **PlatformIO** and implements:
 
 ### 4.2 PC Platform (Java)
 
-The Java subsystem follows **MVC pattern**:
+The Java subsystem is built using **JavaFX** and follows a **layered architecture** with clear separation of concerns:
 
-- **Model** (`DroneRemoteUnitModelImpl`):
-  - Manages connection state
-  - Parses incoming JSON messages
-  - Maintains drone/hangar state
+#### **Architecture Layers**
 
-- **View** (GUI):
-  - Control buttons (Take-off, Land)
-  - State displays (drone state, hangar state)
-  - Distance visualization
+1. **Model Layer** (`DroneRemoteUnitModelImpl`):
+   - Pure domain model without UI dependencies
+   - Thread-safe state management using `volatile` and `Optional`
+   - Stores: drone state, hangar state, distance, connection state
+   - Validates state transitions using enumerations
+   - Provides immutable access to available commands
 
-- **Controller** (`DroneRemoteUnitControllerImpl`):
-  - Handles user interactions
-  - Sends commands to Arduino
-  - Updates view based on model changes
+2. **ViewModel Layer** (`DroneRemoteUnitViewModel`):
+   - Bridges the pure Model and JavaFX View
+   - Contains JavaFX `ReadOnlyStringProperty` for UI data binding
+   - Implements `DroneRemoteUnitViewUpdater` interface for service updates
+   - Synchronizes Model state with View properties
+   - Must be updated from JavaFX Application Thread
 
-- **Communication** (`JSSCCommChannel`):
-  - JSSC library for serial communication
-  - JSON serialization/deserialization
-  - Background service for message polling
+3. **View Layer** (FXML + Controller):
+   - **FXML**: `DroneRemoteUnit.fxml` defines UI layout
+   - **Controller** (`DroneRemoteUnitControllerImpl`):
+     - Handles user interactions (button clicks, port selection)
+     - Binds UI components to ViewModel properties
+     - Delegates commands to `DroneConnectionService`
+     - Creates command buttons dynamically from Model
+     - Displays error messages and connection status
+
+4. **Service Layer** (`DroneConnectionService`):
+   - Manages serial connection lifecycle (connect, disconnect, shutdown)
+   - **Two dedicated ExecutorService threads**:
+     - `connectionExecutor`: handles connection/command operations
+     - `listenerExecutor`: runs continuous message polling loop
+   - Parses incoming JSON messages using Gson
+   - Updates ViewModel via Platform.runLater() for thread-safety
+   - Implements data freshness checking (clears stale data after timeout)
+   - Waits for "alive" message during connection handshake
+
+5. **Communication Layer** (`JSSCCommChannel`):
+   - Serial communication using **JSSC library** (Java Simple Serial Connector)
+   - Line-based protocol: messages delimited by `\n`
+   - **Event-driven reception**: implements `SerialPortEventListener`
+   - Internal `BlockingQueue` for received messages
+   - Character buffer for assembling multi-chunk messages
+   - Thread-safe port operations with synchronized access
+   - Supports baud rate configuration (9600-115200)
 
 ---
 
