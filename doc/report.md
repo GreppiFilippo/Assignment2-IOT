@@ -15,7 +15,6 @@ You can find the video demo [here](./video.md).
 - Student ID: 0001114837
  
 **Marcello Spagnoli**  
-<<<<<<< HEAD
 - Email: <marcello.spagnoli2@studio.unibo.it>  
 - Student ID: 0001117244  
 
@@ -266,7 +265,7 @@ The system includes a dedicated `TestHWTask` for component validation:
 
 
 
-### 8.3 Memory Monitoring
+### 8.2 Memory Monitoring
 
 Debug mode tracks free RAM:
 
@@ -274,98 +273,4 @@ Debug mode tracks free RAM:
 - **Reporting**: Every 5 seconds
 - **Purpose**: Detect memory leaks
 
-### 8.4 Integration Testing
-
-**Test Scenarios**:
-
-1. **Normal Take-off/Landing Cycle**:
-   - Verify door opens on command
-   - Confirm distance detection triggers state changes
-   - Check LCD updates reflect correct states
-
-2. **Pre-Alarm Behavior**:
-   - Heat sensor to TEMP1
-   - Verify operations suspended
-   - Confirm return to normal when cooled
-
-3. **Critical Alarm**:
-   - Heat sensor to TEMP2
-   - Verify L3 LED activation
-   - Check door closes if open
-   - Test RESET button recovery
-
-4. **Serial Communication**:
-   - Send commands from PC GUI
-   - Verify Arduino response
-   - Check periodic state updates
-
-5. **Edge Cases**:
-   - Command during alarm (should be ignored)
-   - OPEN command when drone not detected by PIR
-   - Rapid temperature fluctuations
-
----
-
-## Appendix: File Structure
-
-### Arduino Project (drone-hangar)
-```
-src/
-├── config.hpp              # System configuration parameters
-├── main.cpp                # Entry point, scheduler setup
-├── devices/                # Hardware drivers
-│   ├── Button.hpp/ButtonImpl.cpp
-│   ├── Led.hpp/Led.cpp
-│   ├── LCD.hpp/LCD.cpp
-│   ├── Pir.hpp/Pir.cpp
-│   ├── Sonar.hpp/Sonar.cpp
-│   ├── ServoMotor.hpp/ServoMotorImpl.cpp
-│   └── TempSensor.hpp/TempSensorTMP36.cpp
-├── kernel/                 # Real-time kernel
-│   ├── Scheduler.hpp/Scheduler.cpp
-│   ├── Task.hpp
-│   ├── MsgService.hpp/MsgService.cpp
-│   └── Logger.hpp/Logger.cpp
-├── model/                  # Data model
-│   ├── Context.hpp/Context.cpp
-│   └── HWPlatform.hpp/HWPlatform.cpp
-└── task/                   # FSM-based tasks
-    ├── DroneTask.hpp/DroneTask.cpp
-    ├── HangarTask.hpp/HangarTask.cpp
-    ├── BlinkingTask.hpp/BlinkingTask.cpp
-    ├── DoorControlTask.hpp/DoorControlTask.cpp
-    ├── DistanceTask.hpp/DistanceTask.cpp
-    ├── LCDTask.hpp/LCDTask.cpp
-    └── MSGTask.hpp/MSGTask.cpp
-```
-
-### Java Project (drone-remote-unit)
-```
-src/main/java/it/unibo/dronehangar/remote/
-├── App.java                # Entry point
-├── api/                    # Interfaces
-│   ├── DroneRemoteUnitModel.java
-│   ├── DroneRemoteUnitController.java
-│   ├── DroneRemoteUnitViewUpdater.java
-│   ├── DroneState.java
-│   ├── HangarState.java
-│   └── CommChannel.java
-├── model/                  # Model implementation
-│   └── DroneRemoteUnitModelImpl.java
-├── controller/             # Controller implementation
-│   └── DroneRemoteUnitControllerImpl.java
-├── viewmodel/              # View model
-│   └── DroneRemoteUnitViewModel.java
-├── comm/                   # Communication layer
-│   └── JSSCCommChannel.java
-└── service/                # Background services
-    └── DroneConnectionService.java
-```
-
----
-
 **End of Report**
-=======
-- Email: <marcello.spagnoli2@studio.unibo.it>
-- Student ID: 0001117244
->>>>>>> 542521cca383ee4b2c407faddc511c2d82279f22
