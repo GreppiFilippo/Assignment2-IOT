@@ -30,7 +30,6 @@ unsigned long lastMemCheck = 0;
 #include "task/TestHWTask.hpp"
 #endif
 
-
 void setup()
 {
     /* ======== Inizializzazioni Kernel ======== */
@@ -40,7 +39,7 @@ void setup()
     /* ======== Hardware Platform ======== */
     pHWPlatform = new HWPlatform();
     pHWPlatform->init();
-    #ifndef __TESTING_HW__
+#ifndef __TESTING_HW__
     /* ======== Context (Il cuore dei dati) ======== */
     pContext = new Context();
     /* ======== Inizializzazione Task ======== */
