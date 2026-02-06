@@ -26,6 +26,10 @@ Context* pContext;
 #include "task/TestHWTask.hpp"
 #endif
 
+#ifdef _MEMORY_DEBUG_
+#include "MemoryFree.h"
+#endif
+
 void setup() {
   /* ======== Message Service ======== */
   MsgService.init(BAUD_RATE);
@@ -86,4 +90,14 @@ void setup() {
 #endif
 }
 
-void loop() { sched.schedule(); }
+void loop() {
+  sched.schedule();
+#ifdef _MEMORY_DEBUG_
+  // Memory heartbeat every 5 seconds
+  if (millis() - lastMemCheck > 5000) {
+    lastMemCheck = millis();
+    Serial.print(F("[DEBUG] RAM libera: "));
+    Serial.print(freeMemory());
+    Serial.println(F(" bytes"));
+  }
+#endif }
