@@ -20,20 +20,6 @@ You can find the video demo [here](./video.md).
 
 ---
 
-## Table of Contents
-
-1. [Introduction](#1-introduction)
-2. [System Architecture](#2-system-architecture)
-3. [Hardware Components](#3-hardware-components)
-4. [Software Architecture](#4-software-architecture)
-5. [Task-Based Implementation](#5-task-based-implementation)
-6. [Finite State Machines](#6-finite-state-machines)
-7. [Communication Protocol](#7-communication-protocol)
-8. [Testing](#8-testing)
-9. [Appendix: File Structure](#appendix-file-structure)
-
----
-
 ## 1. Introduction
 
 The **Smart Drone Hangar** is an embedded system designed to manage autonomous drone operations, including take-off, landing, and temperature monitoring. The system consists of two main subsystems:
