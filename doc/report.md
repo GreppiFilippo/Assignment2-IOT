@@ -79,29 +79,10 @@ The two subsystems communicate via **serial line** using JSON messages:
 
 ---
 
-## 3. Hardware Components
 
-### 3.1 Pin Configuration
+## 3. Software Architecture
 
-| Component | Type | Pin | Description |
-|-----------|------|-----|-------------|
-| **L1** | Green LED | 3 | Drone presence indicator |
-| **L2** | Green LED | 5 | Operation indicator (blinking) |
-| **L3** | Red LED | 7 | Alarm indicator |
-| **RESET** | Button | 8 | System reset (alarm clear) |
-| **DPD** | PIR Sensor | 2 | Drone Presence Detector |
-| **HD** | Servo Motor | 11 | Hangar Door controller |
-| **DDD Echo** | Sonar | 12 | Distance measurement (echo) |
-| **DDD Trigger** | Sonar | 13 | Distance measurement (trigger) |
-| **TEMP** | TMP36 | A0 | Temperature sensor (analog) |
-| **LCD** | I2C Display | I2C (0x27) | 20x4 character display |
-
-
----
-
-## 4. Software Architecture
-
-### 4.1 Arduino Platform
+### 3.1 Arduino Platform
 
 The Arduino subsystem is built using **PlatformIO** and implements:
 
@@ -123,7 +104,7 @@ The Arduino subsystem is built using **PlatformIO** and implements:
   - 7 concurrent tasks with different periods
   - FSM-based logic for state management
 
-### 4.2 PC Platform (Java)
+### 3.2 PC Platform (Java)
 
 The Java subsystem is built using **JavaFX** and follows a **layered architecture** with clear separation of concerns:
 
@@ -173,9 +154,9 @@ The Java subsystem is built using **JavaFX** and follows a **layered architectur
 
 ---
 
-## 5. Task-Based Implementation
+## 4. Task-Based Implementation
 
-### 5.1 Task Overview
+### 4.1 Task Overview
 
 The system implements **7 concurrent tasks** with cooperative scheduling:
 
@@ -191,46 +172,44 @@ The system implements **7 concurrent tasks** with cooperative scheduling:
 
 They interact by using the Context, which holds all the shared variables
 
-### 5.2 Scheduler Details
+### 4.2 Scheduler Details
 
 - **Base Period**: 50ms
 - **Task Execution**: Each task's `tick()` method called at its period
 
 ---
 
-## 6. Finite State Machines
+## 5. Finite State Machines
 
-### 6.1 DroneTask FSM
+### 5.1 DroneTask FSM
 
 ![DroneTask FSM](DroneTask.svg)
 
 
-### 6.2 HangarTask FSM
+### 5.2 HangarTask FSM
 
 ![HangarTask FSM](HangarTask.svg)
 
 
-### 6.3 DoorControlTask FSM
+### 5.3 DoorControlTask FSM
 
 ![DoorControlTask FSM](DoorControlTask.svg)
 
-### 6.4 DistanceTask FSM
-
+### 5.4 DistanceTask FSM
 ![DistanceTask FSM](DistanceTask.svg)
 
-### 6.5 BlinkingTask FSM
+### 5.5 BlinkingTask FSM
 
 ![BlinkingTask FSM](BlinkingTask.svg)
 
 ---
 
-## 7. Communication Protocol
-
-### 7.1 Message Format
+## 6. Communication Protocol
+### 6.1 Message Format
 
 All messages use **JSON format** for clarity and extensibility.
 
-### 7.2 Commands (PC → Arduino)
+### 6.2 Commands (PC → Arduino)
 
 **Open Door Command**:
 ```json
@@ -239,8 +218,7 @@ All messages use **JSON format** for clarity and extensibility.
 }
 ```
 
-### 7.3 State Updates (Arduino → PC)
-
+### 6.3 State Updates (Arduino → PC)
 **Periodic Status Message** (every 500ms):
 ```json
 {
@@ -252,7 +230,7 @@ All messages use **JSON format** for clarity and extensibility.
 }
 ```
 
-### 7.4 Command Handling
+### 6.4 Command Handling
 
 - **Queue-based**: Commands stored in Context queue
 - **TTL (Time-To-Live)**: Commands expire after 5000ms
