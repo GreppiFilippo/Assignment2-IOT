@@ -1,48 +1,28 @@
-name: Create assignment-02.zip and release
+name: Create assignment-02.zip
 
 on:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag name (e.g. v1.0.0). If empty, uses the pushed tag."
-        required: false
-        default: ""
-  push:
-    tags:
-      - "v*"
 
 jobs:
-  build-release:
+  zip:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Verify src and doc exist
+      - name: Verify required directories
         run: |
-          if [ ! -d drone-hangar ]; then echo "Directory drone-hangar not found"; exit 1; fi
-          if [ ! -d drone-remote-unit ]; then echo "Directory drone-remote-unit not found"; exit 1; fi
-          if [ ! -d doc ]; then echo "Directory doc not found"; exit 1; fi
+          test -d drone-hangar || (echo "Missing drone-hangar" && exit 1)
+          test -d drone-remote-unit || (echo "Missing drone-remote-unit" && exit 1)
+          test -d doc || (echo "Missing doc" && exit 1)
 
       - name: Create ZIP archive
         run: |
-          rm -f assignment-02.zip
-          zip -r assignment-02.zip drone-hangar drone-remote-unit doc 
+          zip -r assignment-02.zip drone-hangar drone-remote-unit doc
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          release_name: ${{ github.event.inputs.tag || github.ref_name }}
-          body: "Automatic release: assignment-02.zip"
-          draft: false
-          prerelease: false
-
-      - name: Upload ZIP as release asset
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./assignment-02.zip
-          asset_name: assignment-02.zip
-          asset_content_type: application/zip
+          name: assignment-02
+          path: assignment-02.zip
